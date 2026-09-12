@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-geist);
+  --color-ink: #0a0a09;
+  --color-graphite: #171714;
+  --color-charcoal: #24231f;
+  --color-limestone: #f5f3ee;
+  --color-paper: #fcfcfa;
+  --color-brass: #b68a45;
+  --color-brass-dark: #8b6734;
+  --color-stone: #77746c;
+  --color-line: #dedbd2;
+}
+
+:root {
+  color-scheme: light;
+  --background: #f5f3ee;
+  --foreground: #171714;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist), "Segoe UI Variable", "Segoe UI", sans-serif;
+}
+
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+
+:focus-visible {
+  outline: 2px solid #b68a45;
+  outline-offset: 3px;
+}
+
+::selection {
+  background: #b68a45;
+  color: #0a0a09;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

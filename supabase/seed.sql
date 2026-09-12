@@ -1,0 +1,1 @@
+-- Intentionally empty. Universal Pergola Phase 1 does not ship fake business data.
