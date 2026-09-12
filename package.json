@@ -13,7 +13,8 @@
     "db:start": "npx --yes supabase@2.117.0 start",
     "db:stop": "npx --yes supabase@2.117.0 stop",
     "db:reset": "npx --yes supabase@2.117.0 db reset",
-    "db:types": "npx --yes supabase@2.117.0 gen types typescript --local > src/types/database.generated.ts"
+    "db:types": "npx --yes supabase@2.117.0 gen types typescript --linked > src/lib/supabase/database.generated.ts",
+    "db:types:local": "npx --yes supabase@2.117.0 gen types typescript --local > src/lib/supabase/database.generated.ts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

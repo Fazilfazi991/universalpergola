@@ -56,9 +56,23 @@ test("Phase 2A migration statically contains the required access boundaries", ()
   assert.match(migration, /c\.is_active/);
   assert.match(migration, /c\.archived_at is null/);
   assert.match(migration, /set public = false/);
-  assert.match(migration, /i\.storage_path = name/);
-  assert.match(migration, /storage\.foldername\(name\)/);
+  assert.match(migration, /i\.storage_path = storage\.objects\.name/);
+  assert.match(migration, /storage\.foldername\(storage\.objects\.name\)/);
+  assert.doesNotMatch(migration, /(?:storage_path|image_storage_path) = name/);
   for (const eventName of ["category.created", "category.activated", "category.deactivated", "category.archived", "product.created", "product.published", "product.unpublished", "product.archived"]) assert.match(migration, new RegExp(eventName.replace(".", "\\.")));
+});
+
+test("hosted validation migration aligns required category and media limits", () => {
+  const migration = readFileSync(join(process.cwd(), "supabase", "migrations", "20260912202631_phase_2a_hosted_validation_fixes.sql"), "utf8");
+  assert.match(migration, /alter column category_id set not null/);
+  assert.match(migration, /file_size_limit = 10485760/);
+  assert.doesNotMatch(migration, /for all to authenticated/);
+});
+
+test("trusted administrative provisioning can execute the private profile guard", () => {
+  const migration = readFileSync(join(process.cwd(), "supabase", "migrations", "20260912203338_phase_2a_service_role_profile_guard.sql"), "utf8");
+  assert.match(migration, /grant usage on schema private to service_role/);
+  assert.match(migration, /grant execute on function private\.has_role\(public\.app_role\[\]\) to service_role/);
 });
 
 test("every catalogue mutation module invokes the management guard", () => {

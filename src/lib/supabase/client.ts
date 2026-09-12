@@ -3,8 +3,9 @@
 import { createBrowserClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabasePublicConfig } from "@/lib/supabase/env";
+import type { Database } from "@/lib/supabase/database.generated";
 
-let browserClient: SupabaseClient | undefined;
+let browserClient: SupabaseClient<Database> | undefined;
 
 export function createClient() {
   const config = getSupabasePublicConfig();
@@ -13,6 +14,6 @@ export function createClient() {
     throw new Error("Supabase is not configured. Add the public project settings to .env.local.");
   }
 
-  browserClient ??= createBrowserClient(config.url, config.publishableKey);
+  browserClient ??= createBrowserClient<Database>(config.url, config.publishableKey);
   return browserClient;
 }

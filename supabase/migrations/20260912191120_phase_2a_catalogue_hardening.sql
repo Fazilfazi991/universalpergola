@@ -163,7 +163,7 @@ using (
     from public.product_images i
     join public.products p on p.id = i.product_id
     join public.product_categories c on c.id = p.category_id
-    where i.storage_path = name
+    where i.storage_path = storage.objects.name
       and p.is_published
       and p.archived_at is null
       and c.is_active
@@ -183,11 +183,11 @@ on storage.objects for insert to authenticated
 with check (
   bucket_id = 'product-images'
   and private.has_role(array['admin'::public.app_role])
-  and (storage.foldername(name))[1] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-  and lower(name) ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(jpe?g|png|webp)$'
+  and (storage.foldername(storage.objects.name))[1] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+  and lower(storage.objects.name) ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(jpe?g|png|webp)$'
   and exists (
     select 1 from public.products p
-    where p.id::text = (storage.foldername(name))[1]
+    where p.id::text = (storage.foldername(storage.objects.name))[1]
   )
 );
 
@@ -200,7 +200,7 @@ using (
 with check (
   bucket_id = 'product-images'
   and private.has_role(array['admin'::public.app_role])
-  and lower(name) ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(jpe?g|png|webp)$'
+  and lower(storage.objects.name) ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(jpe?g|png|webp)$'
 );
 
 create policy "admin deletes product assets"
@@ -217,7 +217,7 @@ using (
   and exists (
     select 1
     from public.product_categories c
-    where c.image_storage_path = name
+    where c.image_storage_path = storage.objects.name
       and c.is_active
       and c.archived_at is null
   )
@@ -235,11 +235,11 @@ on storage.objects for insert to authenticated
 with check (
   bucket_id = 'category-images'
   and private.has_role(array['admin'::public.app_role])
-  and (storage.foldername(name))[1] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
-  and lower(name) ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(jpe?g|png|webp)$'
+  and (storage.foldername(storage.objects.name))[1] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+  and lower(storage.objects.name) ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(jpe?g|png|webp)$'
   and exists (
     select 1 from public.product_categories c
-    where c.id::text = (storage.foldername(name))[1]
+    where c.id::text = (storage.foldername(storage.objects.name))[1]
   )
 );
 
@@ -252,7 +252,7 @@ using (
 with check (
   bucket_id = 'category-images'
   and private.has_role(array['admin'::public.app_role])
-  and lower(name) ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(jpe?g|png|webp)$'
+  and lower(storage.objects.name) ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(jpe?g|png|webp)$'
 );
 
 create policy "admin deletes category assets"
