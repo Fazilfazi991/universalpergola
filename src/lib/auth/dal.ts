@@ -63,3 +63,17 @@ export async function requireModuleAccess(module: DashboardModule) {
 
   return profile;
 }
+
+export async function requireRole(allowedRoles: readonly AppRole[]) {
+  const profile = await requireCurrentProfile();
+
+  if (!allowedRoles.includes(profile.role)) {
+    redirect("/dashboard?notice=access-denied");
+  }
+
+  return profile;
+}
+
+export function requireManagement() {
+  return requireRole(["admin"]);
+}

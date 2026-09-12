@@ -1,6 +1,6 @@
 # Universal Pergola
 
-Production foundation for Universal Pergola's synchronized public product catalogue and protected staff operations dashboard.
+Production foundation for Universal Pergola's synchronized public product catalogue and protected staff operations dashboard. Phase 2A category, product, media, and catalogue code is complete in offline-foundation mode.
 
 ## Stack
 
@@ -29,10 +29,13 @@ The app deliberately builds without Supabase credentials. In that state, the cat
 ## Hosted Supabase setup
 
 1. Create a Supabase project; no project has been created or linked by this repository.
-2. Link the CLI: `npx --yes supabase@2.117.0 link --project-ref <project-ref>`.
-3. Review the migration, then apply it with `npx --yes supabase@2.117.0 db push`.
-4. Add the project URL and **publishable** key to `.env.local` and Vercel.
-5. Create the first user from Supabase Auth, then promote that profile in the SQL editor:
+2. Confirm the exact new Universal Pergola project ref; never use an unrelated project.
+3. Link the CLI: `npx --yes supabase@2.117.0 link --project-ref <confirmed-project-ref>`.
+4. Inspect migration state with `npx --yes supabase@2.117.0 migration list`.
+5. Review both migrations, then apply them with `npx --yes supabase@2.117.0 db push`. Never run remote `db reset`.
+6. Run `npx --yes supabase@2.117.0 db lint --linked` and the hosted database advisors, then execute the RLS/storage acceptance tests with disposable role users.
+7. Add the project URL and **publishable** key to `.env.local` and Vercel.
+8. Create the first user from Supabase Auth, then promote that profile in the SQL editor:
 
 ```sql
 update public.profiles
@@ -40,7 +43,7 @@ set role = 'admin'
 where email = 'management@example.com';
 ```
 
-Never add a service-role or secret key to a `NEXT_PUBLIC_` variable. This Phase 1 application does not require a service-role key.
+Use a one-time password delivered through a secure channel and require it to be changed. Never add a service-role or secret key to a `NEXT_PUBLIC_` variable. This application does not require a service-role key.
 
 ## Authentication and permissions
 
@@ -57,7 +60,7 @@ The CLI-generated migration at `supabase/migrations/20260912181228_initial_found
 
 `profiles`, `product_categories`, `products`, `product_images`, `customers`, `enquiries`, `enquiry_activities`, `site_visits`, `site_visit_photos`, `quotations`, `quotation_items`, `project_stage_templates`, `projects`, `project_assignments`, `project_stages`, `project_updates`, `project_files`, `payment_milestones`, `payments`, `tasks`, `feedback`, `notifications`, and `activity_logs`.
 
-It also adds UUID keys, constraints, operational indexes, timestamps, archive fields, update triggers, structured activity logging, explicit API grants, RLS policies, and four Storage buckets. No demo customer or financial data is seeded.
+The additive Phase 2A migration extends categories, hardens public catalogue RLS, changes catalogue media to private signed access, enforces UUID object paths, and adds explicit category/product activity events. Keeping it separate preserves a clear Phase 1 baseline while remaining safe to apply to a fresh project. No demo customer, product, or financial data is seeded.
 
 Generate database types after the local stack is running:
 
@@ -72,6 +75,7 @@ Private Storage policies expect the related record UUID as the first folder segm
 ## Quality checks
 
 ```bash
+npm test
 npm run typecheck
 npm run lint
 npm run build
@@ -83,9 +87,13 @@ npm run check
 
 Public: `/`, `/products`, `/products/[slug]`, `/categories/[slug]`, `/enquire`, `/login`.
 
-Protected: `/dashboard` plus products, categories, enquiries, customers, site visits, quotations, projects, payments, tasks, feedback, reports, users, and settings modules.
+Protected: `/dashboard`, complete `/dashboard/categories` and `/dashboard/products` management, plus later-phase module placeholders.
 
-Phase 1 intentionally stops at the secure foundation and guided placeholders. Detailed CRUD screens belong to Phase 2.
+The `/dev/phase2a` route is an inert, development-only visual test adapter. It is unavailable in production and never feeds catalogue queries.
+
+## Offline validation boundary
+
+The repository has not been linked to a hosted Supabase project. Code-level authorization, validation, migration assertions, builds, and responsive rendering can be verified offline. Real database CRUD, RLS enforcement, Auth roles, signed Storage reads/uploads, advisors, and dashboard-to-public synchronization must be tested after connection to the dedicated Universal Pergola project.
 
 ## Design and implementation notes
 

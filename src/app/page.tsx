@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { ArrowUpRight, Ruler, ShieldCheck, Workflow } from "lucide-react";
 import { CatalogueHeader } from "@/components/public/catalogue-header";
+import { ProductGrid } from "@/components/public/product-grid";
+import { ConfigurationState } from "@/components/ui/configuration-state";
 import { getPublishedProducts } from "@/lib/catalogue/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const products = await getPublishedProducts(3);
+  const products = await getPublishedProducts({ limit: 3 });
 
   return (
     <main className="min-h-screen bg-ink text-white">
@@ -25,7 +27,7 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="self-end border-l border-white/14 pl-6 text-sm text-white/48">
-            <p className="max-w-64 leading-6">Catalogue content is live from the Universal Pergola operations database.</p>
+            <p className="max-w-64 leading-6">{products.configured ? "Catalogue content is live from the Universal Pergola operations database." : "The catalogue is ready to connect to the Universal Pergola database."}</p>
             <div className="mt-8 flex items-center gap-3 text-white/70"><Ruler size={18} className="text-brass" />Measured on site</div>
             <div className="mt-4 flex items-center gap-3 text-white/70"><Workflow size={18} className="text-brass" />Managed end to end</div>
             <div className="mt-4 flex items-center gap-3 text-white/70"><ShieldCheck size={18} className="text-brass" />Built for handover</div>
@@ -39,17 +41,8 @@ export default async function HomePage() {
             <div><h2 className="text-2xl font-semibold tracking-[-0.04em]">Product catalogue</h2><p className="mt-1 text-sm text-stone">Only published products appear here.</p></div>
             <Link href="/products" className="hidden min-h-11 items-center text-sm font-medium text-brass-dark sm:flex">View all</Link>
           </div>
-          {products.length > 0 ? (
-            <div className="grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
-              {products.map((product) => (
-                <Link key={product.id} href={`/products/${product.slug}`} className="group min-h-52 bg-paper p-6 hover:bg-white">
-                  <p className="text-xs text-stone">{product.category?.name || "Uncategorised"}</p>
-                  <h3 className="mt-10 text-xl font-semibold tracking-[-0.035em]">{product.name}</h3>
-                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-stone">{product.short_description || "Product details available on request."}</p>
-                  <span className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-brass-dark">View details <ArrowUpRight size={15} /></span>
-                </Link>
-              ))}
-            </div>
+          {!products.configured ? <ConfigurationState /> : products.data.length > 0 ? (
+            <ProductGrid products={products.data} />
           ) : (
             <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-line bg-paper px-6 text-center">
               <div><p className="font-medium">The catalogue is ready for products.</p><p className="mt-2 text-sm text-stone">Published items will appear here automatically after Supabase is connected.</p></div>

@@ -1,0 +1,1 @@
+export default function ProductsLoading() { return <div className="space-y-5" aria-label="Loading products"><div className="h-9 w-48 animate-pulse rounded bg-line" /><div className="h-24 animate-pulse rounded-lg bg-paper" /><div className="h-80 animate-pulse rounded-lg bg-paper" /></div>; }
