@@ -51,7 +51,7 @@ export function DashboardShell({ children, profile }: { children: React.ReactNod
   const mobileItems = navItems.filter((item) => preferredMobileHrefs.includes(item.href) && (!item.module || canAccessModule(profile.role, item.module)));
 
   return (
-    <div className="min-h-screen bg-limestone">
+    <div className="min-h-screen overflow-x-clip bg-limestone">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/8 bg-ink p-4 text-white lg:flex">
         <div className="px-1 py-2"><BrandMark href="/dashboard" inverse /></div>
         <div className="mt-7 min-h-0 flex-1 overflow-y-auto"><NavLinks role={profile.role} /></div>

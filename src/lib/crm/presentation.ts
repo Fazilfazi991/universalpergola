@@ -42,6 +42,8 @@ const activityLabels: Record<string, string> = {
   follow_up_rescheduled: "Follow-up rescheduled",
   note_added: "Note added",
   contacted: "Customer contacted",
+  site_visit_created: "Site visit created",
+  site_visit_completed: "Site visit completed",
 };
 
 export function activityLabel(value: string) {

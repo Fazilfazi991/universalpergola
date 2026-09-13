@@ -1393,13 +1393,128 @@ export type Database = {
           },
         ]
       }
+      site_visit_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          occurred_at: string
+          site_visit_id: string
+          updated_at: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          site_visit_id: string
+          updated_at?: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          site_visit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_visit_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_visit_activities_site_visit_id_fkey"
+            columns: ["site_visit_id"]
+            isOneToOne: false
+            referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_visit_measurements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          height: number | null
+          id: string
+          label: string
+          length: number | null
+          notes: string | null
+          quantity: number
+          site_visit_id: string
+          sort_order: number
+          unit: string
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          height?: number | null
+          id?: string
+          label: string
+          length?: number | null
+          notes?: string | null
+          quantity?: number
+          site_visit_id: string
+          sort_order?: number
+          unit?: string
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          height?: number | null
+          id?: string
+          label?: string
+          length?: number | null
+          notes?: string | null
+          quantity?: number
+          site_visit_id?: string
+          sort_order?: number
+          unit?: string
+          updated_at?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_visit_measurements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_visit_measurements_site_visit_id_fkey"
+            columns: ["site_visit_id"]
+            isOneToOne: false
+            referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_visit_photos: {
         Row: {
           caption: string | null
           created_at: string
           created_by: string | null
+          file_size: number | null
           id: string
+          mime_type: string | null
+          photo_type: string | null
           site_visit_id: string
+          sort_order: number
           storage_path: string
           taken_at: string | null
           updated_at: string
@@ -1408,8 +1523,12 @@ export type Database = {
           caption?: string | null
           created_at?: string
           created_by?: string | null
+          file_size?: number | null
           id?: string
+          mime_type?: string | null
+          photo_type?: string | null
           site_visit_id: string
+          sort_order?: number
           storage_path: string
           taken_at?: string | null
           updated_at?: string
@@ -1418,8 +1537,12 @@ export type Database = {
           caption?: string | null
           created_at?: string
           created_by?: string | null
+          file_size?: number | null
           id?: string
+          mime_type?: string | null
+          photo_type?: string | null
           site_visit_id?: string
+          sort_order?: number
           storage_path?: string
           taken_at?: string | null
           updated_at?: string
@@ -1443,16 +1566,22 @@ export type Database = {
       }
       site_visits: {
         Row: {
+          actual_started_at: string | null
           archived_at: string | null
+          area: string | null
           assigned_to: string | null
           completed_at: string | null
+          contact_person: string | null
+          contact_phone: string | null
           created_at: string
           created_by: string | null
           customer_id: string
+          emirate: string | null
           enquiry_id: string | null
           follow_up_required: boolean
           id: string
           location_url: string | null
+          measurement_summary: string | null
           measurements: Json
           next_action: string | null
           next_action_at: string | null
@@ -1461,18 +1590,25 @@ export type Database = {
           site_address: string
           status: Database["public"]["Enums"]["site_visit_status"]
           updated_at: string
+          visit_number: number
         }
         Insert: {
+          actual_started_at?: string | null
           archived_at?: string | null
+          area?: string | null
           assigned_to?: string | null
           completed_at?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
           created_at?: string
           created_by?: string | null
           customer_id: string
+          emirate?: string | null
           enquiry_id?: string | null
           follow_up_required?: boolean
           id?: string
           location_url?: string | null
+          measurement_summary?: string | null
           measurements?: Json
           next_action?: string | null
           next_action_at?: string | null
@@ -1481,18 +1617,25 @@ export type Database = {
           site_address: string
           status?: Database["public"]["Enums"]["site_visit_status"]
           updated_at?: string
+          visit_number?: number
         }
         Update: {
+          actual_started_at?: string | null
           archived_at?: string | null
+          area?: string | null
           assigned_to?: string | null
           completed_at?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string
+          emirate?: string | null
           enquiry_id?: string | null
           follow_up_required?: boolean
           id?: string
           location_url?: string | null
+          measurement_summary?: string | null
           measurements?: Json
           next_action?: string | null
           next_action_at?: string | null
@@ -1501,6 +1644,7 @@ export type Database = {
           site_address?: string
           status?: Database["public"]["Enums"]["site_visit_status"]
           updated_at?: string
+          visit_number?: number
         }
         Relationships: [
           {
@@ -1731,8 +1875,9 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "rescheduled"
+        | "no_show"
       stage_status: "not_started" | "in_progress" | "blocked" | "completed"
-      task_kind: "general" | "enquiry_follow_up"
+      task_kind: "general" | "enquiry_follow_up" | "site_visit_follow_up"
       task_priority: "low" | "normal" | "high" | "urgent"
       task_status:
         | "open"
@@ -1919,9 +2064,10 @@ export const Constants = {
         "completed",
         "cancelled",
         "rescheduled",
+        "no_show",
       ],
       stage_status: ["not_started", "in_progress", "blocked", "completed"],
-      task_kind: ["general", "enquiry_follow_up"],
+      task_kind: ["general", "enquiry_follow_up", "site_visit_follow_up"],
       task_priority: ["low", "normal", "high", "urgent"],
       task_status: ["open", "in_progress", "blocked", "completed", "cancelled"],
     },

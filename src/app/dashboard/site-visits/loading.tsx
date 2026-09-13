@@ -1,0 +1,1 @@
+export default function SiteVisitsLoading() { return <div className="space-y-6" aria-busy="true"><div className="h-14 animate-pulse rounded-lg bg-line" /><div className="h-28 animate-pulse rounded-lg bg-line" /><div className="h-80 animate-pulse rounded-lg bg-line" /></div>; }
