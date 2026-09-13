@@ -854,36 +854,45 @@ export type Database = {
           created_at: string
           created_by: string | null
           file_name: string
+          file_size: number | null
           file_type: string
           id: string
+          mime_type: string | null
           project_id: string
           stage_id: string | null
           storage_path: string
           updated_at: string
+          upload_status: string
         }
         Insert: {
           caption?: string | null
           created_at?: string
           created_by?: string | null
           file_name: string
+          file_size?: number | null
           file_type?: string
           id?: string
+          mime_type?: string | null
           project_id: string
           stage_id?: string | null
           storage_path: string
           updated_at?: string
+          upload_status?: string
         }
         Update: {
           caption?: string | null
           created_at?: string
           created_by?: string | null
           file_name?: string
+          file_size?: number | null
           file_type?: string
           id?: string
+          mime_type?: string | null
           project_id?: string
           stage_id?: string | null
           storage_path?: string
           updated_at?: string
+          upload_status?: string
         }
         Relationships: [
           {
@@ -914,9 +923,11 @@ export type Database = {
           archived_at: string | null
           created_at: string
           created_by: string | null
+          default_weight: number
           description: string | null
           id: string
           is_active: boolean
+          is_terminal: boolean
           key: string
           name: string
           sort_order: number
@@ -926,9 +937,11 @@ export type Database = {
           archived_at?: string | null
           created_at?: string
           created_by?: string | null
+          default_weight?: number
           description?: string | null
           id?: string
           is_active?: boolean
+          is_terminal?: boolean
           key: string
           name: string
           sort_order?: number
@@ -938,9 +951,11 @@ export type Database = {
           archived_at?: string | null
           created_at?: string
           created_by?: string | null
+          default_weight?: number
           description?: string | null
           id?: string
           is_active?: boolean
+          is_terminal?: boolean
           key?: string
           name?: string
           sort_order?: number
@@ -958,51 +973,79 @@ export type Database = {
       }
       project_stages: {
         Row: {
+          assigned_to: string | null
           completed_at: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           id: string
+          is_terminal: boolean
           name: string
           notes: string | null
+          progress: number
           project_id: string
           sort_order: number
+          stage_key: string
           started_at: string | null
           status: Database["public"]["Enums"]["stage_status"]
+          target_date: string | null
           template_id: string | null
           updated_at: string
           updated_by: string | null
+          weight: number
         }
         Insert: {
+          assigned_to?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           id?: string
+          is_terminal?: boolean
           name: string
           notes?: string | null
+          progress?: number
           project_id: string
           sort_order?: number
+          stage_key: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["stage_status"]
+          target_date?: string | null
           template_id?: string | null
           updated_at?: string
           updated_by?: string | null
+          weight?: number
         }
         Update: {
+          assigned_to?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           id?: string
+          is_terminal?: boolean
           name?: string
           notes?: string | null
+          progress?: number
           project_id?: string
           sort_order?: number
+          stage_key?: string
           started_at?: string | null
           status?: Database["public"]["Enums"]["stage_status"]
+          target_date?: string | null
           template_id?: string | null
           updated_at?: string
           updated_by?: string | null
+          weight?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "project_stages_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "project_stages_created_by_fkey"
             columns: ["created_by"]
@@ -1093,9 +1136,12 @@ export type Database = {
       }
       projects: {
         Row: {
+          actual_completion_date: string | null
           archived_at: string | null
           assigned_salesperson: string | null
           completed_at: string | null
+          completed_by: string | null
+          completion_note: string | null
           created_at: string
           created_by: string | null
           currency: string
@@ -1103,25 +1149,40 @@ export type Database = {
           customer_id: string
           enquiry_id: string | null
           expected_completion_date: string | null
+          handover_confirmed_at: string | null
+          handover_confirmed_by: string | null
+          handover_contact: string | null
           handover_date: string | null
+          handover_notes: string | null
+          handover_status: Database["public"]["Enums"]["handover_status"]
           id: string
+          installation_date: string | null
           notes: string | null
+          priority: Database["public"]["Enums"]["project_priority"]
           progress: number
           project_number: string
+          project_owner_id: string | null
           project_value: number
           quotation_id: string | null
+          reopened_at: string | null
+          reopened_by: string | null
           site_address: string | null
           site_visit_id: string | null
           source_quotation_number: string | null
           source_quotation_revision: number | null
           start_date: string | null
+          started_by: string | null
           status: Database["public"]["Enums"]["project_status"]
+          summary: string | null
           updated_at: string
         }
         Insert: {
+          actual_completion_date?: string | null
           archived_at?: string | null
           assigned_salesperson?: string | null
           completed_at?: string | null
+          completed_by?: string | null
+          completion_note?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -1129,25 +1190,40 @@ export type Database = {
           customer_id: string
           enquiry_id?: string | null
           expected_completion_date?: string | null
+          handover_confirmed_at?: string | null
+          handover_confirmed_by?: string | null
+          handover_contact?: string | null
           handover_date?: string | null
+          handover_notes?: string | null
+          handover_status?: Database["public"]["Enums"]["handover_status"]
           id?: string
+          installation_date?: string | null
           notes?: string | null
+          priority?: Database["public"]["Enums"]["project_priority"]
           progress?: number
           project_number: string
+          project_owner_id?: string | null
           project_value?: number
           quotation_id?: string | null
+          reopened_at?: string | null
+          reopened_by?: string | null
           site_address?: string | null
           site_visit_id?: string | null
           source_quotation_number?: string | null
           source_quotation_revision?: number | null
           start_date?: string | null
+          started_by?: string | null
           status?: Database["public"]["Enums"]["project_status"]
+          summary?: string | null
           updated_at?: string
         }
         Update: {
+          actual_completion_date?: string | null
           archived_at?: string | null
           assigned_salesperson?: string | null
           completed_at?: string | null
+          completed_by?: string | null
+          completion_note?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -1155,25 +1231,44 @@ export type Database = {
           customer_id?: string
           enquiry_id?: string | null
           expected_completion_date?: string | null
+          handover_confirmed_at?: string | null
+          handover_confirmed_by?: string | null
+          handover_contact?: string | null
           handover_date?: string | null
+          handover_notes?: string | null
+          handover_status?: Database["public"]["Enums"]["handover_status"]
           id?: string
+          installation_date?: string | null
           notes?: string | null
+          priority?: Database["public"]["Enums"]["project_priority"]
           progress?: number
           project_number?: string
+          project_owner_id?: string | null
           project_value?: number
           quotation_id?: string | null
+          reopened_at?: string | null
+          reopened_by?: string | null
           site_address?: string | null
           site_visit_id?: string | null
           source_quotation_number?: string | null
           source_quotation_revision?: number | null
           start_date?: string | null
+          started_by?: string | null
           status?: Database["public"]["Enums"]["project_status"]
+          summary?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "projects_assigned_salesperson_fkey"
             columns: ["assigned_salesperson"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_completed_by_fkey"
+            columns: ["completed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1207,6 +1302,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "projects_handover_confirmed_by_fkey"
+            columns: ["handover_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_project_owner_id_fkey"
+            columns: ["project_owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "projects_quotation_id_fkey"
             columns: ["quotation_id"]
             isOneToOne: false
@@ -1214,10 +1323,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "projects_reopened_by_fkey"
+            columns: ["reopened_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "projects_site_visit_id_fkey"
             columns: ["site_visit_id"]
             isOneToOne: false
             referencedRelation: "site_visits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_started_by_fkey"
+            columns: ["started_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1840,6 +1963,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["task_kind"]
           priority: Database["public"]["Enums"]["task_priority"]
           project_id: string | null
+          project_stage_id: string | null
           site_visit_id: string | null
           status: Database["public"]["Enums"]["task_status"]
           title: string
@@ -1859,6 +1983,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["task_kind"]
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string | null
+          project_stage_id?: string | null
           site_visit_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title: string
@@ -1878,6 +2003,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["task_kind"]
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string | null
+          project_stage_id?: string | null
           site_visit_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
@@ -1920,6 +2046,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_project_stage_id_fkey"
+            columns: ["project_stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_site_visit_id_fkey"
             columns: ["site_visit_id"]
             isOneToOne: false
@@ -1933,6 +2066,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_project: {
+        Args: { p_completion_note?: string; p_project_id: string }
+        Returns: undefined
+      }
+      configure_project_stage_template: {
+        Args: {
+          p_default_weight: number
+          p_description: string
+          p_is_active: boolean
+          p_name: string
+          p_sort_order: number
+          p_template_id: string
+        }
+        Returns: undefined
+      }
       convert_approved_quotation_to_project: {
         Args: { p_quotation_id: string }
         Returns: string
@@ -1969,9 +2117,23 @@ export type Database = {
           enquiry_number: number
         }[]
       }
+      finalize_project_file: { Args: { p_file_id: string }; Returns: undefined }
+      reopen_project: {
+        Args: { p_note: string; p_project_id: string }
+        Returns: undefined
+      }
       save_quotation_draft: {
         Args: { p_payload: Json; p_quotation_id: string }
         Returns: string
+      }
+      set_project_assignment: {
+        Args: {
+          p_assignment_role: string
+          p_enabled?: boolean
+          p_project_id: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       submit_public_enquiry: {
         Args: {
@@ -1989,6 +2151,43 @@ export type Database = {
           enquiry_number: number
         }[]
       }
+      transition_project_stage: {
+        Args: { p_action: string; p_note?: string; p_stage_id: string }
+        Returns: undefined
+      }
+      update_project_details: {
+        Args: {
+          p_installation_date: string
+          p_notes: string
+          p_priority: string
+          p_project_id: string
+          p_start_date: string
+          p_status: string
+          p_summary: string
+          p_target_date: string
+        }
+        Returns: undefined
+      }
+      update_project_handover: {
+        Args: {
+          p_contact: string
+          p_handover_date: string
+          p_notes: string
+          p_project_id: string
+          p_status: string
+        }
+        Returns: undefined
+      }
+      update_project_stage_details: {
+        Args: {
+          p_assigned_to: string
+          p_notes: string
+          p_progress: number
+          p_stage_id: string
+          p_target_date: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "sales" | "site_team" | "accounts"
@@ -2002,6 +2201,7 @@ export type Database = {
         | "approved"
         | "lost"
       enquiry_type: "catalogue" | "general" | "manual"
+      handover_status: "pending" | "ready" | "completed" | "issues_outstanding"
       lead_priority: "low" | "normal" | "high" | "urgent"
       payment_status:
         | "pending"
@@ -2015,6 +2215,7 @@ export type Database = {
         | "fixed_price"
         | "price_on_request"
       profile_status: "active" | "inactive"
+      project_priority: "low" | "normal" | "high" | "urgent"
       project_status:
         | "planned"
         | "active"
@@ -2038,8 +2239,17 @@ export type Database = {
         | "cancelled"
         | "rescheduled"
         | "no_show"
-      stage_status: "not_started" | "in_progress" | "blocked" | "completed"
-      task_kind: "general" | "enquiry_follow_up" | "site_visit_follow_up"
+      stage_status:
+        | "not_started"
+        | "in_progress"
+        | "blocked"
+        | "skipped"
+        | "completed"
+      task_kind:
+        | "general"
+        | "enquiry_follow_up"
+        | "site_visit_follow_up"
+        | "project_task"
       task_priority: "low" | "normal" | "high" | "urgent"
       task_status:
         | "open"
@@ -2189,6 +2399,7 @@ export const Constants = {
         "lost",
       ],
       enquiry_type: ["catalogue", "general", "manual"],
+      handover_status: ["pending", "ready", "completed", "issues_outstanding"],
       lead_priority: ["low", "normal", "high", "urgent"],
       payment_status: [
         "pending",
@@ -2204,6 +2415,7 @@ export const Constants = {
         "price_on_request",
       ],
       profile_status: ["active", "inactive"],
+      project_priority: ["low", "normal", "high", "urgent"],
       project_status: [
         "planned",
         "active",
@@ -2230,8 +2442,19 @@ export const Constants = {
         "rescheduled",
         "no_show",
       ],
-      stage_status: ["not_started", "in_progress", "blocked", "completed"],
-      task_kind: ["general", "enquiry_follow_up", "site_visit_follow_up"],
+      stage_status: [
+        "not_started",
+        "in_progress",
+        "blocked",
+        "skipped",
+        "completed",
+      ],
+      task_kind: [
+        "general",
+        "enquiry_follow_up",
+        "site_visit_follow_up",
+        "project_task",
+      ],
       task_priority: ["low", "normal", "high", "urgent"],
       task_status: ["open", "in_progress", "blocked", "completed", "cancelled"],
     },

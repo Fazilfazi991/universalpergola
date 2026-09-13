@@ -43,12 +43,14 @@ import {
   quotationStatusLabel,
 } from "@/lib/quotations/presentation";
 import { getEnquiryQuotations } from "@/lib/quotations/queries";
+import { getEnquiryProjects } from "@/lib/projects/queries";
+import { projectStatusLabel } from "@/lib/projects/presentation";
 
 export default async function EnquiryPage({
   params,
 }: PageProps<"/dashboard/enquiries/[id]">) {
   const { id } = await params;
-  const [profile, enquiry, workspace, staff, siteVisits, quotations] =
+  const [profile, enquiry, workspace, staff, siteVisits, quotations, projects] =
     await Promise.all([
       requireModuleAccess("enquiries"),
       getEnquiry(id),
@@ -56,6 +58,7 @@ export default async function EnquiryPage({
       getStaffDirectory(),
       getEnquirySiteVisits(id),
       getEnquiryQuotations(id),
+      getEnquiryProjects(id),
     ]);
   if (!enquiry) notFound();
   const phoneHref = formatPhoneLink(enquiry.customer?.phone);
@@ -300,6 +303,14 @@ export default async function EnquiryPage({
                   No quotations linked yet.
                 </p>
               )}
+            </div>
+          </section>
+          <section>
+            <div><h2 className="text-lg font-semibold">Linked project</h2><p className="mt-1 text-sm text-stone">The operational handoff after quotation approval.</p></div>
+            <div className="mt-4 divide-y divide-line border-y border-line bg-paper sm:rounded-lg sm:border">
+              {projects.length ? projects.map((project) => (
+                <Link key={project.id} href={`/dashboard/projects/${project.id}`} className="flex items-center justify-between gap-4 px-4 py-4"><div><p className="font-semibold">{project.project_number}</p><p className="mt-1 text-xs text-stone">{project.current_stage?.name || "No current stage"} · {project.progress}%</p></div><div className="text-right"><p className="text-sm">{projectStatusLabel(project.status)}</p><p className="mt-1 text-xs text-stone">Target {formatDate(project.expected_completion_date)}</p></div></Link>
+              )) : <p className="px-4 py-8 text-center text-sm text-stone">No approved project handoff yet.</p>}
             </div>
           </section>
           <section>

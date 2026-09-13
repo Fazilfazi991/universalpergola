@@ -167,7 +167,7 @@ export function DashboardShell({
           "/dashboard",
           "/dashboard/enquiries",
           "/dashboard/quotations",
-          "/dashboard/customers",
+          "/dashboard/projects",
         ]
       : profile.role === "accounts"
         ? [

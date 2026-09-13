@@ -62,6 +62,8 @@ import {
   quotationStatusLabel,
 } from "@/lib/quotations/presentation";
 import { getSiteVisitQuotations } from "@/lib/quotations/queries";
+import { getSiteVisitProjects } from "@/lib/projects/queries";
+import { projectStatusLabel } from "@/lib/projects/presentation";
 
 const input =
   "min-h-11 w-full rounded-md border border-line bg-paper px-3 text-base";
@@ -219,7 +221,7 @@ export default async function SiteVisitPage({
 }: PageProps<"/dashboard/site-visits/[id]">) {
   const { id } = await params;
   const query = await searchParams;
-  const [profile, visit, workspace, siteStaff, taskStaff, quotations] =
+  const [profile, visit, workspace, siteStaff, taskStaff, quotations, projects] =
     await Promise.all([
       requireModuleAccess("site-visits"),
       getSiteVisit(id),
@@ -227,6 +229,7 @@ export default async function SiteVisitPage({
       getSiteTeamDirectory(),
       getVisitTaskDirectory(),
       getSiteVisitQuotations(id),
+      getSiteVisitProjects(id),
     ]);
   if (!visit) notFound();
   const canOperate = profile.role === "admin" || profile.role === "site_team";
@@ -610,6 +613,10 @@ export default async function SiteVisitPage({
                 </p>
               )}
             </div>
+          </section>
+          <section className="border-y border-line bg-paper px-4 py-5 sm:rounded-lg sm:border sm:p-6">
+            <div><h2 className="text-lg font-semibold">Linked project</h2><p className="mt-1 text-sm text-stone">Execution workspace retaining this survey as its historical source.</p></div>
+            <div className="mt-4 divide-y divide-line">{projects.length ? projects.map((project) => <Link key={project.id} href={`/dashboard/projects/${project.id}`} className="flex items-center justify-between gap-4 py-4"><div><p className="font-semibold">{project.project_number}</p><p className="mt-1 text-xs text-stone">{project.current_stage?.name || "No current stage"} · {project.progress}%</p></div><span className="text-sm">{projectStatusLabel(project.status)}</span></Link>) : <p className="py-5 text-sm text-stone">No project created from this visit.</p>}</div>
           </section>
           <section className="border-y border-line bg-paper px-4 py-5 sm:rounded-lg sm:border sm:p-6">
             <h2 className="text-lg font-semibold">Activity timeline</h2>

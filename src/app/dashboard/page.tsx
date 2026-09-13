@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   CalendarClock,
   FileText,
+  FolderKanban,
   MapPin,
   MessageSquareText,
   UserRoundX,
@@ -25,6 +26,8 @@ import {
 import { getSiteVisitDashboard } from "@/lib/site-visits/queries";
 import { formatMoney } from "@/lib/quotations/money";
 import { getQuotationDashboard } from "@/lib/quotations/queries";
+import { getProjectDashboard } from "@/lib/projects/queries";
+import { projectStatusLabel } from "@/lib/projects/presentation";
 
 export default async function DashboardPage({
   searchParams,
@@ -39,10 +42,11 @@ export default async function DashboardPage({
     profile.role === "admin" ||
     profile.role === "sales" ||
     profile.role === "accounts";
-  const [crm, visits, quotationMetrics] = await Promise.all([
+  const [crm, visits, quotationMetrics, projectMetrics] = await Promise.all([
     canUseCrm ? getCrmDashboard() : null,
     canUseVisits ? getSiteVisitDashboard() : null,
     canUseQuotations ? getQuotationDashboard(profile.role) : null,
+    getProjectDashboard(),
   ]);
   const summaries = crm
     ? [
@@ -297,21 +301,21 @@ export default async function DashboardPage({
           ))}
         </section>
       )}
-      <section className="grid gap-3 md:grid-cols-2">
-        <Panel title="Project stages" />
-        <Panel title="Payment summary" />
+      <section className="space-y-3">
+        <div className="flex items-end justify-between gap-4"><div><h2 className="text-lg font-semibold">Project operations</h2><p className="mt-1 text-sm text-stone">Delivery, installation, handover, and blocked work.</p></div><Link href="/dashboard/projects" className="min-h-10 py-2 text-sm font-medium text-brass-dark">All projects</Link></div>
+        <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
+          {[
+            ["Active projects", projectMetrics.active],
+            ["Overdue projects", projectMetrics.overdue],
+            ["Installations · 14 days", projectMetrics.upcomingInstallations],
+            ["Handover pending", projectMetrics.handoverPending],
+          ].map(([label, value]) => <Link key={label} href="/dashboard/projects" className="rounded-lg border border-line bg-paper p-4"><div className="flex items-center justify-between gap-2"><FolderKanban size={17} className="text-brass-dark" /><strong className="text-2xl tracking-[-0.04em]">{value}</strong></div><p className="mt-5 text-xs text-stone">{label}</p></Link>)}
+        </div>
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.55fr)]">
+          <div className="rounded-lg border border-line bg-paper"><div className="border-b border-line px-4 py-4 sm:px-5"><h3 className="text-base font-semibold">Projects needing attention</h3><p className="mt-1 text-sm text-stone">Blocked stages, overdue tasks, passed targets, or handover issues.</p></div>{projectMetrics.attention.length ? <div className="divide-y divide-line">{projectMetrics.attention.map((project) => <Link key={project.id} href={`/dashboard/projects/${project.id}`} className="grid gap-2 px-4 py-4 sm:grid-cols-[9rem_minmax(0,1fr)_9rem_5rem] sm:items-center sm:px-5"><strong className="text-sm">{project.project_number}</strong><div className="min-w-0"><p className="truncate text-sm font-medium">{project.customer?.name || "Customer"}</p><p className="truncate text-xs text-stone">{project.current_stage?.name || "No current stage"}</p></div><span className="text-xs">{projectStatusLabel(project.status)}</span><span className="text-xs text-stone sm:text-right">{project.progress}%</span></Link>)}</div> : <p className="px-5 py-9 text-center text-sm text-stone">No project needs attention.</p>}</div>
+          <div className="rounded-lg border border-line bg-paper p-5"><h3 className="text-base font-semibold">Projects by stage</h3><div className="mt-4 divide-y divide-line">{projectMetrics.byStage.length ? projectMetrics.byStage.map((stage) => <Link key={stage.key} href={`/dashboard/projects?stage=${stage.key}`} className="flex items-center justify-between gap-3 py-3"><span className="text-sm">{stage.name}</span><strong>{stage.count}</strong></Link>) : <p className="py-5 text-sm text-stone">No active project stages.</p>}</div></div>
+        </div>
       </section>
-    </div>
-  );
-}
-
-function Panel({ title }: { title: string }) {
-  return (
-    <div className="rounded-lg border border-line bg-paper p-5">
-      <h2 className="text-sm font-semibold">{title}</h2>
-      <div className="mt-5 border-t border-line pt-5 text-sm text-stone">
-        No live data yet.
-      </div>
     </div>
   );
 }

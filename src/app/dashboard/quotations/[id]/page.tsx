@@ -526,11 +526,9 @@ export default async function QuotationPage({
             <h2 className="text-base font-semibold">Project handoff</h2>
             {workspace.project ? (
               <div className="mt-3">
-                <p className="font-semibold">
-                  {workspace.project.project_number}
-                </p>
+                <Link href={`/dashboard/projects/${workspace.project.id}`} className="font-semibold text-brass-dark">{workspace.project.project_number}</Link>
                 <p className="mt-1 text-sm text-stone">
-                  Minimal project record created · {workspace.project.status}
+                  Operational workspace · {workspace.project.status}
                 </p>
               </div>
             ) : quote.status === "approved" &&

@@ -32,6 +32,8 @@ import {
   quotationStatusLabel,
 } from "@/lib/quotations/presentation";
 import { getCustomerQuotations } from "@/lib/quotations/queries";
+import { getCustomerProjects } from "@/lib/projects/queries";
+import { projectStatusLabel } from "@/lib/projects/presentation";
 
 function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -46,7 +48,7 @@ export default async function CustomerPage({
   params,
 }: PageProps<"/dashboard/customers/[id]">) {
   const { id } = await params;
-  const [profile, customer, workspace, staff, siteVisits, quotations] =
+  const [profile, customer, workspace, staff, siteVisits, quotations, projects] =
     await Promise.all([
       requireModuleAccess("customers"),
       getCustomer(id),
@@ -54,6 +56,7 @@ export default async function CustomerPage({
       getStaffDirectory(),
       getCustomerSiteVisits(id),
       getCustomerQuotations(id),
+      getCustomerProjects(id),
     ]);
   if (!customer) notFound();
   const canEdit = ["admin", "sales"].includes(profile.role);
@@ -312,6 +315,20 @@ export default async function CustomerPage({
             </div>
           </section>
           <section>
+            <div>
+              <h2 className="text-lg font-semibold">Projects</h2>
+              <p className="mt-1 text-sm text-stone">Approved work now in delivery.</p>
+            </div>
+            <div className="mt-4 divide-y divide-line border-y border-line bg-paper sm:rounded-lg sm:border">
+              {projects.length ? projects.map((project) => (
+                <Link key={project.id} href={`/dashboard/projects/${project.id}`} className="flex items-center justify-between gap-4 px-4 py-4">
+                  <div><p className="font-semibold">{project.project_number}</p><p className="mt-1 text-xs text-stone">{project.current_stage?.name || "No current stage"} · target {formatDate(project.expected_completion_date)}</p></div>
+                  <div className="text-right"><p className="text-sm">{projectStatusLabel(project.status)}</p><p className="mt-1 text-sm font-semibold">{formatMoney(project.project_value, project.currency)}</p></div>
+                </Link>
+              )) : <p className="px-4 py-8 text-center text-sm text-stone">No projects linked yet.</p>}
+            </div>
+          </section>
+          <section>
             <h2 className="text-lg font-semibold">Follow-ups</h2>
             <div className="mt-4 divide-y divide-line border-y border-line bg-paper sm:rounded-lg sm:border">
               {workspace.followUps.length ? (
@@ -340,13 +357,6 @@ export default async function CustomerPage({
                 </p>
               )}
             </div>
-          </section>
-          <section className="border-y border-dashed border-line py-5">
-            <h2 className="text-base font-semibold">Later workflow</h2>
-            <p className="mt-2 text-sm text-stone">
-              Quotations, projects, and payments will attach to this same
-              customer record in later phases.
-            </p>
           </section>
         </div>
         <aside className="space-y-5">
