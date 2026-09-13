@@ -26,6 +26,12 @@ import {
   siteVisitStatusLabel,
 } from "@/lib/site-visits/presentation";
 import { getCustomerSiteVisits } from "@/lib/site-visits/queries";
+import { formatMoney } from "@/lib/quotations/money";
+import {
+  quotationStatusClass,
+  quotationStatusLabel,
+} from "@/lib/quotations/presentation";
+import { getCustomerQuotations } from "@/lib/quotations/queries";
 
 function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -40,13 +46,15 @@ export default async function CustomerPage({
   params,
 }: PageProps<"/dashboard/customers/[id]">) {
   const { id } = await params;
-  const [profile, customer, workspace, staff, siteVisits] = await Promise.all([
-    requireModuleAccess("customers"),
-    getCustomer(id),
-    getCustomerWorkspace(id),
-    getStaffDirectory(),
-    getCustomerSiteVisits(id),
-  ]);
+  const [profile, customer, workspace, staff, siteVisits, quotations] =
+    await Promise.all([
+      requireModuleAccess("customers"),
+      getCustomer(id),
+      getCustomerWorkspace(id),
+      getStaffDirectory(),
+      getCustomerSiteVisits(id),
+      getCustomerQuotations(id),
+    ]);
   if (!customer) notFound();
   const canEdit = ["admin", "sales"].includes(profile.role);
   const phoneHref = formatPhoneLink(customer.phone);
@@ -243,6 +251,62 @@ export default async function CustomerPage({
               ) : (
                 <p className="px-4 py-8 text-center text-sm text-stone">
                   No site visits linked yet.
+                </p>
+              )}
+            </div>
+          </section>
+          <section>
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold">Quotations</h2>
+                <p className="mt-1 text-sm text-stone">
+                  Commercial history linked to this customer.
+                </p>
+              </div>
+              {canEdit && (
+                <Link
+                  href={`/dashboard/quotations/new?customer=${id}`}
+                  className="min-h-10 py-2 text-sm font-medium text-brass-dark"
+                >
+                  Create quotation
+                </Link>
+              )}
+            </div>
+            <div className="mt-4 divide-y divide-line border-y border-line bg-paper sm:rounded-lg sm:border">
+              {quotations.length ? (
+                quotations.map((quote) => (
+                  <Link
+                    key={quote.id}
+                    href={`/dashboard/quotations/${quote.id}`}
+                    className="flex items-center justify-between gap-4 px-4 py-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">
+                        {quote.quotation_number}
+                      </p>
+                      <p className="mt-1 text-xs text-stone">
+                        {formatDate(quote.issue_date)} · Revision{" "}
+                        {quote.revision_number}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span
+                        className={`inline-flex rounded-sm border px-2 py-1 text-xs ${quotationStatusClass(quote.status, quote.validity_date)}`}
+                      >
+                        {quotationStatusLabel(
+                          quote.status,
+                          quote.validity_date,
+                        )}
+                      </span>
+                      <p className="mt-1 text-sm font-semibold">
+                        {formatMoney(quote.total, quote.currency)}
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <p className="px-4 py-8 text-center text-sm text-stone">
+                  No quotations linked yet.
                 </p>
               )}
             </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   AlertTriangle,
   CalendarClock,
+  FileText,
   MapPin,
   MessageSquareText,
   UserRoundX,
@@ -22,6 +23,8 @@ import {
   siteVisitStatusLabel,
 } from "@/lib/site-visits/presentation";
 import { getSiteVisitDashboard } from "@/lib/site-visits/queries";
+import { formatMoney } from "@/lib/quotations/money";
+import { getQuotationDashboard } from "@/lib/quotations/queries";
 
 export default async function DashboardPage({
   searchParams,
@@ -32,9 +35,14 @@ export default async function DashboardPage({
   ]);
   const canUseCrm = profile.role === "admin" || profile.role === "sales";
   const canUseVisits = canUseCrm || profile.role === "site_team";
-  const [crm, visits] = await Promise.all([
+  const canUseQuotations =
+    profile.role === "admin" ||
+    profile.role === "sales" ||
+    profile.role === "accounts";
+  const [crm, visits, quotationMetrics] = await Promise.all([
     canUseCrm ? getCrmDashboard() : null,
     canUseVisits ? getSiteVisitDashboard() : null,
+    canUseQuotations ? getQuotationDashboard(profile.role) : null,
   ]);
   const summaries = crm
     ? [
@@ -242,6 +250,52 @@ export default async function DashboardPage({
             )}
           </section>
         </>
+      )}
+      {quotationMetrics && (
+        <section
+          className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5"
+          aria-label="Quotation summary"
+        >
+          {[
+            {
+              label: "Draft quotations",
+              value: String(quotationMetrics.draft),
+              href: "/dashboard/quotations?status=draft",
+            },
+            {
+              label: "Awaiting approval",
+              value: String(quotationMetrics.ready),
+              href: "/dashboard/quotations?status=ready",
+            },
+            {
+              label: "Sent quotations",
+              value: String(quotationMetrics.sent),
+              href: "/dashboard/quotations?status=sent",
+            },
+            {
+              label: "Expiring soon",
+              value: String(quotationMetrics.expiring),
+              href: "/dashboard/quotations?expired=soon",
+            },
+            {
+              label: "Approved value",
+              value: formatMoney(quotationMetrics.approvedValue),
+              href: "/dashboard/quotations?status=approved",
+            },
+          ].map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="min-w-0 rounded-lg border border-line bg-paper p-4"
+            >
+              <FileText size={17} className="text-brass-dark" />
+              <strong className="mt-4 block truncate text-xl tracking-[-0.03em]">
+                {item.value}
+              </strong>
+              <p className="mt-2 text-xs leading-4 text-stone">{item.label}</p>
+            </Link>
+          ))}
+        </section>
       )}
       <section className="grid gap-3 md:grid-cols-2">
         <Panel title="Project stages" />

@@ -1101,6 +1101,7 @@ export type Database = {
           currency: string
           current_stage_id: string | null
           customer_id: string
+          enquiry_id: string | null
           expected_completion_date: string | null
           handover_date: string | null
           id: string
@@ -1111,6 +1112,8 @@ export type Database = {
           quotation_id: string | null
           site_address: string | null
           site_visit_id: string | null
+          source_quotation_number: string | null
+          source_quotation_revision: number | null
           start_date: string | null
           status: Database["public"]["Enums"]["project_status"]
           updated_at: string
@@ -1124,6 +1127,7 @@ export type Database = {
           currency?: string
           current_stage_id?: string | null
           customer_id: string
+          enquiry_id?: string | null
           expected_completion_date?: string | null
           handover_date?: string | null
           id?: string
@@ -1134,6 +1138,8 @@ export type Database = {
           quotation_id?: string | null
           site_address?: string | null
           site_visit_id?: string | null
+          source_quotation_number?: string | null
+          source_quotation_revision?: number | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string
@@ -1147,6 +1153,7 @@ export type Database = {
           currency?: string
           current_stage_id?: string | null
           customer_id?: string
+          enquiry_id?: string | null
           expected_completion_date?: string | null
           handover_date?: string | null
           id?: string
@@ -1157,6 +1164,8 @@ export type Database = {
           quotation_id?: string | null
           site_address?: string | null
           site_visit_id?: string | null
+          source_quotation_number?: string | null
+          source_quotation_revision?: number | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string
@@ -1191,6 +1200,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "projects_enquiry_id_fkey"
+            columns: ["enquiry_id"]
+            isOneToOne: false
+            referencedRelation: "enquiries"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "projects_quotation_id_fkey"
             columns: ["quotation_id"]
             isOneToOne: false
@@ -1213,7 +1229,10 @@ export type Database = {
           description: string
           dimensions_details: string | null
           discount_amount: number
+          height: number | null
           id: string
+          item_name: string
+          length: number | null
           line_total: number
           product_code_snapshot: string | null
           product_id: string | null
@@ -1221,8 +1240,12 @@ export type Database = {
           quantity: number
           quotation_id: string
           sort_order: number
+          source_measurement_id: string | null
+          taxable: boolean
+          unit: string
           unit_price: number
           updated_at: string
+          width: number | null
         }
         Insert: {
           created_at?: string
@@ -1230,7 +1253,10 @@ export type Database = {
           description: string
           dimensions_details?: string | null
           discount_amount?: number
+          height?: number | null
           id?: string
+          item_name: string
+          length?: number | null
           line_total?: number
           product_code_snapshot?: string | null
           product_id?: string | null
@@ -1238,8 +1264,12 @@ export type Database = {
           quantity?: number
           quotation_id: string
           sort_order?: number
+          source_measurement_id?: string | null
+          taxable?: boolean
+          unit?: string
           unit_price?: number
           updated_at?: string
+          width?: number | null
         }
         Update: {
           created_at?: string
@@ -1247,7 +1277,10 @@ export type Database = {
           description?: string
           dimensions_details?: string | null
           discount_amount?: number
+          height?: number | null
           id?: string
+          item_name?: string
+          length?: number | null
           line_total?: number
           product_code_snapshot?: string | null
           product_id?: string | null
@@ -1255,8 +1288,12 @@ export type Database = {
           quantity?: number
           quotation_id?: string
           sort_order?: number
+          source_measurement_id?: string | null
+          taxable?: boolean
+          unit?: string
           unit_price?: number
           updated_at?: string
+          width?: number | null
         }
         Relationships: [
           {
@@ -1280,23 +1317,53 @@ export type Database = {
             referencedRelation: "quotations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "quotation_items_source_measurement_id_fkey"
+            columns: ["source_measurement_id"]
+            isOneToOne: false
+            referencedRelation: "site_visit_measurements"
+            referencedColumns: ["id"]
+          },
         ]
       }
       quotations: {
         Row: {
           approved_at: string | null
+          approved_by: string | null
           archived_at: string | null
+          cancelled_at: string | null
           created_at: string
           created_by: string | null
           currency: string
+          customer_company_snapshot: string | null
+          customer_email_snapshot: string | null
           customer_id: string
+          customer_name_snapshot: string
+          customer_notes: string | null
+          customer_phone_snapshot: string | null
+          decision_note: string | null
           discount_amount: number
+          discount_type: string
+          discount_value: number
           enquiry_id: string | null
           id: string
+          internal_notes: string | null
+          introduction: string | null
+          is_current: boolean
+          issue_date: string
           notes: string | null
+          owner_id: string | null
+          pdf_generated_at: string | null
           quotation_number: string
+          ready_at: string | null
+          rejected_at: string | null
+          rejected_by: string | null
           revised_from_id: string | null
+          revision_group_id: string | null
+          revision_number: number
           sent_at: string | null
+          sent_by: string | null
+          site_address_snapshot: string | null
           site_visit_id: string | null
           status: Database["public"]["Enums"]["quotation_status"]
           subtotal: number
@@ -1309,18 +1376,41 @@ export type Database = {
         }
         Insert: {
           approved_at?: string | null
+          approved_by?: string | null
           archived_at?: string | null
+          cancelled_at?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
+          customer_company_snapshot?: string | null
+          customer_email_snapshot?: string | null
           customer_id: string
+          customer_name_snapshot: string
+          customer_notes?: string | null
+          customer_phone_snapshot?: string | null
+          decision_note?: string | null
           discount_amount?: number
+          discount_type?: string
+          discount_value?: number
           enquiry_id?: string | null
           id?: string
+          internal_notes?: string | null
+          introduction?: string | null
+          is_current?: boolean
+          issue_date?: string
           notes?: string | null
+          owner_id?: string | null
+          pdf_generated_at?: string | null
           quotation_number: string
+          ready_at?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           revised_from_id?: string | null
+          revision_group_id?: string | null
+          revision_number?: number
           sent_at?: string | null
+          sent_by?: string | null
+          site_address_snapshot?: string | null
           site_visit_id?: string | null
           status?: Database["public"]["Enums"]["quotation_status"]
           subtotal?: number
@@ -1333,18 +1423,41 @@ export type Database = {
         }
         Update: {
           approved_at?: string | null
+          approved_by?: string | null
           archived_at?: string | null
+          cancelled_at?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
+          customer_company_snapshot?: string | null
+          customer_email_snapshot?: string | null
           customer_id?: string
+          customer_name_snapshot?: string
+          customer_notes?: string | null
+          customer_phone_snapshot?: string | null
+          decision_note?: string | null
           discount_amount?: number
+          discount_type?: string
+          discount_value?: number
           enquiry_id?: string | null
           id?: string
+          internal_notes?: string | null
+          introduction?: string | null
+          is_current?: boolean
+          issue_date?: string
           notes?: string | null
+          owner_id?: string | null
+          pdf_generated_at?: string | null
           quotation_number?: string
+          ready_at?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           revised_from_id?: string | null
+          revision_group_id?: string | null
+          revision_number?: number
           sent_at?: string | null
+          sent_by?: string | null
+          site_address_snapshot?: string | null
           site_visit_id?: string | null
           status?: Database["public"]["Enums"]["quotation_status"]
           subtotal?: number
@@ -1356,6 +1469,13 @@ export type Database = {
           vat_rate?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "quotations_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quotations_created_by_fkey"
             columns: ["created_by"]
@@ -1378,10 +1498,38 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "quotations_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "quotations_revised_from_id_fkey"
             columns: ["revised_from_id"]
             isOneToOne: false
             referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_revision_group_id_fkey"
+            columns: ["revision_group_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1785,6 +1933,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      convert_approved_quotation_to_project: {
+        Args: { p_quotation_id: string }
+        Returns: string
+      }
+      create_quotation_revision: {
+        Args: { p_quotation_id: string }
+        Returns: string
+      }
       create_staff_enquiry: {
         Args: {
           p_address: string
@@ -1812,6 +1968,10 @@ export type Database = {
           enquiry_id: string
           enquiry_number: number
         }[]
+      }
+      save_quotation_draft: {
+        Args: { p_payload: Json; p_quotation_id: string }
+        Returns: string
       }
       submit_public_enquiry: {
         Args: {
@@ -1863,11 +2023,13 @@ export type Database = {
         | "cancelled"
       quotation_status:
         | "draft"
+        | "ready"
         | "sent"
         | "revised"
         | "approved"
         | "rejected"
         | "expired"
+        | "cancelled"
       site_visit_status:
         | "scheduled"
         | "confirmed"
@@ -2051,11 +2213,13 @@ export const Constants = {
       ],
       quotation_status: [
         "draft",
+        "ready",
         "sent",
         "revised",
         "approved",
         "rejected",
         "expired",
+        "cancelled",
       ],
       site_visit_status: [
         "scheduled",
