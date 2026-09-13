@@ -86,14 +86,18 @@ export type Database = {
           company_name: string | null
           created_at: string
           created_by: string | null
+          customer_type: Database["public"]["Enums"]["customer_type"]
           email: string | null
+          email_normalized: string | null
           emirate: string | null
           id: string
           name: string
           notes: string | null
           phone: string | null
+          phone_normalized: string | null
           source: string | null
           updated_at: string
+          whatsapp_normalized: string | null
           whatsapp_number: string | null
         }
         Insert: {
@@ -104,14 +108,18 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           created_by?: string | null
+          customer_type?: Database["public"]["Enums"]["customer_type"]
           email?: string | null
+          email_normalized?: string | null
           emirate?: string | null
           id?: string
           name: string
           notes?: string | null
           phone?: string | null
+          phone_normalized?: string | null
           source?: string | null
           updated_at?: string
+          whatsapp_normalized?: string | null
           whatsapp_number?: string | null
         }
         Update: {
@@ -122,14 +130,18 @@ export type Database = {
           company_name?: string | null
           created_at?: string
           created_by?: string | null
+          customer_type?: Database["public"]["Enums"]["customer_type"]
           email?: string | null
+          email_normalized?: string | null
           emirate?: string | null
           id?: string
           name?: string
           notes?: string | null
           phone?: string | null
+          phone_normalized?: string | null
           source?: string | null
           updated_at?: string
+          whatsapp_normalized?: string | null
           whatsapp_number?: string | null
         }
         Relationships: [
@@ -156,11 +168,14 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_id: string | null
+          enquiry_number: number
           enquiry_type: Database["public"]["Enums"]["enquiry_type"]
           follow_up_at: string | null
           id: string
+          internal_notes: string | null
           lost_reason: string | null
           message: string | null
+          next_action: string | null
           priority: Database["public"]["Enums"]["lead_priority"]
           product_id: string | null
           source: string | null
@@ -174,11 +189,14 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
+          enquiry_number?: number
           enquiry_type?: Database["public"]["Enums"]["enquiry_type"]
           follow_up_at?: string | null
           id?: string
+          internal_notes?: string | null
           lost_reason?: string | null
           message?: string | null
+          next_action?: string | null
           priority?: Database["public"]["Enums"]["lead_priority"]
           product_id?: string | null
           source?: string | null
@@ -192,11 +210,14 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
+          enquiry_number?: number
           enquiry_type?: Database["public"]["Enums"]["enquiry_type"]
           follow_up_at?: string | null
           id?: string
+          internal_notes?: string | null
           lost_reason?: string | null
           message?: string | null
+          next_action?: string | null
           priority?: Database["public"]["Enums"]["lead_priority"]
           product_id?: string | null
           source?: string | null
@@ -1524,6 +1545,7 @@ export type Database = {
           due_at: string | null
           enquiry_id: string | null
           id: string
+          kind: Database["public"]["Enums"]["task_kind"]
           priority: Database["public"]["Enums"]["task_priority"]
           project_id: string | null
           site_visit_id: string | null
@@ -1542,6 +1564,7 @@ export type Database = {
           due_at?: string | null
           enquiry_id?: string | null
           id?: string
+          kind?: Database["public"]["Enums"]["task_kind"]
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string | null
           site_visit_id?: string | null
@@ -1560,6 +1583,7 @@ export type Database = {
           due_at?: string | null
           enquiry_id?: string | null
           id?: string
+          kind?: Database["public"]["Enums"]["task_kind"]
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string | null
           site_visit_id?: string | null
@@ -1617,10 +1641,54 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_staff_enquiry: {
+        Args: {
+          p_address: string
+          p_area: string
+          p_assigned_to: string
+          p_company_name: string
+          p_customer_id: string
+          p_customer_name: string
+          p_customer_type: Database["public"]["Enums"]["customer_type"]
+          p_email: string
+          p_emirate: string
+          p_follow_up_at: string
+          p_internal_notes: string
+          p_message: string
+          p_next_action: string
+          p_phone: string
+          p_priority: Database["public"]["Enums"]["lead_priority"]
+          p_product_id: string
+          p_source: string
+          p_subject: string
+          p_whatsapp_number: string
+        }
+        Returns: {
+          customer_id: string
+          enquiry_id: string
+          enquiry_number: number
+        }[]
+      }
+      submit_public_enquiry: {
+        Args: {
+          p_email?: string
+          p_emirate?: string
+          p_honeypot?: string
+          p_message: string
+          p_name: string
+          p_phone: string
+          p_product_id?: string
+          p_whatsapp_number?: string
+        }
+        Returns: {
+          enquiry_id: string
+          enquiry_number: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "sales" | "site_team" | "accounts"
+      customer_type: "individual" | "company"
       enquiry_status:
         | "new"
         | "contacted"
@@ -1664,6 +1732,7 @@ export type Database = {
         | "cancelled"
         | "rescheduled"
       stage_status: "not_started" | "in_progress" | "blocked" | "completed"
+      task_kind: "general" | "enquiry_follow_up"
       task_priority: "low" | "normal" | "high" | "urgent"
       task_status:
         | "open"
@@ -1802,6 +1871,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "sales", "site_team", "accounts"],
+      customer_type: ["individual", "company"],
       enquiry_status: [
         "new",
         "contacted",
@@ -1851,6 +1921,7 @@ export const Constants = {
         "rescheduled",
       ],
       stage_status: ["not_started", "in_progress", "blocked", "completed"],
+      task_kind: ["general", "enquiry_follow_up"],
       task_priority: ["low", "normal", "high", "urgent"],
       task_status: ["open", "in_progress", "blocked", "completed", "cancelled"],
     },

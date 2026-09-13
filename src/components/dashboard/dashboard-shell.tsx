@@ -45,7 +45,10 @@ function NavLinks({ role, onNavigate }: { role: AppRole; onNavigate?: () => void
 export function DashboardShell({ children, profile }: { children: React.ReactNode; profile: { fullName: string; email: string; role: AppRole } }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const mobileItems = navItems.filter((item) => ["/dashboard", "/dashboard/site-visits", "/dashboard/projects", "/dashboard/tasks"].includes(item.href) && (!item.module || canAccessModule(profile.role, item.module)));
+  const preferredMobileHrefs = profile.role === "admin" || profile.role === "sales"
+    ? ["/dashboard", "/dashboard/enquiries", "/dashboard/customers", "/dashboard/tasks"]
+    : ["/dashboard", "/dashboard/site-visits", "/dashboard/projects", "/dashboard/tasks"];
+  const mobileItems = navItems.filter((item) => preferredMobileHrefs.includes(item.href) && (!item.module || canAccessModule(profile.role, item.module)));
 
   return (
     <div className="min-h-screen bg-limestone">
