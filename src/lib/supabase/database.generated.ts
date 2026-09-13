@@ -415,12 +415,18 @@ export type Database = {
         Row: {
           amount_due: number
           archived_at: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           due_date: string | null
           id: string
+          milestone_type: Database["public"]["Enums"]["payment_milestone_type"]
           name: string
           notes: string | null
+          percentage: number | null
           project_id: string
           sort_order: number
           status: Database["public"]["Enums"]["payment_status"]
@@ -429,12 +435,18 @@ export type Database = {
         Insert: {
           amount_due: number
           archived_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           due_date?: string | null
           id?: string
+          milestone_type?: Database["public"]["Enums"]["payment_milestone_type"]
           name: string
           notes?: string | null
+          percentage?: number | null
           project_id: string
           sort_order?: number
           status?: Database["public"]["Enums"]["payment_status"]
@@ -443,18 +455,31 @@ export type Database = {
         Update: {
           amount_due?: number
           archived_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           due_date?: string | null
           id?: string
+          milestone_type?: Database["public"]["Enums"]["payment_milestone_type"]
           name?: string
           notes?: string | null
+          percentage?: number | null
           project_id?: string
           sort_order?: number
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_milestones_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payment_milestones_created_by_fkey"
             columns: ["created_by"]
@@ -467,6 +492,63 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_proofs: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string
+          file_name: string
+          file_size: number
+          id: string
+          mime_type: string
+          payment_id: string
+          storage_path: string
+          updated_at: string
+          upload_status: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by: string
+          file_name: string
+          file_size: number
+          id?: string
+          mime_type: string
+          payment_id: string
+          storage_path: string
+          updated_at?: string
+          upload_status?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string
+          file_name?: string
+          file_size?: number
+          id?: string
+          mime_type?: string
+          payment_id?: string
+          storage_path?: string
+          updated_at?: string
+          upload_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_proofs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_proofs_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
         ]
@@ -484,9 +566,13 @@ export type Database = {
           payment_method: string | null
           project_id: string
           proof_storage_path: string | null
+          receipt_number: string
           received_date: string
           reference_number: string | null
           updated_at: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
         }
         Insert: {
           amount_received: number
@@ -500,9 +586,13 @@ export type Database = {
           payment_method?: string | null
           project_id: string
           proof_storage_path?: string | null
+          receipt_number: string
           received_date: string
           reference_number?: string | null
           updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Update: {
           amount_received?: number
@@ -516,9 +606,13 @@ export type Database = {
           payment_method?: string | null
           project_id?: string
           proof_storage_path?: string | null
+          receipt_number?: string
           received_date?: string
           reference_number?: string | null
           updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Relationships: [
           {
@@ -547,6 +641,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1158,6 +1259,12 @@ export type Database = {
           id: string
           installation_date: string | null
           notes: string | null
+          payment_plan_activated_at: string | null
+          payment_plan_activated_by: string | null
+          payment_plan_cancellation_reason: string | null
+          payment_plan_cancelled_at: string | null
+          payment_plan_cancelled_by: string | null
+          payment_plan_status: Database["public"]["Enums"]["payment_plan_status"]
           priority: Database["public"]["Enums"]["project_priority"]
           progress: number
           project_number: string
@@ -1199,6 +1306,12 @@ export type Database = {
           id?: string
           installation_date?: string | null
           notes?: string | null
+          payment_plan_activated_at?: string | null
+          payment_plan_activated_by?: string | null
+          payment_plan_cancellation_reason?: string | null
+          payment_plan_cancelled_at?: string | null
+          payment_plan_cancelled_by?: string | null
+          payment_plan_status?: Database["public"]["Enums"]["payment_plan_status"]
           priority?: Database["public"]["Enums"]["project_priority"]
           progress?: number
           project_number: string
@@ -1240,6 +1353,12 @@ export type Database = {
           id?: string
           installation_date?: string | null
           notes?: string | null
+          payment_plan_activated_at?: string | null
+          payment_plan_activated_by?: string | null
+          payment_plan_cancellation_reason?: string | null
+          payment_plan_cancelled_at?: string | null
+          payment_plan_cancelled_by?: string | null
+          payment_plan_status?: Database["public"]["Enums"]["payment_plan_status"]
           priority?: Database["public"]["Enums"]["project_priority"]
           progress?: number
           project_number?: string
@@ -1304,6 +1423,20 @@ export type Database = {
           {
             foreignKeyName: "projects_handover_confirmed_by_fkey"
             columns: ["handover_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_payment_plan_activated_by_fkey"
+            columns: ["payment_plan_activated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_payment_plan_cancelled_by_fkey"
+            columns: ["payment_plan_cancelled_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2066,6 +2199,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_payment_plan: {
+        Args: { p_project_id: string }
+        Returns: undefined
+      }
+      cancel_payment_milestone: {
+        Args: { p_milestone_id: string; p_reason: string }
+        Returns: undefined
+      }
+      cancel_payment_plan: {
+        Args: { p_project_id: string; p_reason: string }
+        Returns: undefined
+      }
       complete_project: {
         Args: { p_completion_note?: string; p_project_id: string }
         Returns: undefined
@@ -2117,10 +2262,138 @@ export type Database = {
           enquiry_number: number
         }[]
       }
+      finalize_payment_proof: {
+        Args: { p_proof_id: string }
+        Returns: undefined
+      }
       finalize_project_file: { Args: { p_file_id: string }; Returns: undefined }
+      get_customer_finance_summary: {
+        Args: { p_customer_id: string }
+        Returns: {
+          outstanding: number
+          overdue: number
+          project_count: number
+          project_value: number
+          received: number
+        }[]
+      }
+      get_finance_dashboard_summary: {
+        Args: never
+        Returns: {
+          active_plans: number
+          due_soon: number
+          outstanding: number
+          overdue: number
+          overdue_projects: number
+          project_value: number
+          received: number
+          received_this_month: number
+          received_today: number
+        }[]
+      }
+      get_finance_milestone_queue: {
+        Args: never
+        Returns: {
+          amount_due: number
+          currency: string
+          customer_id: string
+          customer_name: string
+          due_date: string
+          milestone_id: string
+          milestone_name: string
+          outstanding: number
+          project_id: string
+          project_number: string
+          received: number
+          status: string
+        }[]
+      }
+      get_finance_project_summaries: {
+        Args: never
+        Returns: {
+          currency: string
+          customer_id: string
+          customer_name: string
+          next_due_date: string
+          outstanding: number
+          overdue: number
+          paid_percent: number
+          plan_status: string
+          planned: number
+          project_id: string
+          project_number: string
+          project_value: number
+          received: number
+        }[]
+      }
+      get_payment_milestone_summaries: {
+        Args: { p_project_id: string }
+        Returns: {
+          amount_due: number
+          cancellation_reason: string
+          cancelled_at: string
+          description: string
+          due_date: string
+          milestone_id: string
+          milestone_type: string
+          name: string
+          notes: string
+          outstanding: number
+          percentage: number
+          received: number
+          sort_order: number
+          status: string
+        }[]
+      }
+      get_project_finance_summary: {
+        Args: { p_project_id: string }
+        Returns: {
+          currency: string
+          next_due_amount: number
+          next_due_date: string
+          outstanding: number
+          overdue: number
+          paid_percent: number
+          plan_status: string
+          planned: number
+          project_value: number
+          received: number
+        }[]
+      }
+      record_payment: {
+        Args: {
+          p_amount: number
+          p_method: string
+          p_milestone_id: string
+          p_notes: string
+          p_project_id: string
+          p_received_date: string
+          p_reference: string
+        }
+        Returns: string
+      }
+      release_payment_proof: {
+        Args: { p_proof_id: string }
+        Returns: undefined
+      }
       reopen_project: {
         Args: { p_note: string; p_project_id: string }
         Returns: undefined
+      }
+      save_payment_milestone: {
+        Args: {
+          p_description: string
+          p_due_date: string
+          p_fixed_amount: number
+          p_milestone_id: string
+          p_name: string
+          p_notes: string
+          p_percentage: number
+          p_project_id: string
+          p_sort_order: number
+          p_type: string
+        }
+        Returns: string
       }
       save_quotation_draft: {
         Args: { p_payload: Json; p_quotation_id: string }
@@ -2188,6 +2461,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      void_payment: {
+        Args: { p_payment_id: string; p_reason: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "sales" | "site_team" | "accounts"
@@ -2203,6 +2480,8 @@ export type Database = {
       enquiry_type: "catalogue" | "general" | "manual"
       handover_status: "pending" | "ready" | "completed" | "issues_outstanding"
       lead_priority: "low" | "normal" | "high" | "urgent"
+      payment_milestone_type: "percentage" | "fixed"
+      payment_plan_status: "draft" | "active" | "completed" | "cancelled"
       payment_status:
         | "pending"
         | "partially_paid"
@@ -2401,6 +2680,8 @@ export const Constants = {
       enquiry_type: ["catalogue", "general", "manual"],
       handover_status: ["pending", "ready", "completed", "issues_outstanding"],
       lead_priority: ["low", "normal", "high", "urgent"],
+      payment_milestone_type: ["percentage", "fixed"],
+      payment_plan_status: ["draft", "active", "completed", "cancelled"],
       payment_status: [
         "pending",
         "partially_paid",

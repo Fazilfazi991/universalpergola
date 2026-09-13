@@ -73,11 +73,24 @@ const activityLabels: Record<string, string> = {
   "handover.completed": "Handover completed",
   "handover.issues_outstanding": "Handover issues recorded",
   "handover.updated": "Handover updated",
+  "payment_plan.activated": "Payment plan activated",
+  "payment_plan.completed": "Payment plan completed",
+  "payment_plan.cancelled": "Payment plan cancelled",
+  "payment_milestone.created": "Payment milestone created",
+  "payment_milestone.updated": "Payment milestone updated",
+  "payment_milestone.cancelled": "Payment milestone cancelled",
+  "payment_milestone.paid": "Milestone fully paid",
+  "payment.received": "Payment received",
+  "payment.partial_received": "Partial payment received",
+  "payment.proof_uploaded": "Payment proof uploaded",
+  "payment.voided": "Receipt voided",
 };
 export function projectActivityLabel(event: string, metadata: Record<string, unknown>) {
   const base = activityLabels[event] || event.replaceAll(".", " ").replace(/^./, (letter) => letter.toUpperCase());
   if (typeof metadata.stage === "string") return `${base} · ${metadata.stage}`;
   if (typeof metadata.title === "string") return `${base} · ${metadata.title}`;
   if (typeof metadata.file_name === "string") return `${base} · ${metadata.file_name}`;
+  if (typeof metadata.receipt_number === "string") return `${base} · ${metadata.receipt_number}`;
+  if (typeof metadata.milestone === "string") return `${base} · ${metadata.milestone}`;
   return base;
 }

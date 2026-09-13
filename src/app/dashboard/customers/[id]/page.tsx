@@ -34,6 +34,7 @@ import {
 import { getCustomerQuotations } from "@/lib/quotations/queries";
 import { getCustomerProjects } from "@/lib/projects/queries";
 import { projectStatusLabel } from "@/lib/projects/presentation";
+import { getCustomerFinanceSummary } from "@/lib/payments/queries";
 
 function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -48,7 +49,7 @@ export default async function CustomerPage({
   params,
 }: PageProps<"/dashboard/customers/[id]">) {
   const { id } = await params;
-  const [profile, customer, workspace, staff, siteVisits, quotations, projects] =
+  const [profile, customer, workspace, staff, siteVisits, quotations, projects, finance] =
     await Promise.all([
       requireModuleAccess("customers"),
       getCustomer(id),
@@ -57,6 +58,7 @@ export default async function CustomerPage({
       getCustomerSiteVisits(id),
       getCustomerQuotations(id),
       getCustomerProjects(id),
+      getCustomerFinanceSummary(id),
     ]);
   if (!customer) notFound();
   const canEdit = ["admin", "sales"].includes(profile.role);
@@ -360,6 +362,7 @@ export default async function CustomerPage({
           </section>
         </div>
         <aside className="space-y-5">
+          {finance && finance.project_count > 0 ? <section className="rounded-lg border border-line bg-graphite p-5 text-white"><p className="text-[10px] font-medium uppercase tracking-[0.16em] text-white/40">Customer finance summary</p><dl className="mt-4 grid grid-cols-2 gap-4"><div><dt className="text-xs text-white/45">Project value</dt><dd className="mt-1 font-semibold">{formatMoney(finance.project_value)}</dd></div><div><dt className="text-xs text-white/45">Received</dt><dd className="mt-1 font-semibold">{formatMoney(finance.received)}</dd></div><div><dt className="text-xs text-white/45">Outstanding</dt><dd className="mt-1 font-semibold">{formatMoney(finance.outstanding)}</dd></div><div><dt className="text-xs text-white/45">Overdue</dt><dd className={`mt-1 font-semibold ${finance.overdue > 0 ? "text-red-300" : ""}`}>{formatMoney(finance.overdue)}</dd></div></dl><p className="mt-4 border-t border-white/10 pt-3 text-xs text-white/45">{profile.role === "sales" ? "Summary only; receipt details remain with Finance." : `${finance.project_count} linked project${finance.project_count === 1 ? "" : "s"}.`}</p></section> : null}
           <section className="rounded-lg border border-line bg-paper p-5">
             <h2 className="text-base font-semibold">Ownership</h2>
             {profile.role === "admin" ? (

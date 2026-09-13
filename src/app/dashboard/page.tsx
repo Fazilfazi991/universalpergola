@@ -28,6 +28,7 @@ import { formatMoney } from "@/lib/quotations/money";
 import { getQuotationDashboard } from "@/lib/quotations/queries";
 import { getProjectDashboard } from "@/lib/projects/queries";
 import { projectStatusLabel } from "@/lib/projects/presentation";
+import { getFinanceDashboardSummary } from "@/lib/payments/queries";
 
 export default async function DashboardPage({
   searchParams,
@@ -42,11 +43,13 @@ export default async function DashboardPage({
     profile.role === "admin" ||
     profile.role === "sales" ||
     profile.role === "accounts";
-  const [crm, visits, quotationMetrics, projectMetrics] = await Promise.all([
+  const canUseFinance = profile.role === "admin" || profile.role === "accounts";
+  const [crm, visits, quotationMetrics, projectMetrics, financeMetrics] = await Promise.all([
     canUseCrm ? getCrmDashboard() : null,
     canUseVisits ? getSiteVisitDashboard() : null,
     canUseQuotations ? getQuotationDashboard(profile.role) : null,
     getProjectDashboard(),
+    canUseFinance ? getFinanceDashboardSummary() : null,
   ]);
   const summaries = crm
     ? [
@@ -301,6 +304,20 @@ export default async function DashboardPage({
           ))}
         </section>
       )}
+      {financeMetrics ? (
+        <section className="space-y-3">
+          <div className="flex items-end justify-between gap-4"><div><h2 className="text-lg font-semibold">Accounts position</h2><p className="mt-1 text-sm text-stone">Current collections, open balances, and due-date risk.</p></div><Link href="/dashboard/payments" className="min-h-10 py-2 text-sm font-medium text-brass-dark">Open payments</Link></div>
+          <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
+            {[
+              ["Received this month", financeMetrics.received_this_month, "/dashboard/payments"],
+              ["Outstanding", financeMetrics.outstanding, "/dashboard/payments"],
+              ["Overdue", financeMetrics.overdue, "/dashboard/payments?due=overdue"],
+              ["Due next 7 days", financeMetrics.due_soon, "/dashboard/payments?due=soon"],
+            ].map(([label, value, href]) => <Link key={label} href={String(href)} className="rounded-lg border border-line bg-paper p-4"><strong className={`block truncate text-xl tracking-[-0.03em] ${label === "Overdue" && Number(value) > 0 ? "text-red-700" : ""}`}>{label === "Due next 7 days" ? Number(value) : formatMoney(Number(value))}</strong><p className="mt-3 text-xs text-stone">{label}</p></Link>)}
+          </div>
+          <p className="text-xs text-stone">Received today: <strong className="text-graphite">{formatMoney(financeMetrics.received_today)}</strong> · Total received: {formatMoney(financeMetrics.received)} · Portfolio value: {formatMoney(financeMetrics.project_value)}</p>
+        </section>
+      ) : null}
       <section className="space-y-3">
         <div className="flex items-end justify-between gap-4"><div><h2 className="text-lg font-semibold">Project operations</h2><p className="mt-1 text-sm text-stone">Delivery, installation, handover, and blocked work.</p></div><Link href="/dashboard/projects" className="min-h-10 py-2 text-sm font-medium text-brass-dark">All projects</Link></div>
         <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
