@@ -1,28 +1,28 @@
-# Phase 2H release-readiness record
+# Phase 2I release-readiness record
 
 Recorded: 14 September 2026.
 
 | Field | Value |
 |---|---|
-| Verified baseline | `30e90505bf80dbefcbaa87574c4d4dab1436643d` |
-| Candidate release | The commit containing this record; exact immutable SHA is reported by `git rev-parse HEAD` in the Phase 2H handoff |
+| Verified baseline | `6c8bf86187982b6477129654e6457dbb6601da29` |
+| Candidate release | The commit containing this record; exact immutable SHA is reported by `git rev-parse HEAD` in the Phase 2I handoff |
 | Migration head | `20260914120000_phase_2h_site_visit_update_policy.sql` |
 | Intended current target | Hosted UAT Supabase project `jwyjuhtektmtqffnillj`; localhost application |
 | Intended later Production target | Separate Supabase project and Vercel Production environment after explicit authorization |
-| Application rollback SHA | `30e90505bf80dbefcbaa87574c4d4dab1436643d` |
+| Application rollback SHA | `6c8bf86187982b6477129654e6457dbb6601da29` |
 | Database rollback limitation | Forward migrations and operational writes are not safely reversed by Git rollback; restore/forward repair requires an approved backup and runbook |
 | Storage consideration | Database backups do not contain bucket object contents; independent object backup/restore and registry reconciliation are required |
 | Preview/UAT URL | Not created in Phase 2H |
 | Production deployment | Not performed |
 
-## Candidate contents
+## Phase 2I candidate contents
 
-- Additive consolidation of the two `site_visits` UPDATE policies into one behavior-equivalent role-aware policy.
-- Reproducible, credential-safe UAT seeding and technical acceptance scripts.
-- Chrome three-viewport route/role/performance verification.
-- Current UAT quotation/payment receipt proof generation.
-- Environment, UAT, backup/recovery, Production and issue-register documentation.
+- Retains the verified Phase 2H application and database baseline without feature changes.
+- Adds formal Gate A stakeholder/commercial/catalogue/staff approval records.
+- Adds a gated Production infrastructure and controlled data-seed plan.
+- Adds a Phase 2I rollback/release record and converts unresolved P1 items to evidence-based `BLOCKED` states.
+- Records the verified Supabase/Vercel inventory without creating, linking, deploying or changing live resources.
 
 ## Release decision
 
-The candidate is suitable for real stakeholder UAT. It is **not approved for Production** until all P1 items in `UAT_ISSUES.md` are closed and the controlled cutover checklist is signed.
+Gate A and Gate B are **BLOCKED**. The candidate remains suitable for real stakeholder UAT but is **not approved for Production**. Phase 2I stops before resource creation or cutover until all P1 items are closed with evidence and the Production decision record is explicitly authorized.

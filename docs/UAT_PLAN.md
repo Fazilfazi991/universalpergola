@@ -1,6 +1,6 @@
 # Universal Pergola UAT plan
 
-Updated: 14 September 2026. Environment: hosted UAT project `jwyjuhtektmtqffnillj` (not Production).
+Updated: 14 September 2026 for Phase 2I. Environment: hosted UAT project `jwyjuhtektmtqffnillj` (not Production). All business sign-offs remain `NOT RUN`; technical passes must not be promoted to stakeholder approval.
 
 ## How to run stakeholder UAT
 
@@ -36,3 +36,5 @@ Use the four clearly labeled UAT accounts for Management, Sales, Site Team, and 
 | Public/customer wording | Pending | — | NOT RUN | — |
 
 Any failed expectation must be logged in `docs/UAT_ISSUES.md` with severity and owner. A P0 or unresolved P1 prevents Production approval.
+
+Requested enhancements discovered during UAT are logged and deferred to a later feature phase unless the accountable business owner classifies them as defects against an already approved requirement. Phase 2I does not implement new feature requests.
