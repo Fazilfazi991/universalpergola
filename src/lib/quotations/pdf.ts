@@ -33,18 +33,42 @@ export async function generateQuotationPdf(quote: QuotationDetail, items: Quotat
   const drawSidebar = () => {
     page.drawRectangle({ x: 0, y: 0, width: 132, height: A4_HEIGHT, color: PDF_COLORS.charcoal });
     page.drawRectangle({ x: 0, y: A4_HEIGHT - 8, width: 132, height: 8, color: PDF_COLORS.brass });
-    page.drawImage(logo, { x: 18, y: 690, width: 96, height: 96 });
+    page.drawImage(logo, { x: 12, y: 690, width: 108, height: 108 });
     page.drawText("UNIVERSAL", { x: 23, y: 676, size: 10, font: bold, color: PDF_COLORS.brassLight });
     page.drawText("PERGOLA", { x: 39, y: 663, size: 10, font: bold, color: PDF_COLORS.white });
     page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.tagline.toUpperCase(), { x: 22, y: 648, size: 5.5, font: regular, color: PDF_COLORS.brassLight });
-    const sidebarBlock = (label: string, value: string, top: number) => {
-      page.drawText(label.toUpperCase(), { x: 18, y: top, size: 6.5, font: bold, color: PDF_COLORS.brassLight });
-      return drawWrapped(page, wrapPdfText(value || "-", regular, 7.5, 96).slice(0, 5), 18, top - 14, 7.5, regular, PDF_COLORS.white, 10);
+    const wrapHyphenated = (value: string, size: number, width: number) => {
+      const lines: string[] = [];
+      let current = "";
+      for (const segment of value.split(/(?<=-)/)) {
+        const candidate = current + segment;
+        if (regular.widthOfTextAtSize(candidate, size) <= width) { current = candidate; continue; }
+        if (current) lines.push(current);
+        const segmentLines = wrapPdfText(segment, regular, size, width);
+        current = segmentLines.pop() || "";
+        lines.push(...segmentLines);
+      }
+      if (current) lines.push(current);
+      return lines;
+    };
+    const sidebarLines = (value: string, size: number, width: number) => safePdfText(value || "-").split("\n").flatMap((line) => {
+      const emailAt = line.lastIndexOf("@");
+      if (emailAt > 0 && regular.widthOfTextAtSize(line, size) > width) {
+        return [
+          ...wrapHyphenated(line.slice(0, emailAt + 1), size, width),
+          ...wrapHyphenated(line.slice(emailAt + 1), size, width),
+        ];
+      }
+      return wrapPdfText(line, regular, size, width);
+    });
+    const sidebarBlock = (label: string, value: string, top: number, size = 7.15) => {
+      page.drawText(label.toUpperCase(), { x: 16, y: top, size: 6.5, font: bold, color: PDF_COLORS.brassLight });
+      return drawWrapped(page, sidebarLines(value, size, 100), 16, top - 14, size, regular, PDF_COLORS.white, 9.5);
     };
     let sideY = 610;
     sideY = sidebarBlock("Bill to", quote.customer_name_snapshot, sideY) - 8;
     if (quote.customer_company_snapshot) sideY = sidebarBlock("Company", quote.customer_company_snapshot, sideY) - 8;
-    sideY = sidebarBlock("Contact", [quote.customer_phone_snapshot, quote.customer_email_snapshot].filter(Boolean).join("\n"), sideY) - 8;
+    sideY = sidebarBlock("Contact", [quote.customer_phone_snapshot, quote.customer_email_snapshot].filter(Boolean).join("\n"), sideY, 6.8) - 8;
     sideY = sidebarBlock("Site", quote.site_address_snapshot || "Not specified", sideY) - 18;
     page.drawLine({ start: { x: 18, y: sideY }, end: { x: 114, y: sideY }, thickness: 0.5, color: PDF_COLORS.brass });
     sideY -= 20;
@@ -170,9 +194,9 @@ export async function generateQuotationPdf(quote: QuotationDetail, items: Quotat
   y -= 52;
 
   if (quote.customer_notes) { sectionTitle("Customer notes"); paragraph(quote.customer_notes); y -= 8; }
-  if (quote.terms) { sectionTitle("Terms and conditions"); paragraph(quote.terms, 7, 9); y -= 7; }
+  if (quote.terms) { sectionTitle("Terms and conditions"); paragraph(quote.terms, 7.35, 9.4); y -= 3; }
 
-  if (y - 74 < 40) addPage(true);
+  if (y - 70 < 40) addPage(true);
   page.drawRectangle({ x: contentX, y: y - 70, width: contentRight - contentX, height: 74, color: PDF_COLORS.sand });
   page.drawText("THANK YOU FOR YOUR BUSINESS.", { x: contentX + 12, y: y - 20, size: 10.5, font: bold, color: PDF_COLORS.ink });
   page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.footerLine, { x: contentX + 12, y: y - 36, size: 6.3, font: regular, color: PDF_COLORS.stone });

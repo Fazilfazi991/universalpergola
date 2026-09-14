@@ -42,13 +42,17 @@ try {
   assert(selfProfile?.status === "active" && ["admin", "sales"].includes(selfProfile.role), `Hosted Management QA profile is unavailable (${selfProfile?.role || "hidden"}/${selfProfile?.status || "hidden"})`);
   const activeStaff = [selfProfile];
   const ownerId = activeStaff[0].id;
+  const customerName = `Mohammed Abdul Rahman Al Mansoori ${runId}`;
+  const companyName = "Pergola Client Format QA and Architectural Works LLC";
+  const customerEmail = `phase2f1-document-polish-${runId}@example-client-domain.com`;
+  const siteAddress = "Villa 127, District 5, Dubai Hills Estate, Dubai, United Arab Emirates";
   const customer = await requireData(management.from("customers").insert({
-    name: `QA Document Customer ${runId}`,
+    name: customerName,
     customer_type: "company",
-    company_name: "Pergola Client Format QA LLC",
+    company_name: companyName,
     phone: "+971501234567",
-    email: `phase2f1-${runId}@example.com`,
-    address: "Villa 27, Dubai Hills",
+    email: customerEmail,
+    address: siteAddress,
     area: "Dubai Hills",
     emirate: "Dubai",
     source: "Phase 2F.1 document QA",
@@ -99,11 +103,11 @@ try {
       currency: "AED",
       issue_date: issue,
       validity_date: validity,
-      customer_name_snapshot: `QA Document Customer ${runId}`,
-      customer_company_snapshot: "Pergola Client Format QA LLC",
+      customer_name_snapshot: customerName,
+      customer_company_snapshot: companyName,
       customer_phone_snapshot: "+971501234567",
-      customer_email_snapshot: `phase2f1-${runId}@example.com`,
-      site_address_snapshot: "Villa 27, Dubai Hills, Dubai",
+      customer_email_snapshot: customerEmail,
+      site_address_snapshot: siteAddress,
       introduction: "Design, fabrication, supply, and installation of the agreed architectural pergola solution.",
       internal_notes: "Disposable Phase 2F.1 client-document QA quotation.",
       customer_notes: "Final site measurements and finish selection will be confirmed before fabrication.",
@@ -138,7 +142,7 @@ try {
   const advanceMilestone = await requireData(accounts.rpc("save_payment_milestone", {
     p_project_id: projectId, p_milestone_id: null, p_name: "50% Advance Payment", p_type: "percentage",
     p_percentage: 50, p_fixed_amount: null, p_due_date: issue,
-    p_description: "Advance received before material procurement and fabrication.", p_notes: "Phase 2F.1 receipt sample", p_sort_order: 10,
+    p_description: "Advance received before material procurement, fabrication drawings, powder-coating approval, motor coordination, and installation scheduling.", p_notes: "Phase 2F.1 receipt sample", p_sort_order: 10,
   }), "advance milestone");
   await requireData(accounts.rpc("save_payment_milestone", {
     p_project_id: projectId, p_milestone_id: null, p_name: "40% Before Installation", p_type: "percentage",
@@ -157,7 +161,7 @@ try {
     p_amount: advanceAmount,
     p_received_date: issue,
     p_method: "bank_transfer",
-    p_reference: `QA-DOC-${runId.toUpperCase()}`,
+    p_reference: `BANK-TRANSFER-CONFIRMATION-${runId.toUpperCase()}-PERGOLA-ADVANCE`,
     p_notes: "Phase 2F.1 generated receipt sample",
   }), "sample payment receipt");
 

@@ -47,6 +47,7 @@ async function waitFor(expression, label, attempts = 240) {
 async function navigate(url) {
   await send("Page.navigate", { url });
   await waitFor(`location.href.startsWith(${JSON.stringify(url)}) && document.readyState!=='loading' && document.body?.innerText?.length>0`, url);
+  await waitFor("!document.querySelector('[aria-label^=\"Loading\"], [aria-busy=\"true\"], .animate-pulse')", `${url} settled`);
 }
 async function setField(selector, value) {
   const changed = await evaluate(`(() => { const field=document.querySelector(${JSON.stringify(selector)}); if(!field)return false; const proto=HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(proto,'value').set.call(field,${JSON.stringify(value)}); field.dispatchEvent(new Event('input',{bubbles:true})); field.dispatchEvent(new Event('change',{bubbles:true})); return true; })()`);

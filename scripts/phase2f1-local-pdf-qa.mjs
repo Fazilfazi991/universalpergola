@@ -42,12 +42,55 @@ const receipt = {
 };
 const finance = { project_value: 49612.5, currency: "AED", planned: 49612.5, received: 24806.25, outstanding: 24806.25, overdue: 0, next_due_date: "2026-09-21", paid_percent: 50, plan_status: "active" };
 const longItems = Array.from({ length: 36 }, (_, index) => item(crypto.randomUUID(), `Pergola component ${index + 1}`, `Architectural fabrication detail ${index + 1}. ${"Powder-coated finish, coordinated fixing, drainage allowance, and installation constraint. ".repeat(4)}`, 1200, index + 1));
-const longQuote = { ...quote, quotation_number: "UP-Q-2026-000102", subtotal: 43200, discount_value: 0, discount_amount: 0, vat_amount: 2160, total: 45360, terms: `${DEFAULT_QUOTATION_TERMS}\n${"Additional project-specific installation condition. ".repeat(70)}` };
+const longQuote = {
+  ...quote,
+  quotation_number: "UP-Q-2026-000102",
+  customer_name_snapshot: "Mohammed Abdul Rahman Al Mansoori Al Marzouqi",
+  customer_company_snapshot: "Universal Architectural Outdoor Living and Pergola Contracting Services LLC",
+  customer_email_snapshot: "phase2f1-document-polish-and-quotation-review@example-client-domain.com",
+  site_address_snapshot: "Villa 127, District 5, Dubai Hills Estate, Dubai, United Arab Emirates - rear garden installation zone beside the swimming pool deck",
+  subtotal: 43200,
+  discount_value: 0,
+  discount_amount: 0,
+  vat_amount: 2160,
+  total: 45360,
+  terms: `${DEFAULT_QUOTATION_TERMS}\n${"Additional project-specific installation condition. ".repeat(70)}`,
+};
+const longReceipt = {
+  ...receipt,
+  receipt_number: "UP-R-2026-000102",
+  reference_number: "BANK-TRANSFER-CONFIRMATION-2026-09-14-PERGOLA-ADVANCE-000101",
+  creator: { ...receipt.creator, full_name: "Accounts and Commercial Operations Coordinator" },
+  milestone: {
+    ...receipt.milestone,
+    name: "50% Advance Payment for Motorised Louvered Pergola Fabrication",
+    description: "Advance received before material procurement, detailed fabrication drawings, powder-coating approval, motor coordination, drainage preparation, and installation scheduling.",
+  },
+  customer: { ...receipt.customer, name: "Mohammed Abdul Rahman Al Mansoori Al Marzouqi" },
+};
+const voidReceipt = {
+  ...longReceipt,
+  receipt_number: "UP-R-2026-000103",
+  voided_at: "2026-09-14T11:00:00.000Z",
+  void_reason: "Duplicate bank-transfer entry identified during end-of-day reconciliation.",
+  voider: { id: "99999999-9999-4999-8999-999999999999", full_name: "Finance Manager" },
+};
 
 await Promise.all([mkdir("output/pdf", { recursive: true }), mkdir("tmp/pdfs", { recursive: true })]);
 await Promise.all([
   generateQuotationPdf(quote, items).then((bytes) => writeFile("output/pdf/universal-pergola-sample-quotation.pdf", bytes)),
   generatePaymentReceiptPdf(receipt, finance).then((bytes) => writeFile("output/pdf/universal-pergola-sample-payment-receipt.pdf", bytes)),
   generateQuotationPdf(longQuote, longItems).then((bytes) => writeFile("tmp/pdfs/universal-pergola-long-quotation-qa.pdf", bytes)),
+  generatePaymentReceiptPdf(longReceipt, finance).then((bytes) => writeFile("tmp/pdfs/universal-pergola-long-receipt-qa.pdf", bytes)),
+  generatePaymentReceiptPdf(voidReceipt, finance).then((bytes) => writeFile("tmp/pdfs/universal-pergola-void-receipt-qa.pdf", bytes)),
 ]);
-console.log(JSON.stringify({ status: "passed", files: ["output/pdf/universal-pergola-sample-quotation.pdf", "output/pdf/universal-pergola-sample-payment-receipt.pdf", "tmp/pdfs/universal-pergola-long-quotation-qa.pdf"] }, null, 2));
+console.log(JSON.stringify({
+  status: "passed",
+  files: [
+    "output/pdf/universal-pergola-sample-quotation.pdf",
+    "output/pdf/universal-pergola-sample-payment-receipt.pdf",
+    "tmp/pdfs/universal-pergola-long-quotation-qa.pdf",
+    "tmp/pdfs/universal-pergola-long-receipt-qa.pdf",
+    "tmp/pdfs/universal-pergola-void-receipt-qa.pdf",
+  ],
+}, null, 2));

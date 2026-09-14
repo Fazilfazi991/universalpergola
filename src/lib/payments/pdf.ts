@@ -31,7 +31,7 @@ export async function generatePaymentReceiptPdf(receipt: ReceiptRow, finance: Fi
 
   page.drawRectangle({ x: 0, y: A4_HEIGHT - 12, width: A4_WIDTH, height: 12, color: PDF_COLORS.brass });
   page.drawImage(logo, { x: 36, y: 697, width: 108, height: 108 });
-  page.drawImage(logo, { x: 150, y: 215, width: 310, height: 310, opacity: 0.035 });
+  page.drawImage(logo, { x: 174, y: 170, width: 260, height: 260, opacity: 0.022 });
   page.drawText("UNIVERSAL PERGOLA", { x: 36, y: 681, size: 10.5, font: bold, color: PDF_COLORS.ink });
   page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.tagline.toUpperCase(), { x: 36, y: 666, size: 6, font: regular, color: PDF_COLORS.brass });
 
@@ -47,63 +47,86 @@ export async function generatePaymentReceiptPdf(receipt: ReceiptRow, finance: Fi
   page.drawText(status.toUpperCase(), { x: 442, y: 660, size: 8.5, font: bold, color: isVoid ? PDF_COLORS.red : PDF_COLORS.green });
 
   page.drawText("BILL TO", { x: 36, y: 625, size: 6.5, font: bold, color: PDF_COLORS.brass });
-  page.drawText(safePdfText(receipt.customer?.name || "Customer"), { x: 36, y: 607, size: 10.5, font: bold, color: PDF_COLORS.ink });
-  page.drawText(safePdfText(receipt.customer?.phone || "Phone not provided"), { x: 36, y: 592, size: 7.5, font: regular, color: PDF_COLORS.stone });
+  const customerBottom = drawWrapped(page, receipt.customer?.name || "Customer", 36, 607, 230, 10, bold, PDF_COLORS.ink, 11.5);
+  page.drawText(safePdfText(receipt.customer?.phone || "Phone not provided"), { x: 36, y: customerBottom - 2, size: 7.5, font: regular, color: PDF_COLORS.stone });
   page.drawText("PROJECT", { x: 300, y: 625, size: 6.5, font: bold, color: PDF_COLORS.brass });
-  page.drawText(safePdfText(receipt.project?.project_number || "-"), { x: 300, y: 607, size: 9, font: bold, color: PDF_COLORS.ink });
-  page.drawText(`Source quotation: ${safePdfText(receipt.project?.source_quotation_number || "-")}`, { x: 300, y: 592, size: 7.2, font: regular, color: PDF_COLORS.stone });
+  const projectBottom = drawWrapped(page, receipt.project?.project_number || "-", 300, 607, 259, 9, bold, PDF_COLORS.ink, 11);
+  const sourceBottom = drawWrapped(page, `Source quotation: ${receipt.project?.source_quotation_number || "-"}`, 300, projectBottom - 3, 259, 7.2, regular, PDF_COLORS.stone, 9);
 
   const tableX = 36;
   const tableRight = A4_WIDTH - 36;
   const tableWidth = tableRight - tableX;
-  page.drawRectangle({ x: tableX, y: 535, width: tableWidth, height: 32, color: PDF_COLORS.charcoal });
-  page.drawText("SERVICE / DESCRIPTION", { x: tableX + 12, y: 547, size: 7, font: bold, color: PDF_COLORS.white });
-  page.drawText("QTY", { x: 400, y: 547, size: 7, font: bold, color: PDF_COLORS.white });
-  drawRightText(page, "AMOUNT", tableRight - 10, 547, 7, bold, PDF_COLORS.white);
+  const tableHeaderY = Math.min(535, customerBottom - 48, sourceBottom - 34);
+  page.drawRectangle({ x: tableX, y: tableHeaderY, width: tableWidth, height: 32, color: PDF_COLORS.charcoal });
+  page.drawText("SERVICE / DESCRIPTION", { x: tableX + 12, y: tableHeaderY + 12, size: 7, font: bold, color: PDF_COLORS.white });
+  page.drawText("QTY", { x: 400, y: tableHeaderY + 12, size: 7, font: bold, color: PDF_COLORS.white });
+  drawRightText(page, "AMOUNT", tableRight - 10, tableHeaderY + 12, 7, bold, PDF_COLORS.white);
 
   const service = receipt.milestone?.description || `Payment received for ${receipt.milestone?.name || receipt.project?.project_number || "project services"}.`;
-  page.drawText(safePdfText(receipt.milestone?.name || "Project payment"), { x: tableX + 12, y: 508, size: 10, font: bold, color: PDF_COLORS.ink });
-  drawWrapped(page, service, tableX + 12, 492, 330, 7.3, regular, PDF_COLORS.stone, 10);
-  page.drawText("1", { x: 402, y: 508, size: 8, font: regular, color: PDF_COLORS.ink });
-  drawRightText(page, pdfMoney(receipt.amount_received, currency), tableRight - 10, 508, 9, bold);
-  page.drawLine({ start: { x: tableX, y: 455 }, end: { x: tableRight, y: 455 }, thickness: 0.7, color: PDF_COLORS.line });
+  const serviceTop = tableHeaderY - 28;
+  const milestoneBottom = drawWrapped(page, receipt.milestone?.name || "Project payment", tableX + 12, serviceTop, 322, 9.5, bold, PDF_COLORS.ink, 11);
+  const serviceBottom = drawWrapped(page, service, tableX + 12, milestoneBottom - 3, 330, 7.3, regular, PDF_COLORS.stone, 9.5);
+  page.drawText("1", { x: 402, y: serviceTop, size: 8, font: regular, color: PDF_COLORS.ink });
+  drawRightText(page, pdfMoney(receipt.amount_received, currency), tableRight - 10, serviceTop, 9, bold);
+  const tableBottom = Math.min(serviceTop - 40, serviceBottom - 7);
+  page.drawLine({ start: { x: tableX, y: tableBottom }, end: { x: tableRight, y: tableBottom }, thickness: 0.7, color: PDF_COLORS.line });
 
-  page.drawText("TOTAL RECEIVED", { x: 344, y: 427, size: 8, font: bold, color: PDF_COLORS.stone });
-  drawRightText(page, pdfMoney(receipt.amount_received, currency), tableRight, 424, 14, bold, isVoid ? PDF_COLORS.red : PDF_COLORS.ink);
-  if (isVoid) page.drawLine({ start: { x: 455, y: 431 }, end: { x: tableRight, y: 431 }, thickness: 1.4, color: PDF_COLORS.red });
+  const summaryTop = tableBottom - 14;
+  const summaryHeight = 96;
+  const summaryBottom = summaryTop - summaryHeight;
+  const summaryFill = isVoid ? rgb(0.99, 0.94, 0.93) : PDF_COLORS.sand;
+  page.drawRectangle({ x: tableX, y: summaryBottom, width: tableWidth, height: summaryHeight, color: summaryFill, borderColor: isVoid ? PDF_COLORS.red : PDF_COLORS.line, borderWidth: 0.7 });
+  page.drawRectangle({ x: tableX, y: summaryBottom, width: 4, height: summaryHeight, color: isVoid ? PDF_COLORS.red : PDF_COLORS.brass });
+  page.drawLine({ start: { x: 300, y: summaryBottom + 10 }, end: { x: 300, y: summaryTop - 10 }, thickness: 0.45, color: PDF_COLORS.line });
+  page.drawLine({ start: { x: tableX + 14, y: summaryBottom + 47 }, end: { x: tableRight - 14, y: summaryBottom + 47 }, thickness: 0.45, color: PDF_COLORS.line });
 
-  const leftX = 36;
-  const rightX = 315;
-  const detailY = 374;
-  const detail = (label: string, value: string, x: number, y: number, width: number) => {
-    page.drawText(label.toUpperCase(), { x, y, size: 6, font: bold, color: PDF_COLORS.brass });
-    drawWrapped(page, value || "-", x, y - 17, width, 8.2, bold, PDF_COLORS.ink, 10);
+  const summaryField = (label: string, value: string, x: number, labelY: number, width: number, emphasis = false, color = PDF_COLORS.ink) => {
+    page.drawText(label.toUpperCase(), { x, y: labelY, size: 5.9, font: bold, color: PDF_COLORS.stone });
+    drawWrapped(page, value, x, labelY - 17, width, emphasis ? 12.5 : 8.6, bold, color, emphasis ? 14 : 10.5);
   };
-  detail("Payment method", paymentMethodLabel(receipt.payment_method), leftX, detailY, 220);
-  detail("Payment status", status, rightX, detailY, 225);
-  detail("Transaction reference", receipt.reference_number || "Not provided", leftX, detailY - 55, 220);
-  detail("Remaining amount due", pdfMoney(finance.outstanding, currency), rightX, detailY - 55, 225);
-  detail("Project total", pdfMoney(receipt.project?.project_value ?? finance.project_value, currency), leftX, detailY - 110, 220);
-  detail("Recorded by", receipt.creator?.full_name || "Finance team", rightX, detailY - 110, 225);
+  summaryField("Total received", pdfMoney(receipt.amount_received, currency), tableX + 18, summaryTop - 20, 226, true, isVoid ? PDF_COLORS.red : PDF_COLORS.ink);
+  summaryField("Payment method", paymentMethodLabel(receipt.payment_method), 315, summaryTop - 20, 220);
+  summaryField("Payment status", status, tableX + 18, summaryBottom + 29, 226, false, isVoid ? PDF_COLORS.red : PDF_COLORS.green);
+  summaryField("Remaining amount due", pdfMoney(finance.outstanding, currency), 315, summaryBottom + 29, 220);
 
-  if (isVoid) {
-    page.drawRectangle({ x: 36, y: 183, width: tableWidth, height: 48, color: rgb(0.99, 0.91, 0.9), borderColor: PDF_COLORS.red, borderWidth: 0.8 });
-    page.drawText("VOID - THIS RECEIPT HAS BEEN REVERSED", { x: 49, y: 211, size: 9.5, font: bold, color: PDF_COLORS.red });
-    drawWrapped(page, receipt.void_reason || "Receipt reversed in the finance system.", 49, 195, tableWidth - 26, 7, regular, PDF_COLORS.red, 9);
-  } else {
-    page.drawText("THANK YOU FOR YOUR PAYMENT.", { x: 36, y: 210, size: 12, font: bold, color: PDF_COLORS.ink });
-    page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.footerLine, { x: 36, y: 194, size: 6.8, font: regular, color: PDF_COLORS.stone });
+  const detailTop = summaryBottom - 25;
+  const detailColumns = [
+    { label: "Transaction reference", value: receipt.reference_number || "Not provided", x: tableX, width: 162 },
+    { label: "Project total", value: pdfMoney(receipt.project?.project_value ?? finance.project_value, currency), x: 216, width: 162 },
+    { label: "Recorded by", value: receipt.creator?.full_name || "Finance team", x: 396, width: 163 },
+  ];
+  let detailBottom = detailTop;
+  for (const detail of detailColumns) {
+    page.drawText(detail.label.toUpperCase(), { x: detail.x, y: detailTop, size: 5.8, font: bold, color: PDF_COLORS.brass });
+    detailBottom = Math.min(detailBottom, drawWrapped(page, detail.value, detail.x, detailTop - 16, detail.width, 7.8, bold, PDF_COLORS.ink, 9.5));
   }
 
-  page.drawLine({ start: { x: 364, y: 165 }, end: { x: 559, y: 165 }, thickness: 0.7, color: PDF_COLORS.line });
-  drawRightText(page, UNIVERSAL_PERGOLA_DOCUMENT.signatoryName.toUpperCase(), 559, 148, 8, bold, PDF_COLORS.ink);
-  drawRightText(page, UNIVERSAL_PERGOLA_DOCUMENT.signatoryTitle.toUpperCase(), 559, 135, 6.5, regular, PDF_COLORS.stone);
-  page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.legalName, { x: 36, y: 148, size: 6.8, font: bold, color: PDF_COLORS.ink });
-  page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.address, { x: 36, y: 135, size: 6.5, font: regular, color: PDF_COLORS.stone });
-  page.drawText(`${UNIVERSAL_PERGOLA_DOCUMENT.instagram}  |  ${UNIVERSAL_PERGOLA_DOCUMENT.phones.join(" / ")}`, { x: 36, y: 122, size: 6.5, font: regular, color: PDF_COLORS.stone });
+  const confirmation = isVoid
+    ? "This document records the payment receipt stated above and its subsequent reversal."
+    : "This receipt confirms payment received against the project and payment milestone stated above.";
+  const confirmationTop = detailBottom - 12;
+  page.drawRectangle({ x: tableX, y: confirmationTop - 25, width: tableWidth, height: 30, color: rgb(0.985, 0.98, 0.965) });
+  drawWrapped(page, confirmation, tableX + 12, confirmationTop - 8, tableWidth - 24, 6.8, regular, PDF_COLORS.stone, 8.5);
 
   if (isVoid) {
-    page.drawText("VOID", { x: 156, y: 388, size: 82, font: bold, color: PDF_COLORS.red, opacity: 0.1, rotate: degrees(25) });
+    page.drawRectangle({ x: 36, y: 167, width: tableWidth, height: 43, color: rgb(0.99, 0.91, 0.9), borderColor: PDF_COLORS.red, borderWidth: 0.8 });
+    page.drawText("VOID - THIS RECEIPT HAS BEEN REVERSED", { x: 49, y: 192, size: 9, font: bold, color: PDF_COLORS.red });
+    drawWrapped(page, receipt.void_reason || "Receipt reversed in the finance system.", 49, 177, tableWidth - 26, 6.8, regular, PDF_COLORS.red, 8.5);
+  } else {
+    page.drawText("THANK YOU FOR YOUR PAYMENT.", { x: 36, y: 194, size: 11.5, font: bold, color: PDF_COLORS.ink });
+    page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.footerLine, { x: 36, y: 179, size: 6.8, font: regular, color: PDF_COLORS.stone });
+  }
+
+  page.drawText("AUTHORIZED SIGNATORY", { x: 364, y: 151, size: 5.8, font: bold, color: PDF_COLORS.brass });
+  page.drawLine({ start: { x: 364, y: 139 }, end: { x: 559, y: 139 }, thickness: 0.8, color: PDF_COLORS.line });
+  drawRightText(page, UNIVERSAL_PERGOLA_DOCUMENT.signatoryName.toUpperCase(), 559, 120, 8.6, bold, PDF_COLORS.ink);
+  drawRightText(page, UNIVERSAL_PERGOLA_DOCUMENT.signatoryTitle.toUpperCase(), 559, 106, 6.7, regular, PDF_COLORS.stone);
+  page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.legalName, { x: 36, y: 120, size: 6.8, font: bold, color: PDF_COLORS.ink });
+  page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.address, { x: 36, y: 107, size: 6.5, font: regular, color: PDF_COLORS.stone });
+  page.drawText(`${UNIVERSAL_PERGOLA_DOCUMENT.instagram}  |  ${UNIVERSAL_PERGOLA_DOCUMENT.phones.join(" / ")}`, { x: 36, y: 94, size: 6.5, font: regular, color: PDF_COLORS.stone });
+
+  if (isVoid) {
+    page.drawText("VOID", { x: 156, y: 388, size: 82, font: bold, color: PDF_COLORS.red, opacity: 0.065, rotate: degrees(25) });
   }
   drawDocumentFooter(page, regular, bold, 1, 1, receipt.receipt_number);
   return document.save({ useObjectStreams: false });

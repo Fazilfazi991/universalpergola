@@ -79,6 +79,23 @@ test("payment receipt PDF is deterministic and carries receipt metadata", async 
   const voidedPdf = await PDFDocument.load(voidedBytes);
   assert.equal(voidedPdf.getPageCount(), 1);
   assert.equal(voidedPdf.getSubject(), "Voided payment receipt");
+
+  const longDataBytes = await generatePaymentReceiptPdf(
+    {
+      ...receipt,
+      customer: { ...receipt.customer!, name: "Mohammed Abdul Rahman Al Mansoori Al Marzouqi" },
+      reference_number: "BANK-TRANSFER-CONFIRMATION-2026-09-14-PERGOLA-ADVANCE-000101",
+      creator: { ...receipt.creator!, full_name: "Accounts and Commercial Operations Coordinator" },
+      milestone: {
+        ...receipt.milestone!,
+        name: "50% Advance Payment for Motorised Louvered Pergola Fabrication",
+        description: "Advance received before material procurement, detailed fabrication drawings, powder-coating approval, motor coordination, drainage preparation, and installation scheduling.",
+      },
+    },
+    finance,
+  );
+  const longDataPdf = await PDFDocument.load(longDataBytes);
+  assert.equal(longDataPdf.getPageCount(), 1);
 });
 
 test("payment receipt PDF route authorizes before reading receipt data", () => {

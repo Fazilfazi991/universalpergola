@@ -76,6 +76,13 @@ export async function embedBrandLogo(document: PDFDocument): Promise<PDFImage> {
 export function drawDocumentFooter(page: PDFPage, regular: PDFFont, bold: PDFFont, pageNumber: number, totalPages: number, identifier: string) {
   const { email, website, phones } = UNIVERSAL_PERGOLA_DOCUMENT;
   page.drawLine({ start: { x: 32, y: 34 }, end: { x: A4_WIDTH - 32, y: 34 }, thickness: 0.65, color: PDF_COLORS.line });
-  page.drawText(`${email}  |  ${website}  |  ${phones.join(" / ")}`, { x: 32, y: 20, size: 6.2, font: regular, color: PDF_COLORS.stone });
-  drawRightText(page, `${identifier}  |  ${pageNumber}/${totalPages}`, A4_WIDTH - 32, 20, 6.2, bold, PDF_COLORS.stone);
+  const rightText = `${identifier}  |  ${pageNumber}/${totalPages}`;
+  const rightSize = 6.2;
+  const rightStart = A4_WIDTH - 32 - bold.widthOfTextAtSize(rightText, rightSize);
+  const leftText = `${email}  |  ${website}  |  ${phones[0]}`;
+  const leftWidth = rightStart - 44;
+  let leftSize = 6.2;
+  while (leftSize > 5.3 && regular.widthOfTextAtSize(leftText, leftSize) > leftWidth) leftSize -= 0.1;
+  page.drawText(leftText, { x: 32, y: 20, size: leftSize, font: regular, color: PDF_COLORS.stone });
+  drawRightText(page, rightText, A4_WIDTH - 32, 20, rightSize, bold, PDF_COLORS.stone);
 }
