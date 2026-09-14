@@ -1,0 +1,20 @@
+# UAT issue register
+
+Updated: 14 September 2026. No P0 defect was found in the Phase 2H technical precheck. These items remain open until the named exit condition is evidenced.
+
+| ID | Priority | Area | Issue / evidence | Disposition / exit condition | Status |
+|---|---|---|---|---|---|
+| UAT-001 | P1 | Auth security | Leaked-password protection is disabled. Management API enablement was rejected because the current plan does not support the feature. | Select a supported Production plan and verify the advisor warning clears. | OPEN |
+| UAT-002 | P1 | Environment | Separate Production Supabase/Vercel targets, domain and DNS plan are not authorized. | Client authorizes targets; configure isolated Production variables without reusing UAT data. | OPEN |
+| UAT-003 | P1 | Backup/recovery | PITR is off, no physical backup is listed, Storage is not covered by database backups, and no restore rehearsal exists. | Approve RPO/RTO; enable backup entitlement; restore DB and Storage into isolation; record proof. | OPEN |
+| UAT-004 | P1 | Business acceptance | Named real staff identities and stakeholder UAT sign-offs were not supplied. | Management, Sales, Site Team and Accounts complete `UAT_PLAN.md` and sign off. | OPEN |
+| UAT-005 | P1 | Production content | Catalogue data and quote terms are labeled UAT placeholders; legal/commercial wording has no final client approval. | Import approved catalogue and record authorized terms/contact/signatory sign-off. | OPEN |
+| UAT-006 | P1 | Auth operations | Production site URL, redirect allow list, signup policy, SMTP, recovery flow and rate limits are not configured/tested. Current UAT site URL is localhost, signup is enabled, minimum password length is 6, and no character policy is set. | Apply the approved Production Auth configuration and run email/login/recovery tests. | OPEN |
+| UAT-007 | P2 | Performance | Warm Chrome route loads peaked at 3.8 s, while one cold assigned Site Team request took about 34 s. Hosted data/proxy latency is the likely contributor; no DB outlier above ~4.9 s total cumulative execution was found. | Measure from the Preview region under stakeholder load; investigate repeated query waterfalls if p95 exceeds the approved target. | OPEN / MONITOR |
+| UAT-008 | P2 | Database advisor | Performance advisor reports informational unindexed foreign keys and unused indexes on a very small UAT dataset. | Capture representative Production query plans/volume before adding indexes; do not add speculative write overhead. | DEFERRED WITH RATIONALE |
+| UAT-009 | P2 | Browser coverage | Chrome passed; Edge and Safari/iOS were not available in this pass. | Run at least Edge and an actual iOS/Safari device during stakeholder UAT if required by the client. | OPEN |
+| UAT-010 | P2 | Mobile hardware | Responsive Site Team workflow passed at 390×844, but physical camera/file-picker behavior was not exercised on a real phone. | Complete measurement, camera upload, project update and installation photo scenarios on target hardware. | OPEN |
+| UAT-011 | P3 | Frozen source wording | The supplied source receipt contains the spelling `CASH RECIVED`, and the source templates include legacy marketing/commercial wording. Generated documents use corrected status text, but templates are frozen. | Client separately approves any wording amendment; no Phase 2H redesign. | OPEN / CLIENT REVIEW |
+| UAT-012 | P3 | Advisor review noise | Security advisor flags intentional public/authenticated SECURITY DEFINER RPC grants. Bypass tests confirm internal role/token checks. | Accepted by design; keep regression tests and review any future RPC signature/grant change. | ACCEPTED BY DESIGN |
+
+Priority definitions: P0 blocks all UAT/Production use; P1 is a major Production blocker; P2 is normal and requires planned resolution/acceptance; P3 is cosmetic or future-facing.
