@@ -1,469 +1,185 @@
-import {
-  PDFDocument,
-  StandardFonts,
-  rgb,
-  type PDFFont,
-  type PDFPage,
-} from "pdf-lib";
+import { PDFDocument, StandardFonts, type PDFFont, type PDFPage } from "pdf-lib";
+import { DEFAULT_QUOTATION_PAYMENT_TERMS, UNIVERSAL_PERGOLA_DOCUMENT } from "../documents/config.ts";
+import { A4_HEIGHT, A4_WIDTH, PDF_COLORS, drawDocumentFooter, drawRightText, embedBrandLogo, pdfDate, pdfMoney, safePdfText, wrapPdfText } from "../documents/pdf-kit.ts";
 import type { QuotationDetail, QuotationItem } from "./queries.ts";
 
-const PAGE_WIDTH = 595.28;
-const PAGE_HEIGHT = 841.89;
-const MARGIN = 48;
-const CHARCOAL = rgb(0.1, 0.105, 0.11);
-const STONE = rgb(0.39, 0.38, 0.35);
-const BRASS = rgb(0.56, 0.42, 0.18);
-const LINE = rgb(0.86, 0.84, 0.78);
-const LIGHT = rgb(0.97, 0.96, 0.93);
+const FIRST_X = 158;
+const PAGE_MARGIN = 36;
+const BOTTOM = 52;
 
-function safeText(value: unknown) {
-  return String(value ?? "")
-    .replaceAll("²", "2")
-    .replaceAll("·", "-")
-    .replaceAll("•", "-")
-    .replaceAll("–", "-")
-    .replaceAll("—", "-")
-    .replaceAll("…", "...")
-    .replace(/[^\x20-\x7E\n]/g, "?");
+function drawWrapped(page: PDFPage, lines: string[], x: number, y: number, size: number, font: PDFFont, color = PDF_COLORS.stone, leading = size + 3) {
+  lines.forEach((line, index) => page.drawText(line || " ", { x, y: y - index * leading, size, font, color }));
+  return y - lines.length * leading;
 }
 
-function money(value: number, currency: string) {
-  return `${currency} ${Number(value).toLocaleString("en-AE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function wrap(text: string, font: PDFFont, size: number, width: number) {
-  const lines: string[] = [];
-  for (const paragraph of safeText(text).split("\n")) {
-    const words = paragraph.split(/\s+/).filter(Boolean);
-    if (!words.length) {
-      lines.push("");
-      continue;
-    }
-    let line = "";
-    for (const word of words) {
-      const candidate = line ? `${line} ${word}` : word;
-      if (font.widthOfTextAtSize(candidate, size) <= width) {
-        line = candidate;
-        continue;
-      }
-      if (line) lines.push(line);
-      if (font.widthOfTextAtSize(word, size) <= width) {
-        line = word;
-        continue;
-      }
-      let fragment = "";
-      for (const char of word) {
-        if (font.widthOfTextAtSize(fragment + char, size) > width && fragment) {
-          lines.push(fragment);
-          fragment = char;
-        } else fragment += char;
-      }
-      line = fragment;
-    }
-    if (line) lines.push(line);
-  }
-  return lines;
-}
-
-export async function generateQuotationPdf(
-  quote: QuotationDetail,
-  items: QuotationItem[],
-) {
+export async function generateQuotationPdf(quote: QuotationDetail, items: QuotationItem[]) {
   const document = await PDFDocument.create();
   const regular = await document.embedFont(StandardFonts.Helvetica);
   const bold = await document.embedFont(StandardFonts.HelveticaBold);
+  const logo = await embedBrandLogo(document);
   document.setTitle(`${quote.quotation_number} - Universal Pergola`);
-  document.setAuthor("Universal Pergola");
+  document.setAuthor(UNIVERSAL_PERGOLA_DOCUMENT.tradeName);
   document.setSubject(`Quotation revision ${quote.revision_number}`);
   document.setCreator("Universal Pergola Operations Dashboard");
   document.setProducer("Universal Pergola Operations Dashboard");
   document.setCreationDate(new Date(quote.created_at));
-  document.setModificationDate(
-    new Date(quote.approved_at || quote.sent_at || quote.created_at),
-  );
+  document.setModificationDate(new Date(quote.approved_at || quote.sent_at || quote.created_at));
 
   let page!: PDFPage;
   let y = 0;
-  const addPage = () => {
-    page = document.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-    page.drawRectangle({
-      x: 0,
-      y: PAGE_HEIGHT - 104,
-      width: PAGE_WIDTH,
-      height: 104,
-      color: CHARCOAL,
-    });
-    page.drawRectangle({
-      x: MARGIN,
-      y: PAGE_HEIGHT - 107,
-      width: 72,
-      height: 3,
-      color: BRASS,
-    });
-    page.drawText("UNIVERSAL PERGOLA", {
-      x: MARGIN,
-      y: PAGE_HEIGHT - 55,
-      size: 17,
-      font: bold,
-      color: rgb(1, 1, 1),
-    });
-    page.drawText("ARCHITECTURAL OUTDOOR SOLUTIONS", {
-      x: MARGIN,
-      y: PAGE_HEIGHT - 76,
-      size: 7.5,
-      font: regular,
-      color: rgb(0.72, 0.72, 0.7),
-    });
-    page.drawText("QUOTATION", {
-      x: PAGE_WIDTH - MARGIN - 96,
-      y: PAGE_HEIGHT - 57,
-      size: 13,
-      font: bold,
-      color: rgb(1, 1, 1),
-    });
-    y = PAGE_HEIGHT - 132;
+  let contentX = FIRST_X;
+  let contentRight = A4_WIDTH - 32;
+
+  const drawSidebar = () => {
+    page.drawRectangle({ x: 0, y: 0, width: 132, height: A4_HEIGHT, color: PDF_COLORS.charcoal });
+    page.drawRectangle({ x: 0, y: A4_HEIGHT - 8, width: 132, height: 8, color: PDF_COLORS.brass });
+    page.drawImage(logo, { x: 18, y: 690, width: 96, height: 96 });
+    page.drawText("UNIVERSAL", { x: 23, y: 676, size: 10, font: bold, color: PDF_COLORS.brassLight });
+    page.drawText("PERGOLA", { x: 39, y: 663, size: 10, font: bold, color: PDF_COLORS.white });
+    page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.tagline.toUpperCase(), { x: 22, y: 648, size: 5.5, font: regular, color: PDF_COLORS.brassLight });
+    const sidebarBlock = (label: string, value: string, top: number) => {
+      page.drawText(label.toUpperCase(), { x: 18, y: top, size: 6.5, font: bold, color: PDF_COLORS.brassLight });
+      return drawWrapped(page, wrapPdfText(value || "-", regular, 7.5, 96).slice(0, 5), 18, top - 14, 7.5, regular, PDF_COLORS.white, 10);
+    };
+    let sideY = 610;
+    sideY = sidebarBlock("Bill to", quote.customer_name_snapshot, sideY) - 8;
+    if (quote.customer_company_snapshot) sideY = sidebarBlock("Company", quote.customer_company_snapshot, sideY) - 8;
+    sideY = sidebarBlock("Contact", [quote.customer_phone_snapshot, quote.customer_email_snapshot].filter(Boolean).join("\n"), sideY) - 8;
+    sideY = sidebarBlock("Site", quote.site_address_snapshot || "Not specified", sideY) - 18;
+    page.drawLine({ start: { x: 18, y: sideY }, end: { x: 114, y: sideY }, thickness: 0.5, color: PDF_COLORS.brass });
+    sideY -= 20;
+    page.drawText("PAYMENT SCHEDULE", { x: 18, y: sideY, size: 7, font: bold, color: PDF_COLORS.brassLight });
+    sideY -= 19;
+    for (const term of DEFAULT_QUOTATION_PAYMENT_TERMS) {
+      page.drawText(`${term.percentage}%`, { x: 18, y: sideY, size: 11, font: bold, color: PDF_COLORS.white });
+      page.drawText(term.label.toUpperCase(), { x: 49, y: sideY + 2, size: 5.8, font: regular, color: PDF_COLORS.brassLight });
+      sideY -= 24;
+    }
+    page.drawText("CONTACT", { x: 18, y: 130, size: 6.5, font: bold, color: PDF_COLORS.brassLight });
+    drawWrapped(page, [UNIVERSAL_PERGOLA_DOCUMENT.email, UNIVERSAL_PERGOLA_DOCUMENT.website, UNIVERSAL_PERGOLA_DOCUMENT.instagram, ...UNIVERSAL_PERGOLA_DOCUMENT.phones], 18, 113, 6.2, regular, PDF_COLORS.white, 10);
   };
-  const ensure = (height: number) => {
-    if (y - height < 58) addPage();
-  };
-  const line = () => {
-    page.drawLine({
-      start: { x: MARGIN, y },
-      end: { x: PAGE_WIDTH - MARGIN, y },
-      thickness: 0.7,
-      color: LINE,
-    });
-    y -= 12;
-  };
-  const heading = (text: string) => {
-    ensure(30);
-    page.drawText(safeText(text).toUpperCase(), {
-      x: MARGIN,
-      y,
-      size: 9,
-      font: bold,
-      color: BRASS,
-    });
-    y -= 18;
-  };
-  const body = (
-    text: string,
-    width = PAGE_WIDTH - MARGIN * 2,
-    size = 9,
-    color = STONE,
-  ) => {
-    const lines = wrap(text, regular, size, width);
-    for (const textLine of lines) {
-      ensure(size + 5);
-      page.drawText(textLine, { x: MARGIN, y, size, font: regular, color });
-      y -= size + 4;
+
+  const addPage = (continuation = false) => {
+    page = document.addPage([A4_WIDTH, A4_HEIGHT]);
+    contentX = continuation ? PAGE_MARGIN : FIRST_X;
+    contentRight = A4_WIDTH - (continuation ? PAGE_MARGIN : 32);
+    if (!continuation) {
+      drawSidebar();
+      page.drawImage(logo, { x: 230, y: 250, width: 300, height: 300, opacity: 0.035 });
+      page.drawText("Q U O T A T I O N", { x: contentX, y: 772, size: 20, font: bold, color: PDF_COLORS.ink });
+      page.drawRectangle({ x: contentX, y: 749, width: 46, height: 3, color: PDF_COLORS.brass });
+      page.drawText(safePdfText(quote.quotation_number), { x: contentX, y: 724, size: 12, font: bold, color: PDF_COLORS.ink });
+      drawRightText(page, `REVISION ${quote.revision_number}`, contentRight, 726, 7.5, bold, PDF_COLORS.brass);
+      y = 696;
+    } else {
+      page.drawRectangle({ x: 0, y: 780, width: A4_WIDTH, height: 62, color: PDF_COLORS.charcoal });
+      page.drawImage(logo, { x: PAGE_MARGIN, y: 787, width: 44, height: 44 });
+      page.drawText("QUOTATION - CONTINUED", { x: 91, y: 811, size: 10, font: bold, color: PDF_COLORS.white });
+      page.drawText(`${safePdfText(quote.quotation_number)}  |  REVISION ${quote.revision_number}`, { x: 91, y: 796, size: 6.5, font: regular, color: PDF_COLORS.brassLight });
+      y = 756;
     }
   };
-  const labelValue = (
-    label: string,
-    value: string,
-    x: number,
-    top: number,
-    width: number,
-  ) => {
-    page.drawText(safeText(label).toUpperCase(), {
-      x,
-      y: top,
-      size: 6.5,
-      font: bold,
-      color: STONE,
-    });
-    const lines = wrap(value || "-", regular, 9, width).slice(0, 3);
-    lines.forEach((text, index) =>
-      page.drawText(text, {
-        x,
-        y: top - 14 - index * 12,
-        size: 9,
-        font: regular,
-        color: CHARCOAL,
-      }),
-    );
+
+  const ensure = (height: number) => { if (y - height < BOTTOM) addPage(true); };
+  const sectionTitle = (title: string) => {
+    ensure(28);
+    page.drawText(title.toUpperCase(), { x: contentX, y, size: 7, font: bold, color: PDF_COLORS.brass });
+    page.drawLine({ start: { x: contentX, y: y - 7 }, end: { x: contentRight, y: y - 7 }, thickness: 0.55, color: PDF_COLORS.line });
+    y -= 18;
+  };
+  const paragraph = (value: string, size = 8, leading = 11) => {
+    for (const line of wrapPdfText(value, regular, size, contentRight - contentX)) {
+      ensure(leading + 2);
+      page.drawText(line || " ", { x: contentX, y, size, font: regular, color: PDF_COLORS.stone });
+      y -= leading;
+    }
+  };
+  const drawItemHeader = () => {
+    ensure(30);
+    const width = contentRight - contentX;
+    page.drawRectangle({ x: contentX, y: y - 18, width, height: 24, color: PDF_COLORS.charcoal });
+    page.drawText("DESCRIPTION", { x: contentX + 8, y: y - 10, size: 6.2, font: bold, color: PDF_COLORS.white });
+    page.drawText("QTY", { x: contentX + width * 0.54, y: y - 10, size: 6.2, font: bold, color: PDF_COLORS.white });
+    page.drawText("UNIT", { x: contentX + width * 0.64, y: y - 10, size: 6.2, font: bold, color: PDF_COLORS.white });
+    drawRightText(page, "UNIT PRICE", contentX + width * 0.84, y - 10, 6.2, bold, PDF_COLORS.white);
+    drawRightText(page, "AMOUNT", contentRight - 7, y - 10, 6.2, bold, PDF_COLORS.white);
+    y -= 28;
   };
 
   addPage();
-  page.drawText(safeText(quote.quotation_number), {
-    x: MARGIN,
-    y,
-    size: 16,
-    font: bold,
-    color: CHARCOAL,
-  });
-  page.drawText(`REVISION ${quote.revision_number}`, {
-    x: PAGE_WIDTH - MARGIN - 78,
-    y: y + 2,
-    size: 8,
-    font: bold,
-    color: BRASS,
-  });
-  y -= 28;
-  page.drawRectangle({
-    x: MARGIN,
-    y: y - 78,
-    width: PAGE_WIDTH - MARGIN * 2,
-    height: 82,
-    color: LIGHT,
-  });
-  labelValue(
-    "Customer",
-    quote.customer_name_snapshot,
-    MARGIN + 14,
-    y - 15,
-    220,
-  );
-  labelValue(
-    "Company",
-    quote.customer_company_snapshot || "-",
-    MARGIN + 14,
-    y - 52,
-    220,
-  );
-  labelValue("Issue date", quote.issue_date, 330, y - 15, 100);
-  labelValue("Valid until", quote.validity_date || "-", 447, y - 15, 92);
-  labelValue(
-    "Contact",
-    [quote.customer_phone_snapshot, quote.customer_email_snapshot]
-      .filter(Boolean)
-      .join(" / ") || "-",
-    330,
-    y - 52,
-    209,
-  );
-  y -= 101;
-  heading("Site / project address");
-  body(quote.site_address_snapshot || "Not specified");
-  if (quote.introduction) {
-    y -= 7;
-    heading("Scope");
-    body(quote.introduction);
+  page.drawRectangle({ x: contentX, y: y - 60, width: contentRight - contentX, height: 64, color: PDF_COLORS.sand });
+  const info = [
+    ["ISSUE DATE", pdfDate(quote.issue_date), contentX + 12],
+    ["VALID UNTIL", pdfDate(quote.validity_date), contentX + 139],
+    ["CURRENCY", quote.currency, contentX + 275],
+  ] as const;
+  for (const [label, value, x] of info) {
+    page.drawText(label, { x, y: y - 17, size: 5.8, font: bold, color: PDF_COLORS.stone });
+    page.drawText(safePdfText(value), { x, y: y - 35, size: 8.5, font: bold, color: PDF_COLORS.ink });
   }
-  y -= 10;
-  heading("Quotation items");
-
-  const drawItemHeader = () => {
-    ensure(28);
-    page.drawRectangle({
-      x: MARGIN,
-      y: y - 16,
-      width: PAGE_WIDTH - MARGIN * 2,
-      height: 22,
-      color: CHARCOAL,
-    });
-    page.drawText("DESCRIPTION", {
-      x: MARGIN + 8,
-      y: y - 9,
-      size: 6.5,
-      font: bold,
-      color: rgb(1, 1, 1),
-    });
-    page.drawText("QTY", {
-      x: 330,
-      y: y - 9,
-      size: 6.5,
-      font: bold,
-      color: rgb(1, 1, 1),
-    });
-    page.drawText("UNIT PRICE", {
-      x: 382,
-      y: y - 9,
-      size: 6.5,
-      font: bold,
-      color: rgb(1, 1, 1),
-    });
-    page.drawText("LINE TOTAL", {
-      x: 486,
-      y: y - 9,
-      size: 6.5,
-      font: bold,
-      color: rgb(1, 1, 1),
-    });
-    y -= 28;
-  };
+  y -= 82;
+  if (quote.introduction) { sectionTitle("Project scope"); paragraph(quote.introduction); y -= 8; }
+  sectionTitle("Description and amount");
   drawItemHeader();
+
   for (const item of items) {
-    if (y - 54 < 58) {
-      addPage();
-      drawItemHeader();
-    }
-    page.drawText(safeText(item.item_name), {
-      x: MARGIN + 6,
-      y,
-      size: 9,
-      font: bold,
-      color: CHARCOAL,
-    });
-    if (item.product_code_snapshot)
-      page.drawText(safeText(item.product_code_snapshot), {
-        x: MARGIN + 6,
-        y: y - 12,
-        size: 6.5,
-        font: regular,
-        color: STONE,
-      });
-    page.drawText(`${item.quantity} ${safeText(item.unit)}`, {
-      x: 330,
-      y,
-      size: 8,
-      font: regular,
-      color: CHARCOAL,
-    });
-    page.drawText(money(item.unit_price, quote.currency), {
-      x: 382,
-      y,
-      size: 8,
-      font: regular,
-      color: CHARCOAL,
-    });
-    page.drawText(money(item.line_total, quote.currency), {
-      x: 486,
-      y,
-      size: 8,
-      font: bold,
-      color: CHARCOAL,
-    });
-    y -= item.product_code_snapshot ? 27 : 16;
-    const details = [
-      item.description,
-      [
-        item.width && `W ${item.width}`,
-        item.height && `H ${item.height}`,
-        item.length && `L ${item.length}`,
-      ]
-        .filter(Boolean)
-        .join(" x "),
-      item.dimensions_details,
-    ]
-      .filter(Boolean)
-      .join("\n");
-    for (const detailLine of wrap(details, regular, 7.5, 270)) {
-      if (y - 13 < 58) {
-        addPage();
-        drawItemHeader();
-        page.drawText(`${safeText(item.item_name)} (continued)`, {
-          x: MARGIN + 6,
-          y,
-          size: 8,
-          font: bold,
-          color: CHARCOAL,
-        });
-        y -= 15;
-      }
-      page.drawText(detailLine, {
-        x: MARGIN + 6,
-        y,
-        size: 7.5,
-        font: regular,
-        color: STONE,
-      });
-      y -= 11;
-    }
+    const width = contentRight - contentX;
+    const dimensions = [item.width && `W ${item.width}`, item.height && `H ${item.height}`, item.length && `L ${item.length}`].filter(Boolean).join(" x ");
+    const details = [item.product_code_snapshot, item.description, dimensions, item.dimensions_details].filter(Boolean).join("\n");
+    const detailLines = wrapPdfText(details, regular, 6.7, width * 0.49);
+    const rowHeight = Math.max(31, 20 + detailLines.length * 8.5 + (item.discount_amount > 0 || !item.taxable ? 9 : 0));
+    if (y - rowHeight < BOTTOM) { addPage(true); sectionTitle("Description and amount"); drawItemHeader(); }
+    page.drawText(safePdfText(item.item_name), { x: contentX + 7, y, size: 8, font: bold, color: PDF_COLORS.ink });
+    drawWrapped(page, detailLines, contentX + 7, y - 13, 6.7, regular, PDF_COLORS.stone, 8.5);
+    page.drawText(`${item.quantity}`, { x: contentX + width * 0.54, y, size: 7.5, font: regular, color: PDF_COLORS.ink });
+    page.drawText(safePdfText(item.unit), { x: contentX + width * 0.64, y, size: 7.5, font: regular, color: PDF_COLORS.ink });
+    drawRightText(page, pdfMoney(item.unit_price, quote.currency), contentX + width * 0.84, y, 7, regular);
+    drawRightText(page, pdfMoney(item.line_total, quote.currency), contentRight - 7, y, 7.2, bold);
     if (item.discount_amount > 0 || !item.taxable) {
-      if (y - 15 < 58) {
-        addPage();
-        drawItemHeader();
-        page.drawText(`${safeText(item.item_name)} (continued)`, {
-          x: MARGIN + 6,
-          y,
-          size: 8,
-          font: bold,
-          color: CHARCOAL,
-        });
-        y -= 15;
-      }
-      page.drawText(
-        `${item.discount_amount > 0 ? `Line discount ${money(item.discount_amount, quote.currency)}` : ""}${item.discount_amount > 0 && !item.taxable ? " - " : ""}${!item.taxable ? "Non-taxable" : ""}`,
-        { x: MARGIN + 6, y, size: 6.5, font: regular, color: STONE },
-      );
-      y -= 11;
+      const note = `${item.discount_amount > 0 ? `Line discount ${pdfMoney(item.discount_amount, quote.currency)}` : ""}${item.discount_amount > 0 && !item.taxable ? " - " : ""}${!item.taxable ? "Non-taxable" : ""}`;
+      page.drawText(note, { x: contentX + 7, y: y - rowHeight + 14, size: 5.8, font: regular, color: PDF_COLORS.brass });
     }
-    y -= 7;
-    line();
+    y -= rowHeight;
+    page.drawLine({ start: { x: contentX, y: y + 8 }, end: { x: contentRight, y: y + 8 }, thickness: 0.45, color: PDF_COLORS.line });
   }
 
-  ensure(132);
-  const totalsX = 344;
+  ensure(110);
+  const totalsX = contentRight - 220;
   const totalRow = (label: string, value: string, emphasis = false) => {
-    page.drawText(label, {
-      x: totalsX,
-      y,
-      size: emphasis ? 10 : 8.5,
-      font: emphasis ? bold : regular,
-      color: emphasis ? CHARCOAL : STONE,
-    });
-    const width = (emphasis ? bold : regular).widthOfTextAtSize(
-      value,
-      emphasis ? 10 : 8.5,
-    );
-    page.drawText(value, {
-      x: PAGE_WIDTH - MARGIN - width,
-      y,
-      size: emphasis ? 10 : 8.5,
-      font: emphasis ? bold : regular,
-      color: CHARCOAL,
-    });
-    y -= emphasis ? 20 : 17;
+    page.drawText(label, { x: totalsX, y, size: emphasis ? 9 : 7.5, font: emphasis ? bold : regular, color: emphasis ? PDF_COLORS.ink : PDF_COLORS.stone });
+    drawRightText(page, value, contentRight, y, emphasis ? 9 : 7.5, emphasis ? bold : regular, emphasis ? PDF_COLORS.ink : PDF_COLORS.stone);
+    y -= emphasis ? 21 : 16;
   };
-  totalRow("Subtotal", money(quote.subtotal, quote.currency));
-  totalRow(
-    `Discount${quote.discount_type === "percentage" ? ` (${quote.discount_value}%)` : ""}`,
-    `-${money(quote.discount_amount, quote.currency)}`,
-  );
-  totalRow(`VAT (${quote.vat_rate}%)`, money(quote.vat_amount, quote.currency));
-  page.drawLine({
-    start: { x: totalsX, y: y + 7 },
-    end: { x: PAGE_WIDTH - MARGIN, y: y + 7 },
-    thickness: 1,
-    color: BRASS,
-  });
-  totalRow("GRAND TOTAL", money(quote.total, quote.currency), true);
+  y -= 5;
+  totalRow("Subtotal", pdfMoney(quote.subtotal, quote.currency));
+  totalRow(`Discount${quote.discount_type === "percentage" ? ` (${quote.discount_value}%)` : ""}`, `-${pdfMoney(quote.discount_amount, quote.currency)}`);
+  totalRow(`VAT (${quote.vat_rate}%)`, pdfMoney(quote.vat_amount, quote.currency));
+  page.drawLine({ start: { x: totalsX, y: y + 8 }, end: { x: contentRight, y: y + 8 }, thickness: 1.2, color: PDF_COLORS.brass });
+  totalRow("GRAND TOTAL", pdfMoney(quote.total, quote.currency), true);
 
-  if (quote.customer_notes) {
-    y -= 8;
-    heading("Customer notes");
-    body(quote.customer_notes);
-  }
-  if (quote.terms) {
-    y -= 8;
-    heading("Terms and conditions");
-    body(quote.terms);
-  }
-  y -= 10;
-  ensure(30);
-  page.drawText("Thank you for considering Universal Pergola.", {
-    x: MARGIN,
-    y,
-    size: 9,
-    font: bold,
-    color: BRASS,
+  ensure(100);
+  y -= 5;
+  sectionTitle("Payment terms");
+  const scheduleWidth = (contentRight - contentX - 12) / 3;
+  DEFAULT_QUOTATION_PAYMENT_TERMS.forEach((term, index) => {
+    const x = contentX + index * (scheduleWidth + 6);
+    page.drawRectangle({ x, y: y - 38, width: scheduleWidth, height: 42, color: PDF_COLORS.sand, borderColor: PDF_COLORS.line, borderWidth: 0.5 });
+    page.drawText(`${term.percentage}%`, { x: x + 9, y: y - 16, size: 11.5, font: bold, color: PDF_COLORS.brass });
+    page.drawText(term.label.toUpperCase(), { x: x + 9, y: y - 29, size: 5.5, font: bold, color: PDF_COLORS.stone });
   });
+  y -= 52;
+
+  if (quote.customer_notes) { sectionTitle("Customer notes"); paragraph(quote.customer_notes); y -= 8; }
+  if (quote.terms) { sectionTitle("Terms and conditions"); paragraph(quote.terms, 7, 9); y -= 7; }
+
+  if (y - 74 < 40) addPage(true);
+  page.drawRectangle({ x: contentX, y: y - 70, width: contentRight - contentX, height: 74, color: PDF_COLORS.sand });
+  page.drawText("THANK YOU FOR YOUR BUSINESS.", { x: contentX + 12, y: y - 20, size: 10.5, font: bold, color: PDF_COLORS.ink });
+  page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.footerLine, { x: contentX + 12, y: y - 36, size: 6.3, font: regular, color: PDF_COLORS.stone });
+  drawRightText(page, UNIVERSAL_PERGOLA_DOCUMENT.signatoryName.toUpperCase(), contentRight - 12, y - 50, 7.3, bold, PDF_COLORS.ink);
+  drawRightText(page, UNIVERSAL_PERGOLA_DOCUMENT.signatoryTitle.toUpperCase(), contentRight - 12, y - 62, 6, regular, PDF_COLORS.stone);
 
   const pages = document.getPages();
-  pages.forEach((pdfPage, index) => {
-    pdfPage.drawLine({
-      start: { x: MARGIN, y: 42 },
-      end: { x: PAGE_WIDTH - MARGIN, y: 42 },
-      thickness: 0.6,
-      color: LINE,
-    });
-    pdfPage.drawText("Universal Pergola - Private business document", {
-      x: MARGIN,
-      y: 26,
-      size: 6.5,
-      font: regular,
-      color: STONE,
-    });
-    const number = `Page ${index + 1} of ${pages.length}`;
-    pdfPage.drawText(number, {
-      x: PAGE_WIDTH - MARGIN - regular.widthOfTextAtSize(number, 6.5),
-      y: 26,
-      size: 6.5,
-      font: regular,
-      color: STONE,
-    });
-  });
+  pages.forEach((pdfPage, index) => drawDocumentFooter(pdfPage, regular, bold, index + 1, pages.length, `${quote.quotation_number} R${quote.revision_number}`));
   return document.save({ useObjectStreams: false });
 }

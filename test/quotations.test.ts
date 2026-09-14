@@ -5,6 +5,7 @@ import test from "node:test";
 import { PDFDocument } from "pdf-lib";
 import { quotationPreviewTotals } from "../src/lib/quotations/money.ts";
 import { generateQuotationPdf } from "../src/lib/quotations/pdf.ts";
+import { defaultQuotationInitial } from "../src/lib/quotations/defaults.ts";
 import { quotationDraftSchema } from "../src/lib/quotations/validation.ts";
 import type {
   QuotationDetail,
@@ -110,6 +111,18 @@ test("quotation validation rejects invalid dates, excessive discounts, and empty
   if (!result.success) assert.ok(result.error.issues.length >= 3);
 });
 
+test("new quotations use the client seven-day validity and editable default terms", () => {
+  const initial = defaultQuotationInitial();
+  const issue = new Date(`${initial.issue_date}T00:00:00Z`);
+  const validity = new Date(`${initial.validity_date}T00:00:00Z`);
+  assert.equal((validity.getTime() - issue.getTime()) / 86400000, 7);
+  assert.match(initial.terms, /Advance Payment: 50%/);
+  assert.match(initial.terms, /3D designs are provided for reference only/);
+  const overridden = { ...initial, terms: "Customer-specific commercial terms." };
+  assert.equal(overridden.terms, "Customer-specific commercial terms.");
+  assert.notEqual(overridden.terms, initial.terms);
+});
+
 test("Phase 2D migrations provide generated numbers, immutable revisions, authoritative totals, and unique conversion", () => {
   const migration = readFileSync(
     join(
@@ -196,6 +209,12 @@ test("quotation Server Actions re-authorize every mutation entry point", () => {
       `${name} must re-authorize`,
     );
   }
+});
+
+test("quotation PDF route authorizes before reading business data", () => {
+  const route = readFileSync(join(process.cwd(), "src/app/dashboard/quotations/[id]/pdf/route.ts"), "utf8");
+  assert.ok(route.indexOf('await requireModuleAccess("quotations")') < route.indexOf("await getQuotation(id)"));
+  assert.match(route, /Cache-Control": "private, no-store/);
 });
 
 test("multi-page quotation PDF preserves structured content and page footers", async () => {

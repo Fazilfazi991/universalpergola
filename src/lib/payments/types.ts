@@ -95,9 +95,15 @@ export type ReceiptRow = {
   created_at: string;
   creator: { id: string; full_name: string } | null;
   voider: { id: string; full_name: string } | null;
-  milestone: { id: string; name: string } | null;
-  project?: { id: string; project_number: string; currency: string } | null;
-  customer?: { id: string; name: string } | null;
+  milestone: { id: string; name: string; description?: string | null; amount_due?: number } | null;
+  project?: {
+    id: string;
+    project_number: string;
+    currency: string;
+    project_value?: number;
+    source_quotation_number?: string | null;
+  } | null;
+  customer?: { id: string; name: string; phone?: string | null } | null;
   proofs: PaymentProof[];
 };
 

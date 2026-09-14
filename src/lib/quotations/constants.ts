@@ -45,5 +45,4 @@ export const QUOTATION_UNITS = [
   "lot",
   "service",
 ] as const;
-export const DEFAULT_QUOTATION_TERMS =
-  "Development placeholder - replace with Universal Pergola's approved legal and commercial terms before production use.";
+export { DEFAULT_QUOTATION_TERMS } from "../documents/config.ts";

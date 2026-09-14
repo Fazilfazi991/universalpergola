@@ -39,7 +39,7 @@ export function defaultQuotationInitial(): QuotationBuilderInitial {
     owner_id: "",
     currency: "AED",
     issue_date: new Date().toISOString().slice(0, 10),
-    validity_date: nextDate(30),
+    validity_date: nextDate(7),
     customer_name_snapshot: "",
     customer_company_snapshot: "",
     customer_phone_snapshot: "",
