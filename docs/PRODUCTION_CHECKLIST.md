@@ -21,16 +21,16 @@ Updated: 14 September 2026 for Phase 2I. Current recommendation: **NO-GO for Pro
 | Quotation/receipt branding | UAT PASS | Frozen references and generated A4 proofs visually reviewed |
 | Contact details and signatory | NEEDS CLIENT SIGN-OFF | Rendered correctly from the current configuration; client must confirm final legal use |
 | Commercial terms/wording | BLOCKED | UAT quote intentionally contains placeholder terms; client-approved terms required |
-| Real staff users | BLOCKED | Only non-real UAT accounts exist; invite named staff after Production authorization |
+| Real staff users | BLOCKED | Launch requires exactly two named Management/Admin partner accounts with identical full access; names/emails and Production authorization are pending |
 | Real product catalogue | BLOCKED | Current dataset is explicitly UAT placeholder content |
 | Database backup/PITR | BLOCKED | PITR off; no available backup listed; restore unverified |
 | Git rollback target | READY | Verified Phase 2H candidate `6c8bf86187982b6477129654e6457dbb6601da29`; Phase 2I candidate reported after commit |
 | Performance | CONDITIONAL | Warm Chrome max 3.8 s; one cold hosted Site Team load reached ~34 s and needs preview monitoring |
 | Chrome smoke tests | UAT PASS | 19 routes at 390×844, 1280×720 and 1440×900 |
 | Edge/Safari coverage | NOT RUN | Browsers/platform unavailable in this pass; do not infer compatibility |
-| Stakeholder UAT sign-off | BLOCKED | Management, Sales, Site Team, Accounts and customer wording acceptance not run |
+| Stakeholder UAT sign-off | BLOCKED | Both business partners must sign off the launch workflows; four temporary UAT role accounts remain for security-boundary testing |
 | Production smoke/rollback rehearsal | BLOCKED | Must run against the authorized Production candidate before DNS/live traffic |
 
 Production approval requires every `BLOCKED` item to be closed or explicitly accepted in writing by the accountable client owner; security, backup, real-data/user and stakeholder-signoff items cannot be waived by the implementation team alone.
 
-See `PHASE2I_GATE_STATUS.md`, `PRODUCTION_STAFF_MATRIX.md`, `PRODUCTION_INFRASTRUCTURE_PLAN.md`, and `PHASE2I_ROLLBACK_RECORD.md` for the approval and execution records. No Production resource, deployment, user or DNS change was created in Phase 2I preparation.
+See `PHASE2I_GATE_STATUS.md`, `PRODUCTION_STAFF_MATRIX.md`, `MANAGEMENT_ACCESS_VERIFICATION.md`, `PRODUCTION_INFRASTRUCTURE_PLAN.md`, and `PHASE2I_ROLLBACK_RECORD.md` for the approval and execution records. No real Production user has been created; the four UAT identities remain test-only.

@@ -4,11 +4,11 @@ Recorded: 14 September 2026. Scope: stakeholder UAT closure and Production infra
 
 | Ref | Report item | Status / evidence |
 |---|---|---|
-| A | Stakeholder UAT status | BLOCKED — all Management, Sales, Site Team, Accounts and customer/public sign-offs remain `NOT RUN` in `UAT_PLAN.md` |
+| A | Stakeholder UAT status | BLOCKED — both launch partners must complete Management/Admin end-to-end acceptance; the four temporary UAT roles remain technical boundary evidence only |
 | B | UAT issues and closure | No P0 found; UAT-001 through UAT-006 are unresolved P1 blockers; no stakeholder issue was closed without evidence |
 | C | Commercial wording approval | BLOCKED — trading/legal identity, contacts, signatory, payment schedule, validity, advance/design charge, photo permission, marketing and general terms await written approval |
 | D | Catalogue approval | BLOCKED — no owner-approved real catalogue or media package supplied; UAT content is prohibited for Production |
-| E | Named staff matrix readiness | BLOCKED — no approved names/emails/roles supplied; no users created or invited |
+| E | Named staff matrix readiness | PARTIAL — exactly two equal-access Management/Admin partner roles are approved; both names/emails remain pending and no real users were created or invited |
 | F | Production Supabase status | BLOCKED — only UAT `jwyjuhtektmtqffnillj` exists; no dedicated project creation authorization |
 | G | Production security/Auth status | BLOCKED — plan, leaked-password protection, hostname/redirects, signup policy, SMTP, password/MFA policy and recovery test are pending |
 | H | Production migration status | NOT STARTED — UAT/local migration parity reaches `20260914120000`; Production does not exist |

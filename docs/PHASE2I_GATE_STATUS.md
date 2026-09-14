@@ -17,7 +17,7 @@ Phase 2I is a governance and infrastructure-readiness phase. It does not authori
 | Handover | Management and Site Team | Handover workflow and customer-facing wording acceptance | BLOCKED — stakeholder UAT not run |
 | Feedback | Management / customer-service owner | Public token flow and customer-facing wording acceptance | BLOCKED — stakeholder UAT not run |
 | Reports | Management and Accounts | Business interpretation and reconciliation acceptance | BLOCKED — stakeholder UAT not run |
-| Permissions | All four staff roles | Role-boundary acceptance and issue references | BLOCKED — named staff/signatories missing |
+| Permissions | Both launch partners | Management/Admin full-access confirmation plus four-role UAT boundary evidence | TECH PASS / PARTNER SIGN-OFF PENDING |
 
 Technical prechecks remain `TECH PASS / UAT PENDING` in `UAT_PLAN.md`. Automation is evidence of implementation behavior, not business approval. Every stakeholder finding must be recorded in `UAT_ISSUES.md`; requested enhancements are deferred to a later feature phase unless required to close an agreed defect.
 
@@ -49,9 +49,11 @@ Status: **BLOCKED — approved catalogue source and owner sign-off not supplied.
 
 ## Named staff readiness
 
-Use `PRODUCTION_STAFF_MATRIX.md` to record the approved launch team. Do not place passwords in the file and do not create or invite any user until the dedicated Production environment and provisioning window are explicitly authorized.
+Launch requires two named Management/Admin partner accounts with identical full access. Use `PRODUCTION_STAFF_MATRIX.md` to supply Partner 1 and Partner 2 names and work emails. Do not place passwords in the file and do not create or invite either user until the dedicated Production environment and provisioning window are explicitly authorized.
 
-Status: **BLOCKED — named matrix not supplied.**
+Sales, Site Team, and Accounts remain available for later expansion but are not Production launch accounts. The four existing UAT accounts remain unchanged for role/security boundary testing and must never be converted into Production users. Management/Admin full access is verified in `MANAGEMENT_ACCESS_VERIFICATION.md`.
+
+Status: **BLOCKED — two partner names and emails not supplied.**
 
 ## Gate B — Production infrastructure
 
@@ -64,8 +66,8 @@ Status: **BLOCKED — named matrix not supplied.**
 | Production migrations | NOT STARTED | Apply only after the dedicated Production project is explicitly confirmed |
 | Production Auth / SMTP | NOT STARTED | Requires approved domain, redirects, signup policy and mail provider |
 | Production data seed | NOT STARTED | Requires approved catalogue and controlled seed manifest |
-| Production staff provisioning | NOT STARTED | Requires approved matrix and explicit provisioning authority |
-| Vercel project / variables | BLOCKED | CLI account is authenticated, but this checkout is not linked and no Production project is authorized |
+| Production staff provisioning | NOT STARTED | Create only two Management/Admin partner accounts after names/emails, approved matrix and explicit provisioning authority; no Sales/Site Team/Accounts launch users |
+| Vercel project / variables | PARTIAL / NOT PRODUCTION-READY | Checkout is linked, but the current hosted configuration points to UAT; isolated Production Supabase variables and launch authorization are still missing |
 | Non-live candidate deployment | NOT STARTED | Allowed only after infrastructure controls pass; never a live cutover in Phase 2I |
 | Production smoke and rollback rehearsal | NOT STARTED | Requires isolated Production candidate and recorded restore/rollback evidence |
 

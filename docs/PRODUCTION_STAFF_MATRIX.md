@@ -1,22 +1,41 @@
 # Production staff matrix
 
-Status: **BLOCKED — awaiting approved names and roles.**
+Status: **BLOCKED — launch roles are approved; two partner names and work emails are pending.**
 
-Complete this record before any Production account is created. Use work email addresses only. Never record temporary or permanent passwords, recovery codes, access tokens or service keys here.
+The launch requirement is exactly two real partner accounts. Both receive the application `admin` role, displayed as **Management/Admin**, with the same full system permissions. Complete their names and work emails before any Production account is created. Never record temporary or permanent passwords, recovery codes, access tokens or service keys here.
 
-| Full name | Work email | Application role | Launch active? | Record/data scope | Business approver | Approval date | Provisioning status |
-|---|---|---|---|---|---|---|---|
-| To be supplied | To be supplied | Management / Sales / Site Team / Accounts | To be supplied | To be supplied | To be supplied | — | NOT AUTHORIZED |
+| Launch user | Name | Email | Application role | Access | Provisioning status |
+|---|---|---|---|---|---|
+| Partner 1 | Pending | Pending | Management/Admin (`admin`) | Full | NOT AUTHORIZED |
+| Partner 2 | Pending | Pending | Management/Admin (`admin`) | Full | NOT AUTHORIZED |
+
+Both rows must have identical authorization. `MANAGEMENT_ACCESS_VERIFICATION.md` records the verified full-access surface.
+
+## Roles retained for future use
+
+Sales, Site Team, and Accounts remain supported application roles with their existing restricted capabilities and RLS policies. They are not required as real Production accounts at launch and must not be provisioned unless later requested.
+
+## Temporary UAT accounts
+
+The following non-real accounts remain unchanged and are used only for role/security testing:
+
+| UAT identity | Test role | Production treatment |
+|---|---|---|
+| UAT Management | Management/Admin | Keep as UAT test identity; never convert |
+| UAT Sales | Sales | Keep as UAT test identity; never convert |
+| UAT Site Team | Site Team | Keep as UAT test identity; never convert |
+| UAT Accounts | Accounts | Keep as UAT test identity; never convert |
+
+These accounts validate role boundaries. They are not launch staff and must not be copied, promoted, renamed, or invited into Production.
 
 ## Required checks
 
-- Every person has exactly one named owner-approved application role.
+- Both launch partners have unique named identities and the `admin` application role.
 - Shared accounts and personal email addresses are rejected.
-- Management confirms who may administer staff access.
-- Sales and Site Team assignment scopes are documented before import.
-- Accounts access is approved by the finance owner.
-- Launch-active and later-onboarding users are distinguished.
+- The two profiles receive identical full access; no other real profile receives `admin` without later approval.
+- Management confirms which partner(s) may administer future staff access.
+- Sales, Site Team, and Accounts Production identities remain unprovisioned at launch.
 - Offboarding and role-change owners are named.
 - Invitation delivery, first-login password setup and MFA policy are approved.
 
-Provisioning hold point: do not create identities, send invitations or copy UAT identities into Production until the dedicated Production project, Auth/SMTP configuration, matrix approval and provisioning window are all confirmed in writing.
+Provisioning hold point: create only Partner 1 and Partner 2 after their actual names/emails, the dedicated Production project, Auth/SMTP configuration, matrix approval, and provisioning window are confirmed in writing. Do not create Sales, Site Team, or Accounts Production users unless later requested.

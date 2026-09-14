@@ -4,7 +4,7 @@ Updated: 14 September 2026 for Phase 2I. Environment: hosted UAT project `jwyjuh
 
 ## How to run stakeholder UAT
 
-Use the four clearly labeled UAT accounts for Management, Sales, Site Team, and Accounts. Credentials are generated locally in ignored `.qa-runtime/phase2h-uat-access.json`; distribute them through a password manager, never email or commit them, and rotate them after the session. Each stakeholder should record their name, date, evidence link, result, and sign-off. `TECH PASS / UAT PENDING` means automation proved the technical boundary, but a real stakeholder has not accepted the business behavior.
+Use the four clearly labeled UAT accounts for Management, Sales, Site Team, and Accounts to preserve role/security boundary coverage. These are test identities only and must never be converted into Production users. Credentials are generated locally in ignored `.qa-runtime/phase2h-uat-access.json`; distribute them through a password manager, never email or commit them, and rotate them after the session. For launch business acceptance, both partners complete the end-to-end workflow using Management/Admin access and record their name, date, evidence link, result, and sign-off. `TECH PASS / UAT PENDING` means automation proved the technical boundary, but the two real launch partners have not accepted the business behavior.
 
 | Scenario ID | Role | Steps | Expected result | Actual result | Status | Notes |
 |---|---|---|---|---|---|---|
@@ -29,11 +29,10 @@ Use the four clearly labeled UAT accounts for Management, Sales, Site Team, and 
 
 | Area | Stakeholder | Date | Result | Evidence / issue IDs |
 |---|---|---|---|---|
-| Management | Pending | — | NOT RUN | — |
-| Sales | Pending | — | NOT RUN | — |
-| Site Team | Pending | — | NOT RUN | — |
-| Accounts | Pending | — | NOT RUN | — |
-| Public/customer wording | Pending | — | NOT RUN | — |
+| Partner 1 — Management/Admin | Name pending | — | NOT RUN | — |
+| Partner 2 — Management/Admin | Name pending | — | NOT RUN | — |
+| Four-role security boundaries | Test identities | 14 September 2026 | TECH PASS | Phase 2H automated acceptance; stakeholder recheck optional |
+| Public/customer wording | Both partners | — | NOT RUN | — |
 
 Any failed expectation must be logged in `docs/UAT_ISSUES.md` with severity and owner. A P0 or unresolved P1 prevents Production approval.
 

@@ -6,7 +6,7 @@ Updated: 14 September 2026. This document records configuration names and separa
 
 The hosted Supabase project `Pergola` (`jwyjuhtektmtqffnillj`) is the **UAT/QA database**. It contains synthetic Phase 2H records, prior QA remnants, and non-real UAT accounts. It must not be relabeled or reused as Production.
 
-Production should use a separately authorized Supabase project and a separate Vercel Production environment. Preview deployments may point only to the UAT project. The Production project must begin from the committed migration history, followed by controlled master-data import and separately provisioned real staff accounts.
+Production should use a separately authorized Supabase project and a separate Vercel Production environment. Preview deployments may point only to the UAT project. The Production project must begin from the committed migration history, followed by controlled master-data import and exactly two separately provisioned Management/Admin partner accounts for launch.
 
 | Concern | Local development | Preview / UAT | Future Production |
 |---|---|---|---|
@@ -14,7 +14,7 @@ Production should use a separately authorized Supabase project and a separate Ve
 | Vercel | Not applicable | Separate Preview variables and clearly labeled URL | Production variables only after cutover authorization |
 | Domain | `localhost` | Generated Preview/UAT hostname | Client-approved production domain |
 | Data | Disposable QA or labeled `[UAT]` records | Synthetic UAT only | Approved real catalogue and operational data |
-| Users | Developer/QA accounts | Non-real UAT role accounts | Named staff users, securely invited and verified |
+| Users | Developer/QA accounts | Four non-real UAT role accounts for boundary testing | Two named Management/Admin partners with identical full access; other roles retained but not provisioned |
 
 ## Required variables
 
@@ -56,4 +56,5 @@ No Supabase secret/service-role key is required by the deployed application. Adm
 - [ ] Configure and verify production SMTP, sender identity, rate limits, and recovery flow.
 - [ ] Configure Production-only Vercel variables and confirm Preview cannot read them.
 - [ ] Verify no service/secret key is exposed through `NEXT_PUBLIC_*`, client bundles, logs, or browser network responses.
+- [ ] Provision only the two approved Management/Admin partners after names/emails are supplied; do not convert UAT users or create Sales/Site Team/Accounts launch users.
 - [ ] Complete backup, restore, smoke-test, and rollback rehearsals before DNS changes.

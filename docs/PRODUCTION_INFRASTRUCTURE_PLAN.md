@@ -47,7 +47,7 @@ Recorded: 14 September 2026. This is a non-executing plan; it is not authorizati
 8. Import only the approved Production catalogue and controlled configuration. Do not copy UAT customers, enquiries, visits, quotations, projects, payments, feedback, test users or test media.
 9. Link the approved Vercel project and set scoped Production variables without exposing service-role/database secrets to the browser or Git.
 10. Deploy a non-live Production candidate, record the immutable deployment identifier, and run role, workflow, document, performance and recovery smoke tests.
-11. Provision named staff only in the approved window. Record identity IDs and role assignments without passwords.
+11. Provision only the two named Management/Admin partners in the approved window. Give both the `admin` profile role and identical full access; record identity IDs without passwords. Do not convert UAT identities or create Sales, Site Team, or Accounts Production users unless later requested.
 12. Produce the Phase 2I A–T evidence report and stop. DNS/live traffic remains a separately authorized cutover action.
 
 ## Production data manifest
