@@ -26,7 +26,7 @@ const permissions: Record<AppRole, readonly DashboardModule[]> = {
     "products", "categories", "enquiries", "customers", "site-visits",
     "quotations", "projects", "tasks", "feedback",
   ],
-  site_team: ["site-visits", "projects", "tasks", "feedback"],
+  site_team: ["site-visits", "projects", "tasks"],
   accounts: ["customers", "quotations", "projects", "payments", "tasks"],
 };
 

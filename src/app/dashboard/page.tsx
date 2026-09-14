@@ -7,6 +7,7 @@ import {
   MapPin,
   MessageSquareText,
   UserRoundX,
+  Star,
   Zap,
 } from "lucide-react";
 import { PageHeading } from "@/components/ui/page-heading";
@@ -29,6 +30,7 @@ import { getQuotationDashboard } from "@/lib/quotations/queries";
 import { getProjectDashboard } from "@/lib/projects/queries";
 import { projectStatusLabel } from "@/lib/projects/presentation";
 import { getFinanceDashboardSummary } from "@/lib/payments/queries";
+import { getFeedbackDashboard } from "@/lib/feedback/queries";
 
 export default async function DashboardPage({
   searchParams,
@@ -44,12 +46,13 @@ export default async function DashboardPage({
     profile.role === "sales" ||
     profile.role === "accounts";
   const canUseFinance = profile.role === "admin" || profile.role === "accounts";
-  const [crm, visits, quotationMetrics, projectMetrics, financeMetrics] = await Promise.all([
+  const [crm, visits, quotationMetrics, projectMetrics, financeMetrics, feedbackMetrics] = await Promise.all([
     canUseCrm ? getCrmDashboard() : null,
     canUseVisits ? getSiteVisitDashboard() : null,
     canUseQuotations ? getQuotationDashboard(profile.role) : null,
     getProjectDashboard(),
     canUseFinance ? getFinanceDashboardSummary() : null,
+    profile.role === "admin" ? getFeedbackDashboard() : null,
   ]);
   const summaries = crm
     ? [
@@ -68,6 +71,7 @@ export default async function DashboardPage({
         { label: "High / urgent", value: crm.priorityLeads, icon: Zap },
       ]
     : [];
+  if (feedbackMetrics) summaries.push({ label: "Feedback to review", value: feedbackMetrics.awaitingReview, icon: Star });
   return (
     <div className="space-y-7">
       <PageHeading
@@ -82,7 +86,7 @@ export default async function DashboardPage({
       {crm ? (
         <>
           <section
-            className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5"
+            className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6"
             aria-label="Sales summary"
           >
             {summaries.map(({ label, value, icon: Icon }) => (

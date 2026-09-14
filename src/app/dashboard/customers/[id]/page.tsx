@@ -35,6 +35,8 @@ import { getCustomerQuotations } from "@/lib/quotations/queries";
 import { getCustomerProjects } from "@/lib/projects/queries";
 import { projectStatusLabel } from "@/lib/projects/presentation";
 import { getCustomerFinanceSummary } from "@/lib/payments/queries";
+import { getCustomerFeedback } from "@/lib/feedback/queries";
+import { FEEDBACK_STATUS_LABELS, feedbackStatusClass, ratingLabel } from "@/lib/feedback/presentation";
 
 function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -49,7 +51,7 @@ export default async function CustomerPage({
   params,
 }: PageProps<"/dashboard/customers/[id]">) {
   const { id } = await params;
-  const [profile, customer, workspace, staff, siteVisits, quotations, projects, finance] =
+  const [profile, customer, workspace, staff, siteVisits, quotations, projects, finance, feedback] =
     await Promise.all([
       requireModuleAccess("customers"),
       getCustomer(id),
@@ -59,6 +61,7 @@ export default async function CustomerPage({
       getCustomerQuotations(id),
       getCustomerProjects(id),
       getCustomerFinanceSummary(id),
+      getCustomerFeedback(id),
     ]);
   if (!customer) notFound();
   const canEdit = ["admin", "sales"].includes(profile.role);
@@ -330,6 +333,7 @@ export default async function CustomerPage({
               )) : <p className="px-4 py-8 text-center text-sm text-stone">No projects linked yet.</p>}
             </div>
           </section>
+          {(profile.role === "admin" || profile.role === "sales") ? <section><div><h2 className="text-lg font-semibold">Customer feedback</h2><p className="mt-1 text-sm text-stone">Recent feedback and request status across completed projects.</p></div><div className="mt-4 divide-y divide-line border-y border-line bg-paper sm:rounded-lg sm:border">{feedback.length?feedback.map((item)=><Link key={item.id} href={`/dashboard/projects/${item.project_id}`} className="grid gap-2 px-4 py-4 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:items-center"><strong className="text-sm text-brass-dark">{item.project?.project_number||"Project"}</strong><div className="min-w-0"><p className="truncate text-sm">{item.customer_comments||"No customer comment recorded"}</p><p className="mt-1 text-xs text-stone">{ratingLabel(item.customer_rating)} · {formatDate(item.submitted_at||item.requested_at,true)}</p></div><span className={`justify-self-start rounded-sm border px-2 py-1 text-xs sm:justify-self-end ${feedbackStatusClass(item.status)}`}>{FEEDBACK_STATUS_LABELS[item.status]}</span></Link>):<p className="px-4 py-8 text-center text-sm text-stone">No feedback records yet.</p>}</div></section> : null}
           <section>
             <h2 className="text-lg font-semibold">Follow-ups</h2>
             <div className="mt-4 divide-y divide-line border-y border-line bg-paper sm:rounded-lg sm:border">

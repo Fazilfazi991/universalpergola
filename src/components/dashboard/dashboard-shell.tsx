@@ -16,9 +16,7 @@ import {
   Menu,
   MessageSquareText,
   ReceiptText,
-  Settings,
   Users,
-  UserRoundCog,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -104,18 +102,6 @@ const navItems: NavItem[] = [
     href: "/dashboard/reports",
     icon: BarChart3,
     module: "reports",
-  },
-  {
-    label: "Users",
-    href: "/dashboard/users",
-    icon: UserRoundCog,
-    module: "users",
-  },
-  {
-    label: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-    module: "settings",
   },
 ];
 

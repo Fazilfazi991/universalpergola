@@ -99,8 +99,12 @@ export type ProjectTask = {
   priority: TaskPriority;
   status: TaskStatus;
   completed_at: string | null;
+  completed_by: string | null;
+  completion_checklist_key: string | null;
+  completion_note: string | null;
   created_at: string;
   assigned: Person;
+  completer: Person;
   stage: { id: string; name: string } | null;
 };
 export type ProjectUpdate = {
@@ -198,7 +202,7 @@ export async function getProjectWorkspace(id: string) {
   const [stages, assignments, tasks, updates, files, timeline] = await Promise.all([
     supabase.from("project_stages").select("id, template_id, stage_key, name, description, sort_order, status, progress, weight, is_terminal, target_date, started_at, completed_at, notes, assigned_to, assigned:profiles!project_stages_assigned_to_fkey(id, full_name)").eq("project_id", id).order("sort_order").limit(50),
     supabase.from("project_assignments").select("id, user_id, assignment_role, created_at, user:profiles!project_assignments_user_id_fkey(id, full_name, role)").eq("project_id", id).order("created_at").limit(100),
-    supabase.from("tasks").select("id, project_stage_id, title, description, assigned_to, due_at, priority, status, completed_at, created_at, assigned:profiles!tasks_assigned_to_fkey(id, full_name), stage:project_stages!tasks_project_stage_id_fkey(id, name)").eq("project_id", id).eq("kind", "project_task").is("archived_at", null).order("due_at", { ascending: true, nullsFirst: false }).limit(100),
+    supabase.from("tasks").select("id, project_stage_id, title, description, assigned_to, due_at, priority, status, completed_at, completed_by, completion_checklist_key, completion_note, created_at, assigned:profiles!tasks_assigned_to_fkey(id, full_name), completer:profiles!tasks_completed_by_fkey(id, full_name), stage:project_stages!tasks_project_stage_id_fkey(id, name)").eq("project_id", id).eq("kind", "project_task").is("archived_at", null).order("due_at", { ascending: true, nullsFirst: false }).limit(100),
     supabase.from("project_updates").select("id, stage_id, update_type, progress, note, created_at, author:profiles!project_updates_created_by_fkey(id, full_name), stage:project_stages!project_updates_stage_id_fkey(id, name)").eq("project_id", id).order("created_at", { ascending: false }).limit(100),
     supabase.from("project_files").select("id, stage_id, file_type, file_name, storage_path, mime_type, file_size, caption, created_at, uploader:profiles!project_files_created_by_fkey(id, full_name), stage:project_stages!project_files_stage_id_fkey(id, name)").eq("project_id", id).eq("upload_status", "ready").order("created_at", { ascending: false }).limit(60),
     supabase.from("activity_logs").select("id, event_type, metadata, created_at, actor:profiles!activity_logs_actor_id_fkey(id, full_name)").eq("entity_type", "projects").eq("entity_id", id).order("created_at", { ascending: false }).limit(150),

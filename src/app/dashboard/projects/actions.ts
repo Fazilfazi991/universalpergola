@@ -6,6 +6,7 @@ import { requireManagement, requireModuleAccess, requireRole } from "@/lib/auth/
 import { isUuid } from "@/lib/crm/validation";
 import { createClient } from "@/lib/supabase/server";
 import { createProjectFilePath, PROJECT_FILE_BUCKET } from "@/lib/projects/media";
+import { checklistSchema } from "@/lib/feedback/validation";
 import {
   assignmentSchema,
   handoverSchema,
@@ -254,6 +255,27 @@ export async function transitionProjectTaskAction(formData: FormData) {
   if (!current || !taskTransitions[current.status].includes(parsed.data.status)) return;
   const { error } = await supabase.from("tasks").update({ status: parsed.data.status, completed_at: parsed.data.status === "completed" ? new Date().toISOString() : null }).eq("id", parsed.data.task_id).eq("project_id", parsed.data.project_id).eq("kind", "project_task");
   if (error) throw new Error(error.message);
+  refreshProject(parsed.data.project_id);
+}
+
+export async function updateCompletionChecklistAction(formData: FormData) {
+  await requireRole(["admin", "site_team"]);
+  const parsed = checklistSchema.safeParse({
+    project_id: value(formData, "project_id"),
+    key: value(formData, "key"),
+    completed: value(formData, "completed") === "true",
+    note: value(formData, "note"),
+  });
+  if (!parsed.success) return;
+  const supabase = await createClient();
+  if (!supabase) return;
+  const { error } = await supabase.rpc("update_completion_checklist", {
+    p_project_id: parsed.data.project_id,
+    p_key: parsed.data.key,
+    p_completed: parsed.data.completed,
+    p_note: parsed.data.note,
+  });
+  if (error) redirect(`/dashboard/projects/${parsed.data.project_id}?error=${encodeURIComponent(error.message)}`);
   refreshProject(parsed.data.project_id);
 }
 

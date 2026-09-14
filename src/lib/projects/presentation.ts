@@ -84,6 +84,13 @@ const activityLabels: Record<string, string> = {
   "payment.partial_received": "Partial payment received",
   "payment.proof_uploaded": "Payment proof uploaded",
   "payment.voided": "Receipt voided",
+  "feedback.requested": "Customer feedback requested",
+  "feedback.submitted": "Customer feedback submitted",
+  "feedback.staff_entered": "Customer feedback entered by staff",
+  "feedback.reviewed": "Customer feedback reviewed",
+  "feedback.archived": "Customer feedback archived",
+  "feedback.testimonial_permission_recorded": "Testimonial permission recorded",
+  "completion_checklist.updated": "Completion checklist updated",
 };
 export function projectActivityLabel(event: string, metadata: Record<string, unknown>) {
   const base = activityLabels[event] || event.replaceAll(".", " ").replace(/^./, (letter) => letter.toUpperCase());

@@ -309,6 +309,8 @@ export type Database = {
       }
       feedback: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           completion_status: string
           created_at: string
           created_by: string | null
@@ -317,12 +319,24 @@ export type Database = {
           handover_date: string | null
           id: string
           internal_notes: string | null
+          permission_to_publish_testimonial: boolean
           project_id: string
           public_token: string
+          requested_at: string | null
+          requested_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string | null
+          staff_entered_at: string | null
+          status: Database["public"]["Enums"]["feedback_status"]
           submitted_at: string | null
+          token_expires_at: string | null
+          token_revoked_at: string | null
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           completion_status?: string
           created_at?: string
           created_by?: string | null
@@ -331,12 +345,24 @@ export type Database = {
           handover_date?: string | null
           id?: string
           internal_notes?: string | null
+          permission_to_publish_testimonial?: boolean
           project_id: string
           public_token?: string
+          requested_at?: string | null
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string | null
+          staff_entered_at?: string | null
+          status?: Database["public"]["Enums"]["feedback_status"]
           submitted_at?: string | null
+          token_expires_at?: string | null
+          token_revoked_at?: string | null
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           completion_status?: string
           created_at?: string
           created_by?: string | null
@@ -345,12 +371,29 @@ export type Database = {
           handover_date?: string | null
           id?: string
           internal_notes?: string | null
+          permission_to_publish_testimonial?: boolean
           project_id?: string
           public_token?: string
+          requested_at?: string | null
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string | null
+          staff_entered_at?: string | null
+          status?: Database["public"]["Enums"]["feedback_status"]
           submitted_at?: string | null
+          token_expires_at?: string | null
+          token_revoked_at?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "feedback_archived_by_fkey"
+            columns: ["archived_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "feedback_created_by_fkey"
             columns: ["created_by"]
@@ -363,6 +406,20 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: true
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2086,6 +2143,9 @@ export type Database = {
           archived_at: string | null
           assigned_to: string | null
           completed_at: string | null
+          completed_by: string | null
+          completion_checklist_key: string | null
+          completion_note: string | null
           created_at: string
           created_by: string | null
           customer_id: string | null
@@ -2106,6 +2166,9 @@ export type Database = {
           archived_at?: string | null
           assigned_to?: string | null
           completed_at?: string | null
+          completed_by?: string | null
+          completion_checklist_key?: string | null
+          completion_note?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
@@ -2126,6 +2189,9 @@ export type Database = {
           archived_at?: string | null
           assigned_to?: string | null
           completed_at?: string | null
+          completed_by?: string | null
+          completion_checklist_key?: string | null
+          completion_note?: string | null
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
@@ -2146,6 +2212,13 @@ export type Database = {
           {
             foreignKeyName: "tasks_assigned_to_fkey"
             columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_completed_by_fkey"
+            columns: ["completed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2360,6 +2433,14 @@ export type Database = {
           received: number
         }[]
       }
+      get_public_feedback_context: {
+        Args: { p_token: string }
+        Returns: {
+          expires_at: string
+          feedback_state: string
+          project_reference: string
+        }[]
+      }
       record_payment: {
         Args: {
           p_amount: number
@@ -2380,6 +2461,14 @@ export type Database = {
         Args: { p_note: string; p_project_id: string }
         Returns: undefined
       }
+      request_project_feedback: {
+        Args: { p_expires_at?: string; p_project_id: string }
+        Returns: string
+      }
+      revoke_project_feedback_link: {
+        Args: { p_project_id: string }
+        Returns: undefined
+      }
       save_payment_milestone: {
         Args: {
           p_description: string
@@ -2397,6 +2486,17 @@ export type Database = {
       }
       save_quotation_draft: {
         Args: { p_payload: Json; p_quotation_id: string }
+        Returns: string
+      }
+      save_staff_feedback: {
+        Args: {
+          p_comment: string
+          p_internal_notes?: string
+          p_permission?: boolean
+          p_project_id: string
+          p_rating: number
+          p_source: string
+        }
         Returns: string
       }
       set_project_assignment: {
@@ -2424,8 +2524,35 @@ export type Database = {
           enquiry_number: number
         }[]
       }
+      submit_public_feedback: {
+        Args: {
+          p_comment?: string
+          p_honeypot?: string
+          p_permission?: boolean
+          p_rating: number
+          p_token: string
+        }
+        Returns: string
+      }
       transition_project_stage: {
         Args: { p_action: string; p_note?: string; p_stage_id: string }
+        Returns: undefined
+      }
+      update_completion_checklist: {
+        Args: {
+          p_completed: boolean
+          p_key: string
+          p_note?: string
+          p_project_id: string
+        }
+        Returns: undefined
+      }
+      update_feedback_review: {
+        Args: {
+          p_feedback_id: string
+          p_internal_notes?: string
+          p_status: string
+        }
         Returns: undefined
       }
       update_project_details: {
@@ -2478,6 +2605,12 @@ export type Database = {
         | "approved"
         | "lost"
       enquiry_type: "catalogue" | "general" | "manual"
+      feedback_status:
+        | "not_requested"
+        | "requested"
+        | "received"
+        | "reviewed"
+        | "archived"
       handover_status: "pending" | "ready" | "completed" | "issues_outstanding"
       lead_priority: "low" | "normal" | "high" | "urgent"
       payment_milestone_type: "percentage" | "fixed"
@@ -2678,6 +2811,13 @@ export const Constants = {
         "lost",
       ],
       enquiry_type: ["catalogue", "general", "manual"],
+      feedback_status: [
+        "not_requested",
+        "requested",
+        "received",
+        "reviewed",
+        "archived",
+      ],
       handover_status: ["pending", "ready", "completed", "issues_outstanding"],
       lead_priority: ["low", "normal", "high", "urgent"],
       payment_milestone_type: ["percentage", "fixed"],
