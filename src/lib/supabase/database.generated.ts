@@ -77,6 +77,92 @@ export type Database = {
           },
         ]
       }
+      assets: {
+        Row: {
+          archived_at: string | null
+          asset_code: string
+          brand: string | null
+          category: string
+          created_at: string
+          currency: string
+          estimated_cost: number | null
+          id: string
+          image_mime_type: string | null
+          image_path: string | null
+          image_size: number | null
+          location: string | null
+          model: string | null
+          name: string
+          notes: string | null
+          planned_purchase_date: string | null
+          purchase_cost: number | null
+          purchase_date: string | null
+          recorded_by: string
+          serial_number: string | null
+          status: Database["public"]["Enums"]["asset_status"]
+          supplier: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          asset_code: string
+          brand?: string | null
+          category: string
+          created_at?: string
+          currency?: string
+          estimated_cost?: number | null
+          id?: string
+          image_mime_type?: string | null
+          image_path?: string | null
+          image_size?: number | null
+          location?: string | null
+          model?: string | null
+          name: string
+          notes?: string | null
+          planned_purchase_date?: string | null
+          purchase_cost?: number | null
+          purchase_date?: string | null
+          recorded_by: string
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          supplier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          asset_code?: string
+          brand?: string | null
+          category?: string
+          created_at?: string
+          currency?: string
+          estimated_cost?: number | null
+          id?: string
+          image_mime_type?: string | null
+          image_path?: string | null
+          image_size?: number | null
+          location?: string | null
+          model?: string | null
+          name?: string
+          notes?: string | null
+          planned_purchase_date?: string | null
+          purchase_cost?: number | null
+          purchase_date?: string | null
+          recorded_by?: string
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          supplier?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -418,6 +504,144 @@ export type Database = {
           {
             foreignKeyName: "feedback_reviewed_by_fkey"
             columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_expenses: {
+        Row: {
+          amount: number
+          archived_at: string | null
+          category: string
+          created_at: string
+          currency: string
+          description: string
+          expense_date: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          project_id: string | null
+          recorded_by: string
+          reference: string | null
+          scope: Database["public"]["Enums"]["internal_expense_scope"]
+          updated_at: string
+          vendor: string | null
+        }
+        Insert: {
+          amount: number
+          archived_at?: string | null
+          category: string
+          created_at?: string
+          currency?: string
+          description: string
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          project_id?: string | null
+          recorded_by: string
+          reference?: string | null
+          scope: Database["public"]["Enums"]["internal_expense_scope"]
+          updated_at?: string
+          vendor?: string | null
+        }
+        Update: {
+          amount?: number
+          archived_at?: string | null
+          category?: string
+          created_at?: string
+          currency?: string
+          description?: string
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          project_id?: string | null
+          recorded_by?: string
+          reference?: string | null
+          scope?: Database["public"]["Enums"]["internal_expense_scope"]
+          updated_at?: string
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_expenses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_expenses_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      labour_wages: {
+        Row: {
+          amount: number
+          archived_at: string | null
+          created_at: string
+          currency: string
+          hours: number | null
+          id: string
+          notes: string | null
+          project_id: string | null
+          recorded_by: string
+          status: Database["public"]["Enums"]["wage_status"]
+          updated_at: string
+          work_date: string
+          work_description: string
+          worker_name: string
+        }
+        Insert: {
+          amount: number
+          archived_at?: string | null
+          created_at?: string
+          currency?: string
+          hours?: number | null
+          id?: string
+          notes?: string | null
+          project_id?: string | null
+          recorded_by: string
+          status?: Database["public"]["Enums"]["wage_status"]
+          updated_at?: string
+          work_date?: string
+          work_description: string
+          worker_name: string
+        }
+        Update: {
+          amount?: number
+          archived_at?: string | null
+          created_at?: string
+          currency?: string
+          hours?: number | null
+          id?: string
+          notes?: string | null
+          project_id?: string | null
+          recorded_by?: string
+          status?: Database["public"]["Enums"]["wage_status"]
+          updated_at?: string
+          work_date?: string
+          work_description?: string
+          worker_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "labour_wages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "labour_wages_recorded_by_fkey"
+            columns: ["recorded_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1535,6 +1759,73 @@ export type Database = {
           },
         ]
       }
+      purchase_bills: {
+        Row: {
+          asset_id: string | null
+          bill_date: string | null
+          bill_number: string | null
+          created_at: string
+          expense_id: string | null
+          file_name: string
+          file_size: number
+          id: string
+          mime_type: string
+          storage_path: string
+          uploaded_by: string
+          vendor: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          bill_date?: string | null
+          bill_number?: string | null
+          created_at?: string
+          expense_id?: string | null
+          file_name: string
+          file_size: number
+          id?: string
+          mime_type: string
+          storage_path: string
+          uploaded_by: string
+          vendor?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          bill_date?: string | null
+          bill_number?: string | null
+          created_at?: string
+          expense_id?: string | null
+          file_name?: string
+          file_size?: number
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          uploaded_by?: string
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_bills_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_bills_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "internal_expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_bills_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotation_items: {
         Row: {
           created_at: string
@@ -2418,6 +2709,19 @@ export type Database = {
           status: string
         }[]
       }
+      get_project_cost_summary: {
+        Args: { p_project_id: string }
+        Returns: {
+          approved_value: number
+          currency: string
+          customer_outstanding: number
+          customer_received: number
+          labour_cost: number
+          material_expense: number
+          other_project_expenses: number
+          total_internal_cost: number
+        }[]
+      }
       get_project_finance_summary: {
         Args: { p_project_id: string }
         Returns: {
@@ -2595,6 +2899,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "sales" | "site_team" | "accounts"
+      asset_status:
+        | "planned"
+        | "active"
+        | "maintenance"
+        | "retired"
+        | "archived"
       customer_type: "individual" | "company"
       enquiry_status:
         | "new"
@@ -2612,6 +2922,7 @@ export type Database = {
         | "reviewed"
         | "archived"
       handover_status: "pending" | "ready" | "completed" | "issues_outstanding"
+      internal_expense_scope: "project" | "workshop"
       lead_priority: "low" | "normal" | "high" | "urgent"
       payment_milestone_type: "percentage" | "fixed"
       payment_plan_status: "draft" | "active" | "completed" | "cancelled"
@@ -2669,6 +2980,7 @@ export type Database = {
         | "blocked"
         | "completed"
         | "cancelled"
+      wage_status: "pending" | "paid" | "partially_paid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2800,6 +3112,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "sales", "site_team", "accounts"],
+      asset_status: ["planned", "active", "maintenance", "retired", "archived"],
       customer_type: ["individual", "company"],
       enquiry_status: [
         "new",
@@ -2819,6 +3132,7 @@ export const Constants = {
         "archived",
       ],
       handover_status: ["pending", "ready", "completed", "issues_outstanding"],
+      internal_expense_scope: ["project", "workshop"],
       lead_priority: ["low", "normal", "high", "urgent"],
       payment_milestone_type: ["percentage", "fixed"],
       payment_plan_status: ["draft", "active", "completed", "cancelled"],
@@ -2878,6 +3192,7 @@ export const Constants = {
       ],
       task_priority: ["low", "normal", "high", "urgent"],
       task_status: ["open", "in_progress", "blocked", "completed", "cancelled"],
+      wage_status: ["pending", "paid", "partially_paid"],
     },
   },
 } as const

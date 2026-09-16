@@ -19,6 +19,7 @@ const modules: Record<DashboardModule, { title: string; description: string; emp
   reports: { title: "Reports", description: "Management reporting across pipeline, delivery, and financial status.", empty: "Reporting arrives after operational modules contain verified live data." },
   users: { title: "Users & roles", description: "Manage staff access for management, sales, site team, and accounts.", empty: "User administration arrives in Phase 2. Role enforcement is active in server checks and RLS." },
   settings: { title: "Settings", description: "Configure future workflow defaults and organisation preferences.", empty: "Settings screens arrive in Phase 2. Core stages remain database-configurable." },
+  accounts: { title: "Accounts", description: "Internal operating costs, wages, private bills, and assets.", empty: "Open the Accounts workspace to manage internal cost records." },
 };
 
 function isDashboardModule(value: string): value is DashboardModule { return value in modules; }

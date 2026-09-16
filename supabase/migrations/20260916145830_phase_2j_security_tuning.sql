@@ -1,0 +1,16 @@
+drop policy if exists "finance staff manages internal expenses" on public.internal_expenses;
+drop policy if exists "finance staff manages labour wages" on public.labour_wages;
+drop policy if exists "finance staff manages purchase bills" on public.purchase_bills;
+drop policy if exists "finance staff manages assets" on public.assets;
+create policy "finance staff writes internal expenses" on public.internal_expenses for insert to authenticated with check (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]) and recorded_by=(select auth.uid()));
+create policy "finance staff updates internal expenses" on public.internal_expenses for update to authenticated using (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role])) with check (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]) and recorded_by=(select auth.uid()));
+create policy "finance staff deletes internal expenses" on public.internal_expenses for delete to authenticated using (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]));
+create policy "finance staff writes labour wages" on public.labour_wages for insert to authenticated with check (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]) and recorded_by=(select auth.uid()));
+create policy "finance staff updates labour wages" on public.labour_wages for update to authenticated using (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role])) with check (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]) and recorded_by=(select auth.uid()));
+create policy "finance staff deletes labour wages" on public.labour_wages for delete to authenticated using (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]));
+create policy "finance staff writes purchase bills" on public.purchase_bills for insert to authenticated with check (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]) and uploaded_by=(select auth.uid()));
+create policy "finance staff updates purchase bills" on public.purchase_bills for update to authenticated using (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role])) with check (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]) and uploaded_by=(select auth.uid()));
+create policy "finance staff deletes purchase bills" on public.purchase_bills for delete to authenticated using (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]));
+create policy "finance staff writes assets" on public.assets for insert to authenticated with check (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]) and recorded_by=(select auth.uid()));
+create policy "finance staff updates assets" on public.assets for update to authenticated using (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role])) with check (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]) and recorded_by=(select auth.uid()));
+create policy "finance staff deletes assets" on public.assets for delete to authenticated using (private.has_role(array['admin'::public.app_role,'accounts'::public.app_role]));

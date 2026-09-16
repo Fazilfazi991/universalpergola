@@ -43,6 +43,7 @@ import {
 import { getProject, getProjectOptions, getProjectWorkspace } from "@/lib/projects/queries";
 import { getProjectFinanceSummary } from "@/lib/payments/queries";
 import { getProjectFeedback } from "@/lib/feedback/queries";
+import { getProjectCostSummary } from "@/lib/operations/queries";
 import { FEEDBACK_STATUS_LABELS, feedbackStatusClass, ratingLabel } from "@/lib/feedback/presentation";
 
 function bytes(value: number | null) {
@@ -53,11 +54,12 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const [profile, project] = await Promise.all([requireModuleAccess("projects"), getProject(id)]);
   if (!project) notFound();
-  const [workspace, options, finance, feedback] = await Promise.all([
+  const [workspace, options, finance, feedback, costSummary] = await Promise.all([
     getProjectWorkspace(id),
     profile.role === "admin" ? getProjectOptions() : Promise.resolve({ customers: [], staff: [], templates: [] }),
     profile.role === "site_team" ? Promise.resolve(null) : getProjectFinanceSummary(id),
     getProjectFeedback(id),
+    getProjectCostSummary(id),
   ]);
   const canManage = profile.role === "admin";
   const canOperate = profile.role === "admin" || profile.role === "site_team";
@@ -100,6 +102,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
           ].map(([label, value]) => <div key={label} className="border-b border-white/10 px-5 py-4 last:border-b-0 odd:border-r md:border-b-0 md:border-r md:last:border-r-0"><dt className="text-[10px] uppercase tracking-[0.15em] text-white/35">{label}</dt><dd className="mt-1 truncate text-sm font-medium">{value}</dd></div>)}
         </dl>
       </section>
+      {costSummary ? <section className="rounded-lg border border-line bg-paper p-5" aria-label="Internal cost summary"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-lg font-semibold">Project cost summary</h2><p className="mt-1 text-sm text-stone">Internal delivery cost is separate from the customer payment ledger.</p></div><Link href={`/dashboard/payments/projects/${project.id}`} className="text-sm font-semibold text-brass-dark">Open customer payments →</Link></div><dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-line bg-line sm:grid-cols-4"><div className="bg-limestone p-3"><dt className="text-[10px] uppercase tracking-[0.13em] text-stone">Approved value</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.approved_value), costSummary.currency)}</dd></div><div className="bg-limestone p-3"><dt className="text-[10px] uppercase tracking-[0.13em] text-stone">Customer received</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.customer_received), costSummary.currency)}</dd></div><div className="bg-limestone p-3"><dt className="text-[10px] uppercase tracking-[0.13em] text-stone">Outstanding</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.customer_outstanding), costSummary.currency)}</dd></div><div className="bg-limestone p-3"><dt className="text-[10px] uppercase tracking-[0.13em] text-stone">Total internal cost</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.total_internal_cost), costSummary.currency)}</dd></div></dl><dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3"><div><dt className="text-stone">Material expense</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.material_expense), costSummary.currency)}</dd></div><div><dt className="text-stone">Labour cost</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.labour_cost), costSummary.currency)}</dd></div><div><dt className="text-stone">Other project expenses</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.other_project_expenses), costSummary.currency)}</dd></div></dl></section> : null}
       <section className="rounded-lg border border-line bg-paper" aria-label="Completion summary">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-4 sm:px-5"><div><h2 className="font-semibold">Completion summary</h2><p className="mt-1 text-xs text-stone">Final handoff position at a glance.</p></div>{feedback ? <span className={`rounded-sm border px-2 py-1 text-xs ${feedbackStatusClass(feedback.status)}`}>{FEEDBACK_STATUS_LABELS[feedback.status]}</span> : null}</div>
         <dl className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8">

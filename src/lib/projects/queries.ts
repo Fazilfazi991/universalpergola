@@ -205,7 +205,7 @@ export async function getProjectWorkspace(id: string) {
     supabase.from("tasks").select("id, project_stage_id, title, description, assigned_to, due_at, priority, status, completed_at, completed_by, completion_checklist_key, completion_note, created_at, assigned:profiles!tasks_assigned_to_fkey(id, full_name), completer:profiles!tasks_completed_by_fkey(id, full_name), stage:project_stages!tasks_project_stage_id_fkey(id, name)").eq("project_id", id).eq("kind", "project_task").is("archived_at", null).order("due_at", { ascending: true, nullsFirst: false }).limit(100),
     supabase.from("project_updates").select("id, stage_id, update_type, progress, note, created_at, author:profiles!project_updates_created_by_fkey(id, full_name), stage:project_stages!project_updates_stage_id_fkey(id, name)").eq("project_id", id).order("created_at", { ascending: false }).limit(100),
     supabase.from("project_files").select("id, stage_id, file_type, file_name, storage_path, mime_type, file_size, caption, created_at, uploader:profiles!project_files_created_by_fkey(id, full_name), stage:project_stages!project_files_stage_id_fkey(id, name)").eq("project_id", id).eq("upload_status", "ready").order("created_at", { ascending: false }).limit(60),
-    supabase.from("activity_logs").select("id, event_type, metadata, created_at, actor:profiles!activity_logs_actor_id_fkey(id, full_name)").eq("entity_type", "projects").eq("entity_id", id).order("created_at", { ascending: false }).limit(150),
+    supabase.from("activity_logs").select("id, event_type, entity_type, entity_id, metadata, created_at, actor:profiles!activity_logs_actor_id_fkey(id, full_name)").in("entity_type", ["projects", "internal_expenses", "labour_wages"]).order("created_at", { ascending: false }).limit(300),
   ]);
   if ([stages, assignments, tasks, updates, files, timeline].some((result) => result.error)) throw new Error("Unable to load the project workspace.");
   return {
@@ -214,7 +214,7 @@ export async function getProjectWorkspace(id: string) {
     tasks: (tasks.data || []) as unknown as ProjectTask[],
     updates: (updates.data || []) as unknown as ProjectUpdate[],
     files: (files.data || []) as unknown as ProjectFile[],
-    timeline: (timeline.data || []) as unknown as ProjectActivity[],
+    timeline: (timeline.data || []).filter((row) => row.entity_type === "projects" ? row.entity_id === id : (row.metadata as Record<string, unknown> | null)?.project_id === id) as unknown as ProjectActivity[],
   };
 }
 

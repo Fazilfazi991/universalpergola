@@ -1,6 +1,6 @@
 # Phase 2I gate status
 
-Recorded: 14 September 2026. Candidate baseline: `6c8bf86187982b6477129654e6457dbb6601da29`.
+Recorded: 16 September 2026. Phase 2J UAT additions are recorded in `PHASE2J_REPORT.md`; no Production deployment was performed.
 
 Phase 2I is a governance and infrastructure-readiness phase. It does not authorize feature work, a Production deployment, DNS changes, live traffic, reuse of the UAT database, or creation/invitation of real staff users.
 
@@ -49,7 +49,7 @@ Status: **BLOCKED — approved catalogue source and owner sign-off not supplied.
 
 ## Named staff readiness
 
-Launch requires two named Management/Admin partner accounts with identical full access. Use `PRODUCTION_STAFF_MATRIX.md` to supply Partner 1 and Partner 2 names and work emails. Do not place passwords in the file and do not create or invite either user until the dedicated Production environment and provisioning window are explicitly authorized.
+Launch requires two named Management/Admin partner accounts with identical full access. User-facing planning labels are ELTHO and MYRIAM; actual names and work emails remain pending. Use `PRODUCTION_STAFF_MATRIX.md` to supply them. Do not place passwords in the file and do not create or invite either user until the dedicated Production environment and provisioning window are explicitly authorized.
 
 Sales, Site Team, and Accounts remain available for later expansion but are not Production launch accounts. The four existing UAT accounts remain unchanged for role/security boundary testing and must never be converted into Production users. Management/Admin full access is verified in `MANAGEMENT_ACCESS_VERIFICATION.md`.
 

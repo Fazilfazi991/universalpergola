@@ -6,8 +6,8 @@ The launch requirement is exactly two real partner accounts. Both receive the ap
 
 | Launch user | Name | Email | Application role | Access | Provisioning status |
 |---|---|---|---|---|---|
-| Partner 1 | Pending | Pending | Management/Admin (`admin`) | Full | NOT AUTHORIZED |
-| Partner 2 | Pending | Pending | Management/Admin (`admin`) | Full | NOT AUTHORIZED |
+| ELTHO (Partner 1) | Pending | Pending | Management/Admin (`admin`) | Full | NOT AUTHORIZED |
+| MYRIAM (Partner 2) | Pending | Pending | Management/Admin (`admin`) | Full | NOT AUTHORIZED |
 
 Both rows must have identical authorization. `MANAGEMENT_ACCESS_VERIFICATION.md` records the verified full-access surface.
 

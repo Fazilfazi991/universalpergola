@@ -91,6 +91,20 @@ const activityLabels: Record<string, string> = {
   "feedback.archived": "Customer feedback archived",
   "feedback.testimonial_permission_recorded": "Testimonial permission recorded",
   "completion_checklist.updated": "Completion checklist updated",
+  "internal_expenses.insert": "Internal expense recorded",
+  "internal_expenses.update": "Internal expense updated",
+  "internal_expenses.delete": "Internal expense removed",
+  "labour_wages.insert": "Labour wage recorded",
+  "labour_wages.update": "Labour wage updated",
+  "labour_wages.delete": "Labour wage removed",
+  "expense.insert": "Internal expense recorded",
+  "expense.update": "Internal expense updated",
+  "expense.delete": "Internal expense removed",
+  "wage.insert": "Labour wage recorded",
+  "wage.update": "Labour wage updated",
+  "wage.delete": "Labour wage removed",
+  "bill.insert": "Purchase bill uploaded",
+  "asset.insert": "Asset recorded",
 };
 export function projectActivityLabel(event: string, metadata: Record<string, unknown>) {
   const base = activityLabels[event] || event.replaceAll(".", " ").replace(/^./, (letter) => letter.toUpperCase());

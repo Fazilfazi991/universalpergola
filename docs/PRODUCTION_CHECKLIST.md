@@ -5,7 +5,7 @@ Updated: 14 September 2026 for Phase 2I. Current recommendation: **NO-GO for Pro
 | Control | Status | Evidence / required action |
 |---|---|---|
 | Separate Production Supabase project confirmed | BLOCKED | Read-only inventory finds only UAT `jwyjuhtektmtqffnillj`; no creation authorization received |
-| Migrations apply through `20260914120000` | UAT PASS | Local/remote parity and DB lint passed; repeat on Production |
+| Migrations apply through `20260916151030` | UAT PASS | Phase 2J additive migrations applied to linked UAT; repeat on Production only after authorization |
 | Auth site URL and redirect allow list | BLOCKED | UAT still uses localhost; set exact Production HTTPS origins at cutover |
 | Open signup decision | BLOCKED | Hosted signup is enabled; client must approve and Production should normally disable it |
 | Password policy | BLOCKED | Current minimum is 6 with no complexity requirement; approve stronger Production policy |

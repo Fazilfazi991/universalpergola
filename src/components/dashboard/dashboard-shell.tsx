@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   Banknote,
+  WalletCards,
   BarChart3,
   Boxes,
   CalendarDays,
@@ -86,6 +87,12 @@ const navItems: NavItem[] = [
     module: "payments",
   },
   {
+    label: "Accounts",
+    href: "/dashboard/accounts",
+    icon: WalletCards,
+    module: "accounts",
+  },
+  {
     label: "Tasks",
     href: "/dashboard/tasks",
     icon: ClipboardCheck,
@@ -161,6 +168,7 @@ export function DashboardShell({
             "/dashboard/quotations",
             "/dashboard/projects",
             "/dashboard/payments",
+            "/dashboard/accounts",
           ]
         : [
             "/dashboard",
