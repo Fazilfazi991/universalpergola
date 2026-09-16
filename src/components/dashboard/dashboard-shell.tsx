@@ -255,7 +255,7 @@ export function DashboardShell({
       </aside>
 
       <main className="min-w-0 pb-24 lg:ml-64 lg:pb-0">
-        <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="w-full min-w-0 px-4 py-6 sm:px-6 sm:py-8 lg:px-6 2xl:px-10">
           {children}
         </div>
       </main>

@@ -52,26 +52,36 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/dashboa
         <EmptyState icon={FolderKanban} title="No projects found" description="Projects appear here after Management converts an approved current quotation." />
       ) : (
         <>
-          <div className="hidden overflow-x-auto rounded-lg border border-line bg-paper lg:block">
-            <table className="w-full min-w-[1080px] text-left text-sm">
+          <div className="hidden overflow-hidden rounded-lg border border-line bg-paper xl:block">
+            <table className="w-full table-fixed text-left text-[13px]">
+              <colgroup>
+                <col className="w-[12%]" />
+                <col className="w-[14%]" />
+                <col className="w-[13%]" />
+                <col className="w-[8%]" />
+                <col className="w-[11%]" />
+                <col className="w-[15%]" />
+                <col className="w-[14%]" />
+                <col className="w-[13%]" />
+              </colgroup>
               <thead className="border-b border-line bg-limestone text-xs text-stone"><tr>
-                <th className="px-4 py-3 font-medium">Project</th><th className="px-4 py-3 font-medium">Customer</th><th className="px-4 py-3 font-medium">Current work</th><th className="px-4 py-3 font-medium">Status</th><th className="px-4 py-3 font-medium">Value</th><th className="px-4 py-3 font-medium">Owner / team</th><th className="px-4 py-3 font-medium">Dates</th><th className="px-4 py-3 font-medium">Progress</th>
+                <th scope="col" className="px-3 py-3 font-medium">Project</th><th scope="col" className="px-3 py-3 font-medium">Customer</th><th scope="col" className="px-3 py-3 font-medium">Current work</th><th scope="col" className="px-3 py-3 font-medium">Status</th><th scope="col" className="px-3 py-3 font-medium">Value</th><th scope="col" className="px-3 py-3 font-medium">Owner / team</th><th scope="col" className="px-3 py-3 font-medium">Dates</th><th scope="col" className="px-3 py-3 font-medium">Progress</th>
               </tr></thead>
               <tbody className="divide-y divide-line">{projects.map((project) => (
-                <tr key={project.id}>
-                  <td className="px-4 py-3"><Link href={`/dashboard/projects/${project.id}`} className="font-semibold hover:text-brass-dark">{project.project_number}</Link><p className="mt-1 text-xs text-stone">Updated {formatDate(project.updated_at, true)}</p></td>
-                  <td className="px-4 py-3"><p className="font-medium">{project.customer?.name || "—"}</p><p className="text-xs text-stone">{project.customer?.phone || ""}</p></td>
-                  <td className="px-4 py-3"><p className="font-medium">{project.current_stage?.name || "No stage"}</p><p className="text-xs text-stone">{project.current_stage ? stageStatusLabel(project.current_stage.status) : "Template missing"}</p></td>
-                  <td className="px-4 py-3"><span className={`inline-flex rounded-sm border px-2 py-1 text-xs ${projectStatusClass(project.status)}`}>{PROJECT_STATUS_LABELS[project.status]}</span></td>
-                  <td className="px-4 py-3 font-semibold">{formatMoney(project.project_value, project.currency)}</td>
-                  <td className="px-4 py-3"><p>{project.owner?.full_name || "Unowned"}</p><p className="text-xs text-stone">{project.assignments.filter((item) => ["site_team", "installer"].includes(item.assignment_role)).map((item) => item.user?.full_name).filter(Boolean).join(", ") || "No execution team"}</p></td>
-                  <td className="px-4 py-3 text-xs"><p>Start {formatDate(project.start_date)}</p><p className={project.expected_completion_date && project.expected_completion_date < new Date().toISOString().slice(0, 10) && !["completed", "cancelled"].includes(project.status) ? "text-red-700" : "text-stone"}>Target {formatDate(project.expected_completion_date)}</p></td>
-                  <td className="px-4 py-3"><div className="h-1.5 w-24 overflow-hidden rounded-full bg-line"><div className="h-full bg-brass" style={{ width: `${project.progress}%` }} /></div><p className="mt-1 text-xs text-stone">{project.progress}%</p></td>
+                <tr key={project.id} className="align-top">
+                  <td className="px-3 py-3"><Link href={`/dashboard/projects/${project.id}`} className="font-semibold hover:text-brass-dark">{project.project_number}</Link><p className="mt-1 text-xs leading-4 text-stone">Updated {formatDate(project.updated_at, true)}</p></td>
+                  <td className="px-3 py-3"><p className="break-words font-medium">{project.customer?.name || "—"}</p><p className="mt-0.5 text-xs leading-4 text-stone">{project.customer?.phone || ""}</p></td>
+                  <td className="px-3 py-3"><p className="break-words font-medium">{project.current_stage?.name || "No stage"}</p><p className="mt-0.5 text-xs leading-4 text-stone">{project.current_stage ? stageStatusLabel(project.current_stage.status) : "Template missing"}</p></td>
+                  <td className="px-3 py-3"><span className={`inline-flex rounded-sm border px-2 py-1 text-xs ${projectStatusClass(project.status)}`}>{PROJECT_STATUS_LABELS[project.status]}</span></td>
+                  <td className="px-3 py-3 text-xs font-semibold tabular-nums">{formatMoney(project.project_value, project.currency)}</td>
+                  <td className="px-3 py-3"><p className="break-words">{project.owner?.full_name || "Unowned"}</p><p className="mt-0.5 break-words text-xs leading-4 text-stone">{project.assignments.filter((item) => ["site_team", "installer"].includes(item.assignment_role)).map((item) => item.user?.full_name).filter(Boolean).join(", ") || "No execution team"}</p></td>
+                  <td className="px-3 py-3 text-xs leading-5"><p>Start {formatDate(project.start_date)}</p><p className={project.expected_completion_date && project.expected_completion_date < new Date().toISOString().slice(0, 10) && !["completed", "cancelled"].includes(project.status) ? "text-red-700" : "text-stone"}>Target {formatDate(project.expected_completion_date)}</p></td>
+                  <td className="px-3 py-3"><div className="h-1.5 w-full max-w-28 overflow-hidden rounded-full bg-line"><div className="h-full bg-brass" style={{ width: `${project.progress}%` }} /></div><p className="mt-1 text-xs tabular-nums text-stone">{project.progress}%</p></td>
                 </tr>
               ))}</tbody>
             </table>
           </div>
-          <div className="divide-y divide-line border-y border-line bg-paper sm:rounded-lg sm:border lg:hidden">{projects.map((project) => (
+          <div className="divide-y divide-line border-y border-line bg-paper sm:rounded-lg sm:border xl:hidden">{projects.map((project) => (
             <Link key={project.id} href={`/dashboard/projects/${project.id}`} className="block px-4 py-4">
               <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="font-semibold">{project.project_number}</p><p className="truncate text-sm">{project.customer?.name || "Customer"}</p></div><span className={`shrink-0 rounded-sm border px-2 py-1 text-xs ${projectStatusClass(project.status)}`}>{PROJECT_STATUS_LABELS[project.status]}</span></div>
               <div className="mt-4 flex items-end justify-between gap-4"><div><p className="text-sm font-medium">{project.current_stage?.name || "No stage"}</p><p className="text-xs text-stone">{project.owner?.full_name || "Unowned"} · target {formatDate(project.expected_completion_date)}</p></div><strong className="text-sm">{formatMoney(project.project_value, project.currency)}</strong></div>
