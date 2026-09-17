@@ -33,11 +33,11 @@ Staff use the system on desktop and mobile in office, workshop, and site context
 
 ## Brand Commitments
 
-The product name is Universal Pergola. The client-supplied logo in `UP LOGO PDF.pdf` is the official branding source and must retain its aspect ratio, wings, wordmark, and tagline. The confirmed document family uses the existing black, warm brass, limestone, and paper visual language.
+The product name is Universal Pergola. The client-supplied logo in `branding/universal-pergola-logo-official.pdf` is the official branding source and must retain its aspect ratio, wings, wordmark, and tagline. The confirmed document family uses the existing black, warm brass, limestone, and paper visual language.
 
 ## Evidence on Hand
 
-- Official logo master: `UP LOGO PDF.pdf`
+- Official logo master: `branding/universal-pergola-logo-official.pdf`
 - Existing verified quotation and receipt PDF implementations in `src/lib/quotations/pdf.ts` and `src/lib/payments/pdf.ts`
 - Existing UAT workflows and data in the linked Supabase project `jwyjuhtektmtqffnillj`
 - Client-confirmed reference example: `006-UP-Barsha-17-2026`, where `17` is the day of month
