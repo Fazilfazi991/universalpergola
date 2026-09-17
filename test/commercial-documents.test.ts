@@ -44,6 +44,20 @@ test("invoice actions and PDF route re-authorize every entry point", () => {
   assert.match(route, /X-Content-Type-Options.*nosniff/);
 });
 
+test("invoice search covers number, reference, customer, project, quotation, and site", () => {
+  const queries = readFileSync(join(process.cwd(), "src/lib/invoices/queries.ts"), "utf8");
+  assert.match(queries, /cleanSearch\(filters\.search\)\.toLowerCase\(\)/);
+  assert.match(queries, /invoice\.customer_name_snapshot/);
+  assert.match(queries, /invoice\.customer\?\.name/);
+  assert.match(queries, /invoice\.project\?\.project_number/);
+  assert.match(queries, /invoice\.quotation_number_snapshot/);
+  assert.match(queries, /invoice\.site_address_snapshot/);
+
+  const documents = readFileSync(join(process.cwd(), "src/app/dashboard/documents/page.tsx"), "utf8");
+  assert.match(documents, /item\.quotation_number_snapshot/);
+  assert.match(documents, /item\.site_address_snapshot/);
+});
+
 test("invoice PDF is deterministic A4 and carries internal and shared references", async () => {
   const invoice = {
     id: "11111111-1111-4111-8111-111111111111", invoice_number: "UP-I-2026-000001", client_reference: "006-UP-Barsha-17-2026", client_reference_sequence: 6, client_reference_location_token: "Barsha", client_reference_date: "2026-09-17",

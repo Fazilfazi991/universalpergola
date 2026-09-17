@@ -20,7 +20,7 @@ export default async function CommercialDocumentsPage({ searchParams }: PageProp
   const search = value(params.search).trim().toLowerCase();
   const [quotations, invoices, receipts] = await Promise.all([getQuotations({}), getInvoices({}), getRecentReceipts(250)]);
   const filteredQuotations = quotations.filter((item) => !search || `${item.quotation_number} ${item.client_reference || ""} ${item.customer?.name || ""} ${item.site_visit?.site_address || ""}`.toLowerCase().includes(search));
-  const filteredInvoices = invoices.filter((item) => !search || `${item.invoice_number} ${item.client_reference} ${item.customer?.name || ""} ${item.project?.project_number || ""}`.toLowerCase().includes(search));
+  const filteredInvoices = invoices.filter((item) => !search || `${item.invoice_number} ${item.client_reference} ${item.customer_name_snapshot || item.customer?.name || ""} ${item.project?.project_number || ""} ${item.quotation_number_snapshot || ""} ${item.site_address_snapshot || ""}`.toLowerCase().includes(search));
   const filteredReceipts = receipts.filter((item) => !search || `${item.receipt_number} ${item.project?.client_reference || ""} ${item.customer?.name || ""} ${item.project?.project_number || ""} ${item.milestone?.name || ""}`.toLowerCase().includes(search));
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: "quotations", label: "Quotations", count: filteredQuotations.length },

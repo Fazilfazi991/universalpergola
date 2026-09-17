@@ -23,6 +23,8 @@ export type InvoiceListItem = {
   quotation_id: string | null;
   quotation_number_snapshot: string | null;
   quotation_revision_snapshot: number | null;
+  customer_name_snapshot: string;
+  site_address_snapshot: string | null;
   issue_date: string;
   due_date: string | null;
   currency: string;
@@ -83,7 +85,7 @@ export type InvoiceActivity = {
   actor: Person;
 };
 
-const listSelection = "id, invoice_number, client_reference, project_id, customer_id, quotation_id, quotation_number_snapshot, quotation_revision_snapshot, issue_date, due_date, currency, total, status, created_at, updated_at, customer:customers!invoices_customer_id_fkey(id, name, phone), project:projects!invoices_project_id_fkey(id, project_number, client_reference, project_value, currency), creator:profiles!invoices_created_by_fkey(id, full_name)";
+const listSelection = "id, invoice_number, client_reference, project_id, customer_id, quotation_id, quotation_number_snapshot, quotation_revision_snapshot, customer_name_snapshot, site_address_snapshot, issue_date, due_date, currency, total, status, created_at, updated_at, customer:customers!invoices_customer_id_fkey(id, name, phone), project:projects!invoices_project_id_fkey(id, project_number, client_reference, project_value, currency), creator:profiles!invoices_created_by_fkey(id, full_name)";
 
 function cleanSearch(value?: string) {
   return value?.trim().slice(0, 100).replace(/[^\p{L}\p{N}@+._\s-]/gu, " ").replace(/\s+/g, " ") || "";
@@ -97,10 +99,7 @@ export async function getInvoices(filters: Record<string, string> = {}) {
   const supabase = await createClient();
   if (!supabase) return [] as InvoiceListItem[];
   let query = supabase.from("invoices").select(listSelection).is("archived_at", null).order("issue_date", { ascending: false }).order("created_at", { ascending: false }).limit(200);
-  const search = cleanSearch(filters.search);
-  if (search) {
-    query = query.or(`invoice_number.ilike.%${search}%,client_reference.ilike.%${search}%,customer_name_snapshot.ilike.%${search}%,quotation_number_snapshot.ilike.%${search}%`);
-  }
+  const search = cleanSearch(filters.search).toLowerCase();
   if (filters.status) query = query.eq("status", filters.status as InvoiceStatus);
   if (filters.project) query = query.eq("project_id", filters.project);
   if (filters.customer) query = query.eq("customer_id", filters.customer);
@@ -108,14 +107,24 @@ export async function getInvoices(filters: Record<string, string> = {}) {
   if (filters.to) query = query.lte("issue_date", filters.to);
   const { data, error } = await query;
   if (error) throw new Error(`Unable to load invoices: ${error.message}`);
-  return (data || []) as unknown as InvoiceListItem[];
+  const invoices = (data || []) as unknown as InvoiceListItem[];
+  if (!search) return invoices;
+  return invoices.filter((invoice) => [
+    invoice.invoice_number,
+    invoice.client_reference,
+    invoice.customer_name_snapshot,
+    invoice.customer?.name,
+    invoice.project?.project_number,
+    invoice.quotation_number_snapshot,
+    invoice.site_address_snapshot,
+  ].filter(Boolean).join(" ").toLowerCase().includes(search));
 }
 
 export async function getInvoice(id: string) {
   if (!isUuid(id)) return null;
   const supabase = await createClient();
   if (!supabase) return null;
-  const { data, error } = await supabase.from("invoices").select(`${listSelection}, client_reference_sequence, client_reference_location_token, client_reference_date, customer_name_snapshot, customer_company_snapshot, customer_phone_snapshot, customer_email_snapshot, site_address_snapshot, subtotal, discount_type, discount_value, discount_amount, vat_rate, vat_amount, notes, terms, issued_at, issued_by, cancelled_at, cancellation_reason, pdf_generated_at, issuer:profiles!invoices_issued_by_fkey(id, full_name)`).eq("id", id).is("archived_at", null).maybeSingle();
+  const { data, error } = await supabase.from("invoices").select(`${listSelection}, client_reference_sequence, client_reference_location_token, client_reference_date, customer_company_snapshot, customer_phone_snapshot, customer_email_snapshot, subtotal, discount_type, discount_value, discount_amount, vat_rate, vat_amount, notes, terms, issued_at, issued_by, cancelled_at, cancellation_reason, pdf_generated_at, issuer:profiles!invoices_issued_by_fkey(id, full_name)`).eq("id", id).is("archived_at", null).maybeSingle();
   if (error) throw new Error(`Unable to load invoice: ${error.message}`);
   return data as unknown as InvoiceDetail | null;
 }
