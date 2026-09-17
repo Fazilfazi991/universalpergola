@@ -8,6 +8,8 @@ export type DashboardModule =
   | "customers"
   | "site-visits"
   | "quotations"
+  | "documents"
+  | "invoices"
   | "projects"
   | "payments"
   | "tasks"
@@ -20,7 +22,7 @@ export type DashboardModule =
 const permissions: Record<AppRole, readonly DashboardModule[]> = {
   admin: [
     "products", "categories", "enquiries", "customers", "site-visits",
-    "quotations", "projects", "payments", "tasks", "feedback", "reports",
+    "quotations", "documents", "invoices", "projects", "payments", "tasks", "feedback", "reports",
     "users", "settings",
     "accounts",
   ],
@@ -29,7 +31,7 @@ const permissions: Record<AppRole, readonly DashboardModule[]> = {
     "quotations", "projects", "tasks", "feedback",
   ],
   site_team: ["site-visits", "projects", "tasks"],
-  accounts: ["customers", "quotations", "projects", "payments", "tasks", "accounts"],
+  accounts: ["customers", "quotations", "documents", "invoices", "projects", "payments", "tasks", "accounts"],
 };
 
 export function canAccessModule(role: AppRole, module: DashboardModule) {

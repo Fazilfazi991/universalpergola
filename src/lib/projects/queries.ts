@@ -20,6 +20,7 @@ type CurrentStage = { id: string; stage_key: string; name: string; status: Stage
 export type ProjectListItem = {
   id: string;
   project_number: string;
+  client_reference: string | null;
   customer_id: string;
   project_value: number;
   currency: string;
@@ -39,6 +40,9 @@ export type ProjectListItem = {
   assignments: { assignment_role: ProjectAssignmentRole; user: Person }[];
 };
 export type ProjectDetail = ProjectListItem & {
+  client_reference_sequence: number | null;
+  client_reference_location_token: string | null;
+  client_reference_date: string | null;
   quotation_id: string | null;
   enquiry_id: string | null;
   site_visit_id: string | null;
@@ -149,7 +153,7 @@ export type StageTemplate = {
 };
 export type ProjectStaff = { id: string; full_name: string; role: AppRole };
 
-const listSelection = "id, project_number, customer_id, project_value, currency, status, priority, progress, start_date, expected_completion_date, installation_date, project_owner_id, handover_status, updated_at, customer:customers!projects_customer_id_fkey(id, name, phone), current_stage:project_stages!projects_current_stage_id_fkey(id, stage_key, name, status), owner:profiles!projects_project_owner_id_fkey(id, full_name), salesperson:profiles!projects_assigned_salesperson_fkey(id, full_name), assignments:project_assignments(assignment_role, user:profiles!project_assignments_user_id_fkey(id, full_name))";
+const listSelection = "id, project_number, client_reference, customer_id, project_value, currency, status, priority, progress, start_date, expected_completion_date, installation_date, project_owner_id, handover_status, updated_at, customer:customers!projects_customer_id_fkey(id, name, phone), current_stage:project_stages!projects_current_stage_id_fkey(id, stage_key, name, status), owner:profiles!projects_project_owner_id_fkey(id, full_name), salesperson:profiles!projects_assigned_salesperson_fkey(id, full_name), assignments:project_assignments(assignment_role, user:profiles!project_assignments_user_id_fkey(id, full_name))";
 
 function cleanSearch(value?: string) {
   return value?.trim().slice(0, 100).replace(/[^\p{L}\p{N}@+._\s-]/gu, " ").replace(/\s+/g, " ") || "";
@@ -190,7 +194,7 @@ export async function getProject(id: string) {
   if (!isUuid(id)) return null;
   const supabase = await createClient();
   if (!supabase) return null;
-  const { data, error } = await supabase.from("projects").select(`${listSelection}, quotation_id, enquiry_id, site_visit_id, site_address, project_owner_id, assigned_salesperson, summary, notes, actual_completion_date, completed_at, completed_by, completion_note, handover_date, handover_status, handover_notes, handover_contact, handover_confirmed_at, source_quotation_number, source_quotation_revision, created_at, quotation:quotations!projects_quotation_id_fkey(id, quotation_number, revision_number, total, currency, approved_at), enquiry:enquiries!projects_enquiry_id_fkey(id, enquiry_number, subject), site_visit:site_visits!projects_site_visit_id_fkey(id, visit_number, site_address, status), completer:profiles!projects_completed_by_fkey(id, full_name)`).eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("projects").select(`${listSelection}, client_reference_sequence, client_reference_location_token, client_reference_date, quotation_id, enquiry_id, site_visit_id, site_address, project_owner_id, assigned_salesperson, summary, notes, actual_completion_date, completed_at, completed_by, completion_note, handover_date, handover_status, handover_notes, handover_contact, handover_confirmed_at, source_quotation_number, source_quotation_revision, created_at, quotation:quotations!projects_quotation_id_fkey(id, quotation_number, revision_number, total, currency, approved_at), enquiry:enquiries!projects_enquiry_id_fkey(id, enquiry_number, subject), site_visit:site_visits!projects_site_visit_id_fkey(id, visit_number, site_address, status), completer:profiles!projects_completed_by_fkey(id, full_name)`).eq("id", id).maybeSingle();
   if (error) throw new Error(`Unable to load project: ${error.message}`);
   return data as unknown as ProjectDetail | null;
 }

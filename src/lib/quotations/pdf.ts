@@ -94,7 +94,11 @@ export async function generateQuotationPdf(quote: QuotationDetail, items: Quotat
       page.drawRectangle({ x: contentX, y: 749, width: 46, height: 3, color: PDF_COLORS.brass });
       page.drawText(safePdfText(quote.quotation_number), { x: contentX, y: 724, size: 12, font: bold, color: PDF_COLORS.ink });
       drawRightText(page, `REVISION ${quote.revision_number}`, contentRight, 726, 7.5, bold, PDF_COLORS.brass);
-      y = 696;
+      if (quote.client_reference) {
+        page.drawText("PROJECT REFERENCE", { x: contentX, y: 705, size: 5.7, font: bold, color: PDF_COLORS.stone });
+        page.drawText(safePdfText(quote.client_reference), { x: contentX, y: 691, size: 7.4, font: bold, color: PDF_COLORS.brass });
+      }
+      y = quote.client_reference ? 669 : 696;
     } else {
       page.drawRectangle({ x: 0, y: 780, width: A4_WIDTH, height: 62, color: PDF_COLORS.charcoal });
       page.drawImage(logo, { x: PAGE_MARGIN, y: 787, width: 44, height: 44 });

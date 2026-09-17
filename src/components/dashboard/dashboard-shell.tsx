@@ -11,6 +11,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   FileText,
+  Files,
   FolderKanban,
   Gauge,
   LayoutList,
@@ -73,6 +74,12 @@ const navItems: NavItem[] = [
     href: "/dashboard/quotations",
     icon: FileText,
     module: "quotations",
+  },
+  {
+    label: "Commercial Documents",
+    href: "/dashboard/documents",
+    icon: Files,
+    module: "documents",
   },
   {
     label: "Projects",
@@ -159,16 +166,15 @@ export function DashboardShell({
       ? [
           "/dashboard",
           "/dashboard/enquiries",
-          "/dashboard/quotations",
+          "/dashboard/documents",
           "/dashboard/projects",
         ]
       : profile.role === "accounts"
         ? [
             "/dashboard",
-            "/dashboard/quotations",
+            "/dashboard/documents",
             "/dashboard/projects",
             "/dashboard/payments",
-            "/dashboard/accounts",
           ]
         : [
             "/dashboard",

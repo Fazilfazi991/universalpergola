@@ -123,6 +123,7 @@ export default async function QuotationPage({
           </a>
         }
       />
+      {quote.client_reference ? <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-paper px-4 py-3 text-sm"><span className="text-stone">Shared client / job reference</span><strong className="text-brass-dark">{quote.client_reference}</strong></div> : null}
       {query.saved === "1" && (
         <StatusNotice tone="success" title="Quotation saved">
           <p>Database-authoritative totals and snapshots are up to date.</p>

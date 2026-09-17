@@ -20,6 +20,8 @@ const modules: Record<DashboardModule, { title: string; description: string; emp
   users: { title: "Users & roles", description: "Manage staff access for management, sales, site team, and accounts.", empty: "User administration arrives in Phase 2. Role enforcement is active in server checks and RLS." },
   settings: { title: "Settings", description: "Configure future workflow defaults and organisation preferences.", empty: "Settings screens arrive in Phase 2. Core stages remain database-configurable." },
   accounts: { title: "Accounts", description: "Internal operating costs, wages, private bills, and assets.", empty: "Open the Accounts workspace to manage internal cost records." },
+  documents: { title: "Commercial documents", description: "Review quotations, invoices, and receipts in one commercial register.", empty: "Open the commercial documents workspace to review customer-facing records." },
+  invoices: { title: "Invoices", description: "Prepare and issue project invoices from approved quotation snapshots.", empty: "Create a draft invoice from a project with an approved quotation." },
 };
 
 function isDashboardModule(value: string): value is DashboardModule { return value in modules; }

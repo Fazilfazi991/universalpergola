@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, Check, CircleDollarSign, Download, Link2, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, CircleDollarSign, Download, FilePlus2, Files, Link2, ReceiptText, Trash2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
   completeProjectAction,
   downloadProjectFileAction,
+  generateProjectClientReferenceAction,
   removeProjectFileAction,
   reopenProjectAction,
   setProjectAssignmentAction,
@@ -11,6 +12,7 @@ import {
   transitionProjectTaskAction,
   updateCompletionChecklistAction,
 } from "@/app/dashboard/projects/actions";
+import { createInvoiceFromProjectAction } from "@/app/dashboard/invoices/actions";
 import {
   HandoverForm,
   ProjectFileUploader,
@@ -41,7 +43,10 @@ import {
   stageStatusLabel,
 } from "@/lib/projects/presentation";
 import { getProject, getProjectOptions, getProjectWorkspace } from "@/lib/projects/queries";
-import { getProjectFinanceSummary } from "@/lib/payments/queries";
+import { getProjectFinanceSummary, getProjectReceipts } from "@/lib/payments/queries";
+import { getProjectInvoices } from "@/lib/invoices/queries";
+import { invoiceStatusClass, invoiceStatusLabel } from "@/lib/invoices/presentation";
+import { locationTokenFromSite } from "@/lib/documents/client-reference";
 import { getProjectFeedback } from "@/lib/feedback/queries";
 import { getProjectCostSummary } from "@/lib/operations/queries";
 import { FEEDBACK_STATUS_LABELS, feedbackStatusClass, ratingLabel } from "@/lib/feedback/presentation";
@@ -54,12 +59,15 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const [profile, project] = await Promise.all([requireModuleAccess("projects"), getProject(id)]);
   if (!project) notFound();
-  const [workspace, options, finance, feedback, costSummary] = await Promise.all([
+  const canSeeCommercialDocuments = profile.role === "admin" || profile.role === "accounts";
+  const [workspace, options, finance, feedback, costSummary, invoices, receipts] = await Promise.all([
     getProjectWorkspace(id),
     profile.role === "admin" ? getProjectOptions() : Promise.resolve({ customers: [], staff: [], templates: [] }),
     profile.role === "site_team" ? Promise.resolve(null) : getProjectFinanceSummary(id),
     getProjectFeedback(id),
     getProjectCostSummary(id),
+    canSeeCommercialDocuments ? getProjectInvoices(id) : Promise.resolve([]),
+    canSeeCommercialDocuments ? getProjectReceipts(id) : Promise.resolve([]),
   ]);
   const canManage = profile.role === "admin";
   const canOperate = profile.role === "admin" || profile.role === "site_team";
@@ -80,6 +88,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
         action={<span className={`inline-flex rounded-sm border px-3 py-2 text-sm ${projectStatusClass(project.status)}`}>{projectStatusLabel(project.status)}</span>}
       />
       {typeof query.error === "string" ? <StatusNotice tone="error" title="Action could not be completed"><p>{query.error}</p></StatusNotice> : null}
+      {query.reference === "updated" ? <StatusNotice tone="success" title="Client reference updated"><p>The shared reference now appears on linked commercial documents.</p></StatusNotice> : null}
       <section className="overflow-hidden rounded-lg bg-graphite text-white">
         <div className="grid gap-5 px-5 py-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end lg:px-6">
           <div>
@@ -102,6 +111,13 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
           ].map(([label, value]) => <div key={label} className="border-b border-white/10 px-5 py-4 last:border-b-0 odd:border-r md:border-b-0 md:border-r md:last:border-r-0"><dt className="text-[10px] uppercase tracking-[0.15em] text-white/35">{label}</dt><dd className="mt-1 truncate text-sm font-medium">{value}</dd></div>)}
         </dl>
       </section>
+      {canSeeCommercialDocuments ? <section className="rounded-lg border border-line bg-paper p-5 sm:p-6" aria-labelledby="commercial-documents-title">
+        <div className="flex flex-wrap items-start justify-between gap-4"><div><div className="flex items-center gap-2"><Files size={18} className="text-brass-dark" /><h2 id="commercial-documents-title" className="text-lg font-semibold">Commercial Documents</h2></div><p className="mt-1 text-sm text-stone">Quotation, invoices, and receipts linked by one client/job reference.</p></div><Link href={`/dashboard/documents?search=${encodeURIComponent(project.client_reference || project.project_number)}`} className="min-h-10 py-2 text-sm font-semibold text-brass-dark">Open document register →</Link></div>
+        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+          <div className="rounded-lg bg-graphite p-5 text-white"><p className="text-xs text-white/50">Client / job reference</p><p className="mt-2 break-all text-xl font-semibold tracking-[-0.03em]">{project.client_reference || "Pending"}</p><p className="mt-2 text-xs text-white/45">Sequence · UP · location · day · year</p>{canManage ? <form action={generateProjectClientReferenceAction} className="mt-5 grid gap-3 border-t border-white/10 pt-4 sm:grid-cols-2"><input type="hidden" name="project_id" value={project.id} /><label className="grid gap-1 text-xs text-white/55">Location token<input name="location_token" defaultValue={project.client_reference_location_token || locationTokenFromSite(project.site_address)} maxLength={48} required className="min-h-11 rounded-md border border-white/15 bg-white/8 px-3 text-base text-white" /></label><label className="grid gap-1 text-xs text-white/55">Reference date<input name="reference_date" type="date" defaultValue={project.client_reference_date || project.start_date || new Date().toISOString().slice(0, 10)} required className="min-h-11 rounded-md border border-white/15 bg-white/8 px-3 text-base text-white" /></label><button className="min-h-11 rounded-md bg-brass px-4 text-sm font-semibold text-ink sm:col-span-2">{project.client_reference ? "Correct reference" : "Generate reference"}</button></form> : null}</div>
+          <div className="grid gap-3 sm:grid-cols-3"><div className="rounded-lg border border-line p-4"><p className="text-xs text-stone">Quotation</p>{project.quotation ? <><Link href={`/dashboard/quotations/${project.quotation.id}`} className="mt-2 block text-sm font-semibold text-brass-dark">{project.source_quotation_number || project.quotation.quotation_number}</Link><p className="mt-1 text-xs text-stone">Revision {project.source_quotation_revision ?? project.quotation.revision_number}</p><Link href={`/dashboard/quotations/${project.quotation.id}/pdf`} target="_blank" className="mt-3 inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-brass-dark"><Download size={14} />PDF</Link></> : <p className="mt-2 text-sm text-stone">No quotation</p>}</div><div className="rounded-lg border border-line p-4"><div className="flex items-center justify-between"><p className="text-xs text-stone">Invoices</p><span className="text-xs text-stone">{invoices.length}</span></div><div className="mt-2 space-y-2">{invoices.slice(0, 3).map((invoice) => <Link key={invoice.id} href={`/dashboard/invoices/${invoice.id}`} className="block"><span className="text-sm font-semibold text-brass-dark">{invoice.invoice_number}</span><span className={`ml-2 rounded-sm border px-1.5 py-0.5 text-[10px] ${invoiceStatusClass(invoice.status)}`}>{invoiceStatusLabel(invoice.status)}</span></Link>)}{!invoices.length ? <p className="text-sm text-stone">No invoices yet</p> : null}</div>{project.quotation ? <form action={createInvoiceFromProjectAction} className="mt-3"><input type="hidden" name="project_id" value={project.id} /><button className="inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-brass-dark"><FilePlus2 size={14} />Generate invoice</button></form> : null}</div><div className="rounded-lg border border-line p-4"><div className="flex items-center justify-between"><p className="text-xs text-stone">Receipts</p><span className="text-xs text-stone">{receipts.length}</span></div><div className="mt-2 space-y-2">{receipts.slice(0, 3).map((receipt) => <Link key={receipt.id} href={`/dashboard/payments/${receipt.id}`} className="block text-sm font-semibold text-brass-dark">{receipt.receipt_number}</Link>)}{!receipts.length ? <p className="text-sm text-stone">No receipts yet</p> : null}</div><Link href={`/dashboard/payments/projects/${project.id}`} className="mt-3 inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-brass-dark"><ReceiptText size={14} />Open payments</Link></div></div>
+        </div>
+      </section> : null}
       {costSummary ? <section className="rounded-lg border border-line bg-paper p-5" aria-label="Internal cost summary"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-lg font-semibold">Project cost summary</h2><p className="mt-1 text-sm text-stone">Internal delivery cost is separate from the customer payment ledger.</p></div><Link href={`/dashboard/payments/projects/${project.id}`} className="text-sm font-semibold text-brass-dark">Open customer payments →</Link></div><dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-line bg-line sm:grid-cols-4"><div className="bg-limestone p-3"><dt className="text-[10px] uppercase tracking-[0.13em] text-stone">Approved value</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.approved_value), costSummary.currency)}</dd></div><div className="bg-limestone p-3"><dt className="text-[10px] uppercase tracking-[0.13em] text-stone">Customer received</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.customer_received), costSummary.currency)}</dd></div><div className="bg-limestone p-3"><dt className="text-[10px] uppercase tracking-[0.13em] text-stone">Outstanding</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.customer_outstanding), costSummary.currency)}</dd></div><div className="bg-limestone p-3"><dt className="text-[10px] uppercase tracking-[0.13em] text-stone">Total internal cost</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.total_internal_cost), costSummary.currency)}</dd></div></dl><dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3"><div><dt className="text-stone">Material expense</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.material_expense), costSummary.currency)}</dd></div><div><dt className="text-stone">Labour cost</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.labour_cost), costSummary.currency)}</dd></div><div><dt className="text-stone">Other project expenses</dt><dd className="mt-1 font-semibold">{formatMoney(Number(costSummary.other_project_expenses), costSummary.currency)}</dd></div></dl></section> : null}
       <section className="rounded-lg border border-line bg-paper" aria-label="Completion summary">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-4 sm:px-5"><div><h2 className="font-semibold">Completion summary</h2><p className="mt-1 text-xs text-stone">Final handoff position at a glance.</p></div>{feedback ? <span className={`rounded-sm border px-2 py-1 text-xs ${feedbackStatusClass(feedback.status)}`}>{FEEDBACK_STATUS_LABELS[feedback.status]}</span> : null}</div>

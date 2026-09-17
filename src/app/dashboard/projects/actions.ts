@@ -74,6 +74,26 @@ export async function updateProjectDetailsAction(
   return { status: "success", message: "Project planning saved." };
 }
 
+export async function generateProjectClientReferenceAction(formData: FormData) {
+  await requireManagement();
+  const projectId = value(formData, "project_id");
+  const locationToken = value(formData, "location_token");
+  const referenceDate = value(formData, "reference_date");
+  if (!isUuid(projectId)) return;
+  const supabase = await createClient();
+  if (!supabase) return;
+  const { error } = await supabase.rpc("generate_project_client_reference", {
+    p_project_id: projectId,
+    p_location_token: locationToken,
+    p_reference_date: referenceDate,
+  });
+  if (error) redirect(`/dashboard/projects/${projectId}?error=${encodeURIComponent(error.message)}`);
+  refreshProject(projectId);
+  revalidatePath("/dashboard/documents");
+  revalidatePath("/dashboard/quotations");
+  redirect(`/dashboard/projects/${projectId}?reference=updated`);
+}
+
 export async function configureStageTemplateAction(
   templateId: string,
   _state: ProjectActionState,

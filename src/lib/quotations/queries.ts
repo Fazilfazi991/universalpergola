@@ -36,6 +36,7 @@ type Visit = {
 export type QuotationListItem = {
   id: string;
   quotation_number: string;
+  client_reference: string | null;
   customer_id: string;
   enquiry_id: string | null;
   site_visit_id: string | null;
@@ -140,7 +141,7 @@ export function quotationFilters(
 }
 
 const listSelection =
-  "id, quotation_number, customer_id, enquiry_id, site_visit_id, owner_id, issue_date, validity_date, currency, status, revision_number, is_current, total, updated_at, customer:customers!quotations_customer_id_fkey(id, name, phone), enquiry:enquiries!quotations_enquiry_id_fkey(id, enquiry_number, subject), site_visit:site_visits!quotations_site_visit_id_fkey(id, visit_number, site_address), owner:profiles!quotations_owner_id_fkey(id, full_name)";
+  "id, quotation_number, client_reference, customer_id, enquiry_id, site_visit_id, owner_id, issue_date, validity_date, currency, status, revision_number, is_current, total, updated_at, customer:customers!quotations_customer_id_fkey(id, name, phone), enquiry:enquiries!quotations_enquiry_id_fkey(id, enquiry_number, subject), site_visit:site_visits!quotations_site_visit_id_fkey(id, visit_number, site_address), owner:profiles!quotations_owner_id_fkey(id, full_name)";
 
 export async function getQuotations(filters: Record<string, string>) {
   const supabase = await createClient();
@@ -206,7 +207,7 @@ export async function getQuotation(id: string) {
   const { data, error } = await supabase
     .from("quotations")
     .select(
-      "id, quotation_number, customer_id, enquiry_id, site_visit_id, owner_id, issue_date, validity_date, currency, status, revision_number, revision_group_id, revised_from_id, is_current, customer_name_snapshot, customer_company_snapshot, customer_phone_snapshot, customer_email_snapshot, site_address_snapshot, introduction, internal_notes, customer_notes, terms, discount_type, discount_value, subtotal, discount_amount, vat_rate, vat_amount, total, created_at, updated_at, sent_at, approved_at, approved_by, rejected_at, rejected_by, decision_note, pdf_generated_at, customer:customers!quotations_customer_id_fkey(id, name, phone, email, company_name, address, area, emirate), enquiry:enquiries!quotations_enquiry_id_fkey(id, enquiry_number, subject), site_visit:site_visits!quotations_site_visit_id_fkey(id, visit_number, site_address, measurement_summary, status), owner:profiles!quotations_owner_id_fkey(id, full_name), approver:profiles!quotations_approved_by_fkey(id, full_name), rejector:profiles!quotations_rejected_by_fkey(id, full_name)",
+      "id, quotation_number, client_reference, customer_id, enquiry_id, site_visit_id, owner_id, issue_date, validity_date, currency, status, revision_number, revision_group_id, revised_from_id, is_current, customer_name_snapshot, customer_company_snapshot, customer_phone_snapshot, customer_email_snapshot, site_address_snapshot, introduction, internal_notes, customer_notes, terms, discount_type, discount_value, subtotal, discount_amount, vat_rate, vat_amount, total, created_at, updated_at, sent_at, approved_at, approved_by, rejected_at, rejected_by, decision_note, pdf_generated_at, customer:customers!quotations_customer_id_fkey(id, name, phone, email, company_name, address, area, emirate), enquiry:enquiries!quotations_enquiry_id_fkey(id, enquiry_number, subject), site_visit:site_visits!quotations_site_visit_id_fkey(id, visit_number, site_address, measurement_summary, status), owner:profiles!quotations_owner_id_fkey(id, full_name), approver:profiles!quotations_approved_by_fkey(id, full_name), rejector:profiles!quotations_rejected_by_fkey(id, full_name)",
     )
     .eq("id", id)
     .maybeSingle();

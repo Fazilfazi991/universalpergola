@@ -102,6 +102,7 @@ export type ReceiptRow = {
     currency: string;
     project_value?: number;
     source_quotation_number?: string | null;
+    client_reference?: string | null;
   } | null;
   customer?: { id: string; name: string; phone?: string | null } | null;
   proofs: PaymentProof[];

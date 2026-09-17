@@ -1,5 +1,7 @@
 # Phase 2J Stakeholder UAT Checklist
 
+Commercial-document and confirmed client-reference checks are tracked in [COMMERCIAL_DOCUMENTS_UAT.md](./COMMERCIAL_DOCUMENTS_UAT.md).
+
 Environment: Vercel Preview from `uat/phase-2j` using the existing Pergola UAT Supabase project (`jwyjuhtektmtqffnillj`).
 
 These checks are for stakeholder review only. The current execution-stage weights and expense categories are test/default values; they are not approved Production defaults.

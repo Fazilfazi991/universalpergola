@@ -83,7 +83,7 @@ export async function getReceipt(paymentId: string) {
   const supabase = await createClient();
   if (!supabase) return null;
   const { data, error } = await supabase.from("payments").select(
-    "id, receipt_number, project_id, customer_id, milestone_id, amount_received, received_date, payment_method, reference_number, notes, voided_at, void_reason, created_at, creator:profiles!payments_created_by_fkey(id, full_name), voider:profiles!payments_voided_by_fkey(id, full_name), milestone:payment_milestones!payments_milestone_id_fkey(id, name, description, amount_due), project:projects!payments_project_id_fkey(id, project_number, currency, project_value, source_quotation_number), customer:customers!payments_customer_id_fkey(id, name, phone), proofs:payment_proofs(id, payment_id, storage_path, file_name, mime_type, file_size, created_at)"
+    "id, receipt_number, project_id, customer_id, milestone_id, amount_received, received_date, payment_method, reference_number, notes, voided_at, void_reason, created_at, creator:profiles!payments_created_by_fkey(id, full_name), voider:profiles!payments_voided_by_fkey(id, full_name), milestone:payment_milestones!payments_milestone_id_fkey(id, name, description, amount_due), project:projects!payments_project_id_fkey(id, project_number, client_reference, currency, project_value, source_quotation_number), customer:customers!payments_customer_id_fkey(id, name, phone), proofs:payment_proofs(id, payment_id, storage_path, file_name, mime_type, file_size, created_at)"
   ).eq("id", paymentId).is("archived_at", null).maybeSingle();
   if (error) throw new Error(`Unable to load receipt: ${error.message}`);
   return data as unknown as ReceiptRow | null;
@@ -93,7 +93,7 @@ export async function getRecentReceipts(limit = 20) {
   const supabase = await createClient();
   if (!supabase) return [] as ReceiptRow[];
   const { data, error } = await supabase.from("payments").select(
-    "id, receipt_number, project_id, customer_id, milestone_id, amount_received, received_date, payment_method, reference_number, notes, voided_at, void_reason, created_at, creator:profiles!payments_created_by_fkey(id, full_name), voider:profiles!payments_voided_by_fkey(id, full_name), milestone:payment_milestones!payments_milestone_id_fkey(id, name), project:projects!payments_project_id_fkey(id, project_number, currency), customer:customers!payments_customer_id_fkey(id, name), proofs:payment_proofs(id, payment_id, storage_path, file_name, mime_type, file_size, created_at)"
+    "id, receipt_number, project_id, customer_id, milestone_id, amount_received, received_date, payment_method, reference_number, notes, voided_at, void_reason, created_at, creator:profiles!payments_created_by_fkey(id, full_name), voider:profiles!payments_voided_by_fkey(id, full_name), milestone:payment_milestones!payments_milestone_id_fkey(id, name), project:projects!payments_project_id_fkey(id, project_number, client_reference, currency), customer:customers!payments_customer_id_fkey(id, name), proofs:payment_proofs(id, payment_id, storage_path, file_name, mime_type, file_size, created_at)"
   ).is("archived_at", null).order("received_date", { ascending: false }).order("created_at", { ascending: false }).limit(limit);
   if (error) throw new Error(`Unable to load recent receipts: ${error.message}`);
   return (data || []) as unknown as ReceiptRow[];

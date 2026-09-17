@@ -39,12 +39,16 @@ export async function generatePaymentReceiptPdf(receipt: ReceiptRow, finance: Fi
   page.drawText("R E C E I P T", { x: 300, y: 746, size: 17, font: bold, color: PDF_COLORS.ink });
   page.drawRectangle({ x: 300, y: 731, width: 48, height: 3, color: isVoid ? PDF_COLORS.red : PDF_COLORS.brass });
   page.drawText(safePdfText(receipt.receipt_number), { x: 300, y: 709, size: 9, font: bold, color: PDF_COLORS.ink });
+  if (receipt.project?.client_reference) {
+    page.drawText("PROJECT REFERENCE", { x: 300, y: 694, size: 5.5, font: bold, color: PDF_COLORS.stone });
+    page.drawText(safePdfText(receipt.project.client_reference), { x: 300, y: 682, size: 6.8, font: bold, color: PDF_COLORS.brass });
+  }
 
-  page.drawRectangle({ x: 300, y: 646, width: 259, height: 47, color: isVoid ? rgb(0.99, 0.91, 0.9) : PDF_COLORS.sand });
-  page.drawText("DATE", { x: 313, y: 676, size: 5.8, font: bold, color: PDF_COLORS.stone });
-  page.drawText(pdfDate(receipt.received_date), { x: 313, y: 660, size: 8.5, font: bold, color: PDF_COLORS.ink });
-  page.drawText("STATUS", { x: 442, y: 676, size: 5.8, font: bold, color: PDF_COLORS.stone });
-  page.drawText(status.toUpperCase(), { x: 442, y: 660, size: 8.5, font: bold, color: isVoid ? PDF_COLORS.red : PDF_COLORS.green });
+  page.drawRectangle({ x: 300, y: 628, width: 259, height: 47, color: isVoid ? rgb(0.99, 0.91, 0.9) : PDF_COLORS.sand });
+  page.drawText("DATE", { x: 313, y: 658, size: 5.8, font: bold, color: PDF_COLORS.stone });
+  page.drawText(pdfDate(receipt.received_date), { x: 313, y: 642, size: 8.5, font: bold, color: PDF_COLORS.ink });
+  page.drawText("STATUS", { x: 442, y: 658, size: 5.8, font: bold, color: PDF_COLORS.stone });
+  page.drawText(status.toUpperCase(), { x: 442, y: 642, size: 8.5, font: bold, color: isVoid ? PDF_COLORS.red : PDF_COLORS.green });
 
   page.drawText("BILL TO", { x: 36, y: 625, size: 6.5, font: bold, color: PDF_COLORS.brass });
   const customerBottom = drawWrapped(page, receipt.customer?.name || "Customer", 36, 607, 230, 10, bold, PDF_COLORS.ink, 11.5);

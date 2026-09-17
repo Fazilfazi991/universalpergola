@@ -582,6 +582,254 @@ export type Database = {
           },
         ]
       }
+      invoice_items: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          discount_amount: number
+          id: string
+          invoice_id: string
+          item_name: string
+          line_subtotal: number
+          line_total: number
+          quantity: number
+          quotation_item_id: string | null
+          sort_order: number
+          taxable: boolean
+          unit: string
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          discount_amount?: number
+          id?: string
+          invoice_id: string
+          item_name: string
+          line_subtotal?: number
+          line_total?: number
+          quantity?: number
+          quotation_item_id?: string | null
+          sort_order?: number
+          taxable?: boolean
+          unit?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          discount_amount?: number
+          id?: string
+          invoice_id?: string
+          item_name?: string
+          line_subtotal?: number
+          line_total?: number
+          quantity?: number
+          quotation_item_id?: string | null
+          sort_order?: number
+          taxable?: boolean
+          unit?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_quotation_item_id_fkey"
+            columns: ["quotation_item_id"]
+            isOneToOne: false
+            referencedRelation: "quotation_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          archived_at: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          client_reference: string
+          client_reference_date: string
+          client_reference_location_token: string
+          client_reference_sequence: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          customer_company_snapshot: string | null
+          customer_email_snapshot: string | null
+          customer_id: string
+          customer_name_snapshot: string
+          customer_phone_snapshot: string | null
+          discount_amount: number
+          discount_type: string
+          discount_value: number
+          due_date: string | null
+          id: string
+          invoice_number: string
+          issue_date: string
+          issued_at: string | null
+          issued_by: string | null
+          notes: string | null
+          pdf_generated_at: string | null
+          project_id: string
+          quotation_id: string | null
+          quotation_number_snapshot: string | null
+          quotation_revision_snapshot: number | null
+          site_address_snapshot: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          terms: string | null
+          total: number
+          updated_at: string
+          vat_amount: number
+          vat_rate: number
+        }
+        Insert: {
+          archived_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          client_reference: string
+          client_reference_date: string
+          client_reference_location_token: string
+          client_reference_sequence: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_company_snapshot?: string | null
+          customer_email_snapshot?: string | null
+          customer_id: string
+          customer_name_snapshot: string
+          customer_phone_snapshot?: string | null
+          discount_amount?: number
+          discount_type?: string
+          discount_value?: number
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          issue_date?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          notes?: string | null
+          pdf_generated_at?: string | null
+          project_id: string
+          quotation_id?: string | null
+          quotation_number_snapshot?: string | null
+          quotation_revision_snapshot?: number | null
+          site_address_snapshot?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          terms?: string | null
+          total?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Update: {
+          archived_at?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          client_reference?: string
+          client_reference_date?: string
+          client_reference_location_token?: string
+          client_reference_sequence?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_company_snapshot?: string | null
+          customer_email_snapshot?: string | null
+          customer_id?: string
+          customer_name_snapshot?: string
+          customer_phone_snapshot?: string | null
+          discount_amount?: number
+          discount_type?: string
+          discount_value?: number
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          notes?: string | null
+          pdf_generated_at?: string | null
+          project_id?: string
+          quotation_id?: string | null
+          quotation_number_snapshot?: string | null
+          quotation_revision_snapshot?: number | null
+          site_address_snapshot?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          terms?: string | null
+          total?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       labour_wages: {
         Row: {
           amount: number
@@ -1521,6 +1769,10 @@ export type Database = {
           actual_completion_date: string | null
           archived_at: string | null
           assigned_salesperson: string | null
+          client_reference: string | null
+          client_reference_date: string | null
+          client_reference_location_token: string | null
+          client_reference_sequence: number | null
           completed_at: string | null
           completed_by: string | null
           completion_note: string | null
@@ -1568,6 +1820,10 @@ export type Database = {
           actual_completion_date?: string | null
           archived_at?: string | null
           assigned_salesperson?: string | null
+          client_reference?: string | null
+          client_reference_date?: string | null
+          client_reference_location_token?: string | null
+          client_reference_sequence?: number | null
           completed_at?: string | null
           completed_by?: string | null
           completion_note?: string | null
@@ -1615,6 +1871,10 @@ export type Database = {
           actual_completion_date?: string | null
           archived_at?: string | null
           assigned_salesperson?: string | null
+          client_reference?: string | null
+          client_reference_date?: string | null
+          client_reference_location_token?: string | null
+          client_reference_sequence?: number | null
           completed_at?: string | null
           completed_by?: string | null
           completion_note?: string | null
@@ -1936,6 +2196,10 @@ export type Database = {
           approved_by: string | null
           archived_at: string | null
           cancelled_at: string | null
+          client_reference: string | null
+          client_reference_date: string | null
+          client_reference_location_token: string | null
+          client_reference_sequence: number | null
           created_at: string
           created_by: string | null
           currency: string
@@ -1983,6 +2247,10 @@ export type Database = {
           approved_by?: string | null
           archived_at?: string | null
           cancelled_at?: string | null
+          client_reference?: string | null
+          client_reference_date?: string | null
+          client_reference_location_token?: string | null
+          client_reference_sequence?: number | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -2030,6 +2298,10 @@ export type Database = {
           approved_by?: string | null
           archived_at?: string | null
           cancelled_at?: string | null
+          client_reference?: string | null
+          client_reference_date?: string | null
+          client_reference_location_token?: string | null
+          client_reference_sequence?: number | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -2594,6 +2866,10 @@ export type Database = {
         Args: { p_quotation_id: string }
         Returns: string
       }
+      create_invoice_from_project: {
+        Args: { p_project_id: string }
+        Returns: string
+      }
       create_quotation_revision: {
         Args: { p_quotation_id: string }
         Returns: string
@@ -2631,6 +2907,14 @@ export type Database = {
         Returns: undefined
       }
       finalize_project_file: { Args: { p_file_id: string }; Returns: undefined }
+      generate_project_client_reference: {
+        Args: {
+          p_location_token?: string
+          p_project_id: string
+          p_reference_date?: string
+        }
+        Returns: string
+      }
       get_customer_finance_summary: {
         Args: { p_customer_id: string }
         Returns: {
@@ -2745,6 +3029,10 @@ export type Database = {
           project_reference: string
         }[]
       }
+      record_invoice_pdf_generation: {
+        Args: { p_invoice_id: string }
+        Returns: undefined
+      }
       record_payment: {
         Args: {
           p_amount: number
@@ -2772,6 +3060,10 @@ export type Database = {
       revoke_project_feedback_link: {
         Args: { p_project_id: string }
         Returns: undefined
+      }
+      save_invoice_draft: {
+        Args: { p_invoice_id: string; p_payload: Json }
+        Returns: string
       }
       save_payment_milestone: {
         Args: {
@@ -2837,6 +3129,10 @@ export type Database = {
           p_token: string
         }
         Returns: string
+      }
+      transition_invoice: {
+        Args: { p_action: string; p_invoice_id: string; p_reason?: string }
+        Returns: Database["public"]["Enums"]["invoice_status"]
       }
       transition_project_stage: {
         Args: { p_action: string; p_note?: string; p_stage_id: string }
@@ -2923,6 +3219,12 @@ export type Database = {
         | "archived"
       handover_status: "pending" | "ready" | "completed" | "issues_outstanding"
       internal_expense_scope: "project" | "workshop"
+      invoice_status:
+        | "draft"
+        | "issued"
+        | "partially_paid"
+        | "paid"
+        | "cancelled"
       lead_priority: "low" | "normal" | "high" | "urgent"
       payment_milestone_type: "percentage" | "fixed"
       payment_plan_status: "draft" | "active" | "completed" | "cancelled"
@@ -3133,6 +3435,13 @@ export const Constants = {
       ],
       handover_status: ["pending", "ready", "completed", "issues_outstanding"],
       internal_expense_scope: ["project", "workshop"],
+      invoice_status: [
+        "draft",
+        "issued",
+        "partially_paid",
+        "paid",
+        "cancelled",
+      ],
       lead_priority: ["low", "normal", "high", "urgent"],
       payment_milestone_type: ["percentage", "fixed"],
       payment_plan_status: ["draft", "active", "completed", "cancelled"],

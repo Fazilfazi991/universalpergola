@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Pencil, Phone, Plus, Send } from "lucide-react";
+import { ArrowLeft, Files, Pencil, Phone, Plus, Send } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
   assignCustomerAction,
@@ -37,6 +37,8 @@ import { projectStatusLabel } from "@/lib/projects/presentation";
 import { getCustomerFinanceSummary } from "@/lib/payments/queries";
 import { getCustomerFeedback } from "@/lib/feedback/queries";
 import { FEEDBACK_STATUS_LABELS, feedbackStatusClass, ratingLabel } from "@/lib/feedback/presentation";
+import { getCustomerInvoices } from "@/lib/invoices/queries";
+import { invoiceStatusClass, invoiceStatusLabel } from "@/lib/invoices/presentation";
 
 function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -64,6 +66,7 @@ export default async function CustomerPage({
       getCustomerFeedback(id),
     ]);
   if (!customer) notFound();
+  const invoices = profile.role === "admin" || profile.role === "accounts" ? await getCustomerInvoices(id) : [];
   const canEdit = ["admin", "sales"].includes(profile.role);
   const phoneHref = formatPhoneLink(customer.phone);
   const whatsappHref = formatWhatsAppLink(
@@ -319,6 +322,10 @@ export default async function CustomerPage({
               )}
             </div>
           </section>
+          {(profile.role === "admin" || profile.role === "accounts") ? <section>
+            <div className="flex items-end justify-between gap-4"><div><div className="flex items-center gap-2"><Files size={17} className="text-brass-dark" /><h2 className="text-lg font-semibold">Commercial Documents</h2></div><p className="mt-1 text-sm text-stone">Invoices linked to this customer; quotations remain above and receipts remain in Payments.</p></div><Link href={`/dashboard/documents?search=${encodeURIComponent(customer.name)}`} className="min-h-10 py-2 text-sm font-semibold text-brass-dark">Open register</Link></div>
+            <div className="mt-4 divide-y divide-line border-y border-line bg-paper sm:rounded-lg sm:border">{invoices.length ? invoices.map((invoice) => <Link key={invoice.id} href={`/dashboard/invoices/${invoice.id}`} className="flex items-center justify-between gap-4 px-4 py-4"><div className="min-w-0"><p className="truncate font-semibold">{invoice.invoice_number}</p><p className="mt-1 truncate text-xs text-brass-dark">{invoice.client_reference}</p><p className="mt-1 text-xs text-stone">{invoice.project?.project_number || "Project"} · {formatDate(invoice.issue_date)}</p></div><div className="shrink-0 text-right"><span className={`rounded-sm border px-2 py-1 text-xs ${invoiceStatusClass(invoice.status)}`}>{invoiceStatusLabel(invoice.status)}</span><p className="mt-2 text-sm font-semibold">{formatMoney(invoice.total, invoice.currency)}</p></div></Link>) : <p className="px-4 py-8 text-center text-sm text-stone">No invoices linked yet.</p>}</div>
+          </section> : null}
           <section>
             <div>
               <h2 className="text-lg font-semibold">Projects</h2>
