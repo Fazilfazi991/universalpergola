@@ -2,6 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/crm/validation";
+import { matchesNormalizedSearch, normalizeSearchTerm } from "@/lib/search/text";
 import type { InvoiceStatus } from "./types";
 
 type Person = { id: string; full_name: string } | null;
@@ -87,10 +88,6 @@ export type InvoiceActivity = {
 
 const listSelection = "id, invoice_number, client_reference, project_id, customer_id, quotation_id, quotation_number_snapshot, quotation_revision_snapshot, customer_name_snapshot, site_address_snapshot, issue_date, due_date, currency, total, status, created_at, updated_at, customer:customers!invoices_customer_id_fkey(id, name, phone), project:projects!invoices_project_id_fkey(id, project_number, client_reference, project_value, currency), creator:profiles!invoices_created_by_fkey(id, full_name)";
 
-function cleanSearch(value?: string) {
-  return value?.trim().slice(0, 100).replace(/[^\p{L}\p{N}@+._\s-]/gu, " ").replace(/\s+/g, " ") || "";
-}
-
 export function invoiceFilters(params: Record<string, string | string[] | undefined>) {
   return Object.fromEntries(Object.entries(params).map(([key, value]) => [key, typeof value === "string" ? value : ""]));
 }
@@ -99,7 +96,7 @@ export async function getInvoices(filters: Record<string, string> = {}) {
   const supabase = await createClient();
   if (!supabase) return [] as InvoiceListItem[];
   let query = supabase.from("invoices").select(listSelection).is("archived_at", null).order("issue_date", { ascending: false }).order("created_at", { ascending: false }).limit(200);
-  const search = cleanSearch(filters.search).toLowerCase();
+  const search = normalizeSearchTerm(filters.search);
   if (filters.status) query = query.eq("status", filters.status as InvoiceStatus);
   if (filters.project) query = query.eq("project_id", filters.project);
   if (filters.customer) query = query.eq("customer_id", filters.customer);
@@ -109,7 +106,7 @@ export async function getInvoices(filters: Record<string, string> = {}) {
   if (error) throw new Error(`Unable to load invoices: ${error.message}`);
   const invoices = (data || []) as unknown as InvoiceListItem[];
   if (!search) return invoices;
-  return invoices.filter((invoice) => [
+  return invoices.filter((invoice) => matchesNormalizedSearch([
     invoice.invoice_number,
     invoice.client_reference,
     invoice.customer_name_snapshot,
@@ -117,7 +114,7 @@ export async function getInvoices(filters: Record<string, string> = {}) {
     invoice.project?.project_number,
     invoice.quotation_number_snapshot,
     invoice.site_address_snapshot,
-  ].filter(Boolean).join(" ").toLowerCase().includes(search));
+  ], search));
 }
 
 export async function getInvoice(id: string) {

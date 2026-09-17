@@ -6,6 +6,7 @@ import { PDFDocument } from "pdf-lib";
 import { formatClientReference, locationTokenFromSite } from "../src/lib/documents/client-reference.ts";
 import { generateInvoicePdf } from "../src/lib/invoices/pdf.ts";
 import type { InvoiceDetail, InvoiceItem } from "../src/lib/invoices/queries.ts";
+import { matchesNormalizedSearch, normalizeSearchTerm, normalizeSearchText } from "../src/lib/search/text.ts";
 
 test("client reference uses sequence, UP, human location, day, and year without month", () => {
   assert.equal(locationTokenFromSite("Al Barsha"), "Barsha");
@@ -46,7 +47,8 @@ test("invoice actions and PDF route re-authorize every entry point", () => {
 
 test("invoice search covers number, reference, customer, project, quotation, and site", () => {
   const queries = readFileSync(join(process.cwd(), "src/lib/invoices/queries.ts"), "utf8");
-  assert.match(queries, /cleanSearch\(filters\.search\)\.toLowerCase\(\)/);
+  assert.match(queries, /normalizeSearchTerm\(filters\.search\)/);
+  assert.match(queries, /matchesNormalizedSearch\(\[/);
   assert.match(queries, /invoice\.customer_name_snapshot/);
   assert.match(queries, /invoice\.customer\?\.name/);
   assert.match(queries, /invoice\.project\?\.project_number/);
@@ -56,6 +58,47 @@ test("invoice search covers number, reference, customer, project, quotation, and
   const documents = readFileSync(join(process.cwd(), "src/app/dashboard/documents/page.tsx"), "utf8");
   assert.match(documents, /item\.quotation_number_snapshot/);
   assert.match(documents, /item\.site_address_snapshot/);
+  assert.match(documents, /normalizeSearchTerm\(searchTerm\)/);
+  assert.match(documents, /matchesNormalizedSearch\(\[/);
+});
+
+test("search normalization tolerates punctuation, spacing, and case on both sides", () => {
+  const indexed = [
+    "[UAT] Dubai Hills, Dubai",
+    "UP-I-2026-000001",
+    "010-UP-DubaiHills-14-2026",
+    "UAT Aisha Al Noor",
+    "UP-P-2026-000026",
+    "UP-Q-2026-000037-R01",
+  ];
+  const matches = (term: string) => matchesNormalizedSearch(indexed, normalizeSearchTerm(term));
+
+  for (const term of ["[UAT] Dubai Hills, Dubai", "Dubai Hills Dubai", "Dubai Hills", "dubai hills", "  DUBAI   HILLS  ", "uat dubai hills"]) {
+    assert.equal(matches(term), true, `"${term}" should match the UAT Dubai Hills invoice`);
+  }
+  for (const term of ["Al Barsha", "UP-I-2026-000002", "zzz no such invoice"]) {
+    assert.equal(matches(term), false, `"${term}" should not match`);
+  }
+
+  // Separators the user types in a reference or site no longer have to match the stored ones.
+  assert.equal(matches("010 UP DubaiHills 14 2026"), true);
+  assert.equal(matches("[uat] dubai hills, dubai"), true);
+
+  // An empty term still matches everything, so unfiltered lists are unaffected.
+  assert.equal(matchesNormalizedSearch(indexed, normalizeSearchTerm("")), true);
+  assert.equal(matchesNormalizedSearch(indexed, normalizeSearchTerm(undefined)), true);
+
+  // Normalizing is idempotent, so an already-normalized value compares equal.
+  assert.equal(normalizeSearchText(normalizeSearchText("[UAT] Dubai Hills, Dubai")), normalizeSearchText("[UAT] Dubai Hills, Dubai"));
+  assert.equal(normalizeSearchText("[UAT] Dubai Hills, Dubai"), "uat dubai hills dubai");
+});
+
+test("invoice filters use content-sized columns so the Apply action is never clipped", () => {
+  const invoicesPage = readFileSync(join(process.cwd(), "src/app/dashboard/invoices/page.tsx"), "utf8");
+  assert.match(invoicesPage, /xl:grid-cols-\[minmax\(0,1fr\)_auto_auto_auto\]/);
+  assert.doesNotMatch(invoicesPage, /xl:grid-cols-5/);
+  assert.match(invoicesPage, /grid-cols-\[minmax\(0,1fr\)_auto\] items-end gap-2/);
+  assert.match(invoicesPage, /whitespace-nowrap rounded-md border border-line px-4 text-sm font-semibold">Apply/);
 });
 
 test("invoice PDF is deterministic A4 and carries internal and shared references", async () => {
