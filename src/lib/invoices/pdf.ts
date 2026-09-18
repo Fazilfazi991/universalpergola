@@ -39,16 +39,14 @@ export async function generateInvoicePdf(invoice: InvoiceDetail, items: InvoiceI
       y = 756;
       return;
     }
-    page.drawRectangle({ x: 0, y: A4_HEIGHT - 12, width: A4_WIDTH, height: 12, color: PDF_COLORS.brass });
-    page.drawImage(logo, { x: MARGIN, y: 694, width: 112, height: 112 });
-    page.drawImage(logo, { x: 176, y: 210, width: 250, height: 250, opacity: 0.022 });
-    page.drawText("UNIVERSAL PERGOLA", { x: MARGIN, y: 678, size: 10.5, font: bold, color: PDF_COLORS.ink });
-    page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.tagline.toUpperCase(), { x: MARGIN, y: 663, size: 6, font: regular, color: PDF_COLORS.brass });
-    page.drawText("I N V O I C E", { x: 324, y: 770, size: 20, font: bold, color: PDF_COLORS.ink });
-    page.drawRectangle({ x: 324, y: 750, width: 48, height: 3, color: PDF_COLORS.brass });
-    page.drawText(safePdfText(invoice.invoice_number), { x: 324, y: 726, size: 10, font: bold, color: PDF_COLORS.ink });
-    page.drawText("PROJECT REFERENCE", { x: 324, y: 708, size: 5.7, font: bold, color: PDF_COLORS.stone });
-    page.drawText(safePdfText(invoice.client_reference), { x: 324, y: 694, size: 7.2, font: bold, color: PDF_COLORS.brass });
+    page.drawRectangle({ x: 40, y: 38, width: A4_WIDTH - 80, height: A4_HEIGHT - 76, borderColor: PDF_COLORS.line, borderWidth: 0.7 });
+    page.drawImage(logo, { x: 56, y: 598, width: 156, height: 156 });
+    page.drawImage(logo, { x: 105, y: 154, width: 390, height: 390, opacity: 0.08 });
+    page.drawText("INVOICE", { x: 350, y: 730, size: 17, font: bold, color: PDF_COLORS.ink });
+    page.drawText(`REF: ${safePdfText(invoice.client_reference || invoice.invoice_number)}`, { x: 350, y: 713, size: 6.5, font: bold, color: PDF_COLORS.ink });
+    page.drawText(safePdfText(invoice.invoice_number), { x: 350, y: 699, size: 6.5, font: regular, color: PDF_COLORS.stone });
+    page.drawText("PROJECT REFERENCE", { x: 350, y: 680, size: 5.7, font: bold, color: PDF_COLORS.stone });
+    page.drawText(safePdfText(invoice.client_reference), { x: 350, y: 668, size: 7.2, font: bold, color: PDF_COLORS.brass });
     y = 632;
   };
 

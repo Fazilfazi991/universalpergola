@@ -456,11 +456,19 @@ export default async function SiteVisitPage({
               )}
             </div>
           </section>
-          <section>
-            <div className="flex items-center gap-2">
+          <section id="site-photos" className="scroll-mt-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
               <Camera size={18} />
               <h2 className="text-lg font-semibold">Site photos</h2>
+              </div>
+              {canOperate && (
+                <a href="#add-site-photos" className="min-h-10 rounded-md border border-line bg-paper px-3 py-2 text-sm font-semibold text-brass-dark">
+                  Add site photos
+                </a>
+              )}
             </div>
+            <p className="mt-2 text-sm text-stone">Upload before, during, or after the visit so the field record includes visible site evidence.</p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               {workspace.photos.map((photo) => (
                 <article
@@ -550,7 +558,7 @@ export default async function SiteVisitPage({
               </p>
             )}
             {canOperate && (
-              <div className="mt-5 border-y border-line bg-paper px-4 py-5 sm:rounded-lg sm:border sm:p-6">
+              <div id="add-site-photos" className="mt-5 scroll-mt-6 border-y border-line bg-paper px-4 py-5 sm:rounded-lg sm:border sm:p-6">
                 <SitePhotoUploader
                   visitId={id}
                   existingCount={workspace.photos.length}

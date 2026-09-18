@@ -29,30 +29,26 @@ export async function generatePaymentReceiptPdf(receipt: ReceiptRow, finance: Fi
   document.setCreationDate(new Date(receipt.created_at));
   document.setModificationDate(new Date(modified));
 
-  page.drawRectangle({ x: 0, y: A4_HEIGHT - 12, width: A4_WIDTH, height: 12, color: PDF_COLORS.brass });
-  page.drawImage(logo, { x: 36, y: 697, width: 108, height: 108 });
-  page.drawImage(logo, { x: 174, y: 170, width: 260, height: 260, opacity: 0.022 });
-  page.drawText("UNIVERSAL PERGOLA", { x: 36, y: 681, size: 10.5, font: bold, color: PDF_COLORS.ink });
-  page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.tagline.toUpperCase(), { x: 36, y: 666, size: 6, font: regular, color: PDF_COLORS.brass });
+  page.drawRectangle({ x: 40, y: 38, width: A4_WIDTH - 80, height: A4_HEIGHT - 76, borderColor: PDF_COLORS.line, borderWidth: 0.7 });
+  page.drawImage(logo, { x: 56, y: 598, width: 156, height: 156 });
+  page.drawImage(logo, { x: 105, y: 154, width: 390, height: 390, opacity: 0.08 });
 
-  page.drawText("P A Y M E N T", { x: 300, y: 771, size: 17, font: bold, color: PDF_COLORS.ink });
-  page.drawText("R E C E I P T", { x: 300, y: 746, size: 17, font: bold, color: PDF_COLORS.ink });
-  page.drawRectangle({ x: 300, y: 731, width: 48, height: 3, color: isVoid ? PDF_COLORS.red : PDF_COLORS.brass });
-  page.drawText(safePdfText(receipt.receipt_number), { x: 300, y: 709, size: 9, font: bold, color: PDF_COLORS.ink });
+  page.drawText("PAYMENT RECEIPT", { x: 300, y: 730, size: 17, font: bold, color: PDF_COLORS.ink });
+  page.drawText(`REF: ${safePdfText(receipt.project?.client_reference || receipt.receipt_number)}`, { x: 300, y: 713, size: 6.5, font: bold, color: PDF_COLORS.ink });
+  page.drawText(safePdfText(receipt.receipt_number), { x: 300, y: 699, size: 6.5, font: regular, color: PDF_COLORS.stone });
   if (receipt.project?.client_reference) {
-    page.drawText("PROJECT REFERENCE", { x: 300, y: 694, size: 5.5, font: bold, color: PDF_COLORS.stone });
-    page.drawText(safePdfText(receipt.project.client_reference), { x: 300, y: 682, size: 6.8, font: bold, color: PDF_COLORS.brass });
+    page.drawText("PROJECT REFERENCE", { x: 300, y: 680, size: 5.5, font: bold, color: PDF_COLORS.stone });
+    page.drawText(safePdfText(receipt.project.client_reference), { x: 300, y: 668, size: 6.8, font: bold, color: PDF_COLORS.brass });
   }
 
-  page.drawRectangle({ x: 300, y: 628, width: 259, height: 47, color: isVoid ? rgb(0.99, 0.91, 0.9) : PDF_COLORS.sand });
-  page.drawText("DATE", { x: 313, y: 658, size: 5.8, font: bold, color: PDF_COLORS.stone });
-  page.drawText(pdfDate(receipt.received_date), { x: 313, y: 642, size: 8.5, font: bold, color: PDF_COLORS.ink });
-  page.drawText("STATUS", { x: 442, y: 658, size: 5.8, font: bold, color: PDF_COLORS.stone });
-  page.drawText(status.toUpperCase(), { x: 442, y: 642, size: 8.5, font: bold, color: isVoid ? PDF_COLORS.red : PDF_COLORS.green });
+  page.drawText("Date:", { x: 447, y: 758, size: 6, font: bold, color: PDF_COLORS.ink });
+  page.drawText(pdfDate(receipt.received_date), { x: 471, y: 758, size: 6, font: regular, color: PDF_COLORS.ink });
+  page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.legalName, { x: 300, y: 690, size: 6.2, font: bold, color: PDF_COLORS.ink });
+  page.drawText(`${UNIVERSAL_PERGOLA_DOCUMENT.address} | ${UNIVERSAL_PERGOLA_DOCUMENT.phones[0]}`, { x: 300, y: 676, size: 5.5, font: regular, color: PDF_COLORS.ink });
 
-  page.drawText("BILL TO", { x: 36, y: 625, size: 6.5, font: bold, color: PDF_COLORS.brass });
-  const customerBottom = drawWrapped(page, receipt.customer?.name || "Customer", 36, 607, 230, 10, bold, PDF_COLORS.ink, 11.5);
-  page.drawText(safePdfText(receipt.customer?.phone || "Phone not provided"), { x: 36, y: customerBottom - 2, size: 7.5, font: regular, color: PDF_COLORS.stone });
+  page.drawText("BILL TO", { x: 56, y: 744, size: 6.5, font: bold, color: PDF_COLORS.stone });
+  const customerBottom = drawWrapped(page, receipt.customer?.name || "Customer", 56, 730, 190, 8, bold, PDF_COLORS.ink, 10);
+  page.drawText(safePdfText(receipt.customer?.phone || "Phone not provided"), { x: 56, y: customerBottom - 2, size: 6, font: regular, color: PDF_COLORS.stone });
   page.drawText("PROJECT", { x: 300, y: 625, size: 6.5, font: bold, color: PDF_COLORS.brass });
   const projectBottom = drawWrapped(page, receipt.project?.project_number || "-", 300, 607, 259, 9, bold, PDF_COLORS.ink, 11);
   const sourceBottom = drawWrapped(page, `Source quotation: ${receipt.project?.source_quotation_number || "-"}`, 300, projectBottom - 3, 259, 7.2, regular, PDF_COLORS.stone, 9);

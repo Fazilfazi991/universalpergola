@@ -569,6 +569,10 @@ export function SitePhotoUploader({
   }
   return (
     <div className="space-y-4">
+      <div>
+        <h3 className="text-base font-semibold">Add site visit photos</h3>
+        <p className="mt-1 text-sm text-stone">Choose one or more photos, then upload them to this visit.</p>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="grid gap-2 text-sm font-medium">
           Photo category{" "}

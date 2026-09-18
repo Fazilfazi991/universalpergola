@@ -1,10 +1,12 @@
-import { PDFDocument, StandardFonts, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { DEFAULT_QUOTATION_PAYMENT_TERMS, UNIVERSAL_PERGOLA_DOCUMENT } from "../documents/config.ts";
 import { A4_HEIGHT, A4_WIDTH, PDF_COLORS, drawDocumentFooter, drawRightText, embedBrandLogo, pdfDate, pdfMoney, safePdfText, wrapPdfText } from "../documents/pdf-kit.ts";
 import type { QuotationDetail, QuotationItem } from "./queries.ts";
 
-const FIRST_X = 158;
-const PAGE_MARGIN = 36;
+// These dimensions deliberately follow the supplied client quotation sheet:
+// a pale left information panel and a narrow white document column.
+const FIRST_X = 224;
+const PAGE_MARGIN = 42;
 const BOTTOM = 52;
 
 function drawWrapped(page: PDFPage, lines: string[], x: number, y: number, size: number, font: PDFFont, color = PDF_COLORS.stone, leading = size + 3) {
@@ -31,12 +33,14 @@ export async function generateQuotationPdf(quote: QuotationDetail, items: Quotat
   let contentRight = A4_WIDTH - 32;
 
   const drawSidebar = () => {
-    page.drawRectangle({ x: 0, y: 0, width: 132, height: A4_HEIGHT, color: PDF_COLORS.charcoal });
-    page.drawRectangle({ x: 0, y: A4_HEIGHT - 8, width: 132, height: 8, color: PDF_COLORS.brass });
-    page.drawImage(logo, { x: 12, y: 690, width: 108, height: 108 });
-    page.drawText("UNIVERSAL", { x: 23, y: 676, size: 10, font: bold, color: PDF_COLORS.brassLight });
-    page.drawText("PERGOLA", { x: 39, y: 663, size: 10, font: bold, color: PDF_COLORS.white });
-    page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.tagline.toUpperCase(), { x: 22, y: 648, size: 5.5, font: regular, color: PDF_COLORS.brassLight });
+    const sideX = 42;
+    const sideWidth = 178;
+    page.drawRectangle({ x: 40, y: 38, width: A4_WIDTH - 80, height: A4_HEIGHT - 76, borderColor: PDF_COLORS.line, borderWidth: 0.7 });
+    page.drawRectangle({ x: sideX, y: 40, width: sideWidth, height: A4_HEIGHT - 80, color: rgb(0.73, 0.75, 0.75) });
+    page.drawImage(logo, { x: sideX + 2, y: 272, width: 230, height: 230, opacity: 0.075 });
+    page.drawImage(logo, { x: sideX + 5, y: 650, width: 166, height: 166 });
+    page.drawText("UNIVERSAL PERGOLA", { x: sideX + 13, y: 642, size: 10, font: bold, color: PDF_COLORS.brassLight });
+    page.drawText(UNIVERSAL_PERGOLA_DOCUMENT.tagline.toUpperCase(), { x: sideX + 20, y: 628, size: 5.2, font: regular, color: PDF_COLORS.charcoal });
     const wrapHyphenated = (value: string, size: number, width: number) => {
       const lines: string[] = [];
       let current = "";
@@ -62,25 +66,26 @@ export async function generateQuotationPdf(quote: QuotationDetail, items: Quotat
       return wrapPdfText(line, regular, size, width);
     });
     const sidebarBlock = (label: string, value: string, top: number, size = 7.15) => {
-      page.drawText(label.toUpperCase(), { x: 16, y: top, size: 6.5, font: bold, color: PDF_COLORS.brassLight });
-      return drawWrapped(page, sidebarLines(value, size, 100), 16, top - 14, size, regular, PDF_COLORS.white, 9.5);
+      page.drawText(label.toUpperCase(), { x: sideX + 12, y: top, size: 6.2, font: bold, color: PDF_COLORS.charcoal });
+      return drawWrapped(page, sidebarLines(value, size, 148), sideX + 12, top - 14, size, regular, PDF_COLORS.ink, 9.5);
     };
-    let sideY = 610;
+    let sideY = 596;
     sideY = sidebarBlock("Bill to", quote.customer_name_snapshot, sideY) - 8;
     if (quote.customer_company_snapshot) sideY = sidebarBlock("Company", quote.customer_company_snapshot, sideY) - 8;
     sideY = sidebarBlock("Contact", [quote.customer_phone_snapshot, quote.customer_email_snapshot].filter(Boolean).join("\n"), sideY, 6.8) - 8;
     sideY = sidebarBlock("Site", quote.site_address_snapshot || "Not specified", sideY) - 18;
-    page.drawLine({ start: { x: 18, y: sideY }, end: { x: 114, y: sideY }, thickness: 0.5, color: PDF_COLORS.brass });
+    page.drawLine({ start: { x: sideX + 12, y: sideY }, end: { x: sideX + 165, y: sideY }, thickness: 0.5, color: PDF_COLORS.line });
     sideY -= 20;
-    page.drawText("PAYMENT SCHEDULE", { x: 18, y: sideY, size: 7, font: bold, color: PDF_COLORS.brassLight });
+    page.drawText("PAYMENT METHOD", { x: sideX + 12, y: sideY, size: 6.5, font: bold, color: PDF_COLORS.charcoal });
     sideY -= 19;
     for (const term of DEFAULT_QUOTATION_PAYMENT_TERMS) {
-      page.drawText(`${term.percentage}%`, { x: 18, y: sideY, size: 11, font: bold, color: PDF_COLORS.white });
-      page.drawText(term.label.toUpperCase(), { x: 49, y: sideY + 2, size: 5.8, font: regular, color: PDF_COLORS.brassLight });
+      page.drawText(`- ${term.label.toUpperCase()}: ${term.percentage}%`, { x: sideX + 15, y: sideY, size: 6.2, font: bold, color: PDF_COLORS.ink });
       sideY -= 24;
     }
-    page.drawText("CONTACT", { x: 18, y: 130, size: 6.5, font: bold, color: PDF_COLORS.brassLight });
-    drawWrapped(page, [UNIVERSAL_PERGOLA_DOCUMENT.email, UNIVERSAL_PERGOLA_DOCUMENT.website, UNIVERSAL_PERGOLA_DOCUMENT.instagram, ...UNIVERSAL_PERGOLA_DOCUMENT.phones], 18, 113, 6.2, regular, PDF_COLORS.white, 10);
+    page.drawText("TERMS & CONDITIONS", { x: sideX + 12, y: 255, size: 6.4, font: bold, color: PDF_COLORS.charcoal });
+    drawWrapped(page, wrapPdfText(quote.terms || "Payment is due according to the schedule above. Variation work is subject to a separate quotation.", regular, 6.2, 148).slice(0, 14), sideX + 12, 240, 6.2, regular, PDF_COLORS.ink, 8.1);
+    page.drawText("CONTACT", { x: sideX + 12, y: 104, size: 6.2, font: bold, color: PDF_COLORS.charcoal });
+    drawWrapped(page, [UNIVERSAL_PERGOLA_DOCUMENT.email, UNIVERSAL_PERGOLA_DOCUMENT.website, ...UNIVERSAL_PERGOLA_DOCUMENT.phones], sideX + 12, 89, 5.7, regular, PDF_COLORS.ink, 8.2);
   };
 
   const addPage = (continuation = false) => {
@@ -89,16 +94,16 @@ export async function generateQuotationPdf(quote: QuotationDetail, items: Quotat
     contentRight = A4_WIDTH - (continuation ? PAGE_MARGIN : 32);
     if (!continuation) {
       drawSidebar();
-      page.drawImage(logo, { x: 230, y: 250, width: 300, height: 300, opacity: 0.035 });
+      page.drawImage(logo, { x: 192, y: 228, width: 345, height: 345, opacity: 0.08 });
       page.drawText("Q U O T A T I O N", { x: contentX, y: 772, size: 20, font: bold, color: PDF_COLORS.ink });
-      page.drawRectangle({ x: contentX, y: 749, width: 46, height: 3, color: PDF_COLORS.brass });
-      page.drawText(safePdfText(quote.quotation_number), { x: contentX, y: 724, size: 12, font: bold, color: PDF_COLORS.ink });
-      drawRightText(page, `REVISION ${quote.revision_number}`, contentRight, 726, 7.5, bold, PDF_COLORS.brass);
+      page.drawText(`REF: ${safePdfText(quote.client_reference || quote.quotation_number)}`, { x: contentX, y: 730, size: 7, font: bold, color: PDF_COLORS.ink });
+      page.drawText(safePdfText(quote.quotation_number), { x: contentX, y: 716, size: 7, font: regular, color: PDF_COLORS.stone });
+      drawRightText(page, `REVISION ${quote.revision_number}`, contentRight, 730, 6.2, bold, PDF_COLORS.stone);
       if (quote.client_reference) {
         page.drawText("PROJECT REFERENCE", { x: contentX, y: 705, size: 5.7, font: bold, color: PDF_COLORS.stone });
         page.drawText(safePdfText(quote.client_reference), { x: contentX, y: 691, size: 7.4, font: bold, color: PDF_COLORS.brass });
       }
-      y = quote.client_reference ? 669 : 696;
+      y = quote.client_reference ? 669 : 686;
     } else {
       page.drawRectangle({ x: 0, y: 780, width: A4_WIDTH, height: 62, color: PDF_COLORS.charcoal });
       page.drawImage(logo, { x: PAGE_MARGIN, y: 787, width: 44, height: 44 });
