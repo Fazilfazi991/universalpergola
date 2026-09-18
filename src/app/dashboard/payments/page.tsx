@@ -47,7 +47,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/dashboa
   const from = text(params.from);
   const to = text(params.to);
   const filteredReceipts = receipts.filter((receipt) => {
-    const haystack = `${receipt.receipt_number} ${receipt.reference_number || ""} ${receipt.project?.project_number || ""} ${receipt.customer?.name || ""} ${receipt.milestone?.name || ""}`.toLowerCase();
+    const haystack = `${receipt.receipt_number} ${receipt.reference_number || ""} ${receipt.project?.client_reference || ""} ${receipt.project?.project_number || ""} ${receipt.customer?.name || ""} ${receipt.milestone?.name || ""}`.toLowerCase();
     if (receiptSearch && !haystack.includes(receiptSearch)) return false;
     if (projectId && receipt.project_id !== projectId) return false;
     if (customerId && receipt.customer_id !== customerId) return false;

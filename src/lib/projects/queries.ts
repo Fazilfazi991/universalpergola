@@ -170,7 +170,7 @@ export async function getProjects(filters: Record<string, string>) {
   if (search) {
     const { data: customers, error } = await supabase.from("customers").select("id").or(`name.ilike.%${search}%,phone.ilike.%${search}%,company_name.ilike.%${search}%`).limit(60);
     if (error) throw new Error(`Unable to search project customers: ${error.message}`);
-    const conditions = [`project_number.ilike.%${search}%`, `site_address.ilike.%${search}%`];
+    const conditions = [`project_number.ilike.%${search}%`, `client_reference.ilike.%${search}%`, `site_address.ilike.%${search}%`];
     if (customers?.length) conditions.push(`customer_id.in.(${customers.map((item) => item.id).join(",")})`);
     query = query.or(conditions.join(","));
   }

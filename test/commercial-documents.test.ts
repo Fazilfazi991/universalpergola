@@ -55,11 +55,30 @@ test("invoice search covers number, reference, customer, project, quotation, and
   assert.match(queries, /invoice\.quotation_number_snapshot/);
   assert.match(queries, /invoice\.site_address_snapshot/);
 
+  const projects = readFileSync(join(process.cwd(), "src/lib/projects/queries.ts"), "utf8");
+  assert.match(projects, /client_reference\.ilike/);
+
+  const quotations = readFileSync(join(process.cwd(), "src/lib/quotations/queries.ts"), "utf8");
+  assert.match(quotations, /client_reference\.ilike/);
+
+  const payments = readFileSync(join(process.cwd(), "src/app/dashboard/payments/page.tsx"), "utf8");
+  assert.match(payments, /receipt\.project\?\.client_reference/);
+
   const documents = readFileSync(join(process.cwd(), "src/app/dashboard/documents/page.tsx"), "utf8");
   assert.match(documents, /item\.quotation_number_snapshot/);
   assert.match(documents, /item\.site_address_snapshot/);
   assert.match(documents, /normalizeSearchTerm\(searchTerm\)/);
   assert.match(documents, /matchesNormalizedSearch\(\[/);
+});
+
+test("shared reference hardening preserves one project source of truth and issued-document immutability", () => {
+  const migration = readFileSync(join(process.cwd(), "supabase/migrations/20260918000000_phase_2k_shared_reference_hardening.sql"), "utf8");
+  assert.match(migration, /if project_row\.client_reference is not null\s+and p_location_token is null\s+and p_reference_date is null/);
+  assert.match(migration, /exists \(select 1 from public\.invoices/);
+  assert.match(migration, /raise exception 'Client\/job references are immutable/);
+  assert.match(migration, /create trigger invoices_validate_client_reference/);
+  assert.match(migration, /new\.client_reference is distinct from project_row\.client_reference/);
+  assert.match(migration, /where revision_group_id = \([\s\S]*?select revision_group_id from public\.quotations where id = project_row\.quotation_id/);
 });
 
 test("search normalization tolerates punctuation, spacing, and case on both sides", () => {

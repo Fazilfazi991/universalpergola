@@ -165,6 +165,7 @@ export async function getQuotations(filters: Record<string, string>) {
       throw new Error(`Unable to search quotation customers: ${error.message}`);
     const conditions = [
       `quotation_number.ilike.%${search}%`,
+      `client_reference.ilike.%${search}%`,
       `site_address_snapshot.ilike.%${search}%`,
     ];
     if (customers?.length)
