@@ -72,7 +72,7 @@ export function ProjectPlanForm({ project }: { project: ProjectDetail }) {
           <textarea name="notes" defaultValue={project.notes || ""} maxLength={12000} className={`${input} min-h-28 py-3`} disabled={project.status === "completed"} />
         </label>
       </div>
-      {project.status !== "completed" ? <button disabled={pending} className="min-h-11 rounded-md bg-graphite px-4 text-sm font-semibold text-white disabled:opacity-50">{pending ? "Saving…" : "Save project plan"}</button> : null}
+      {project.status !== "completed" ? <button disabled={pending} className="min-h-11 rounded-md bg-graphite px-4 text-sm font-semibold text-white hover:bg-ink disabled:opacity-50">{pending ? "Saving…" : "Save project plan"}</button> : null}
     </form>
   );
 }
@@ -97,7 +97,7 @@ export function StagePlanForm({ stage, projectId, participants }: { stage: Proje
       <label className="grid gap-1 text-xs font-medium sm:col-span-2">Stage notes
         <textarea name="notes" defaultValue={stage.notes || ""} maxLength={8000} className={`${input} min-h-20 py-3`} />
       </label>
-      <button disabled={pending} className="min-h-10 justify-self-start text-sm font-semibold text-brass-dark disabled:opacity-50">{pending ? "Saving…" : "Save stage plan"}</button>
+      <button disabled={pending} className="min-h-10 justify-self-start text-sm font-semibold text-brass-dark hover:text-graphite hover:underline disabled:opacity-50">{pending ? "Saving…" : "Save stage plan"}</button>
     </form>
   );
 }

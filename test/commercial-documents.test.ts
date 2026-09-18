@@ -81,6 +81,22 @@ test("shared reference hardening preserves one project source of truth and issue
   assert.match(migration, /where revision_group_id = \([\s\S]*?select revision_group_id from public\.quotations where id = project_row\.quotation_id/);
 });
 
+test("Accounts exposes Payments and Assets uses a compatible category select", () => {
+  const accounts = readFileSync(join(process.cwd(), "src/app/dashboard/accounts/page.tsx"), "utf8");
+  assert.match(accounts, /getFinanceDashboardSummary/);
+  assert.match(accounts, /href="\/dashboard\/payments"/);
+  assert.match(accounts, /Customer Payments/);
+  assert.match(accounts, /payments\?\.received/);
+
+  const assets = readFileSync(join(process.cwd(), "src/app/dashboard/assets/page.tsx"), "utf8");
+  assert.match(assets, /name="category"[^>]*>[\s\S]*Choose a category/);
+  assert.match(assets, /Cutting Machine/);
+  assert.match(assets, /Other/);
+  assert.match(assets, /asset\.category/);
+  assert.match(assets, /planned_purchase_date/);
+  assert.match(assets, /purchase_date/);
+});
+
 test("search normalization tolerates punctuation, spacing, and case on both sides", () => {
   const indexed = [
     "[UAT] Dubai Hills, Dubai",
