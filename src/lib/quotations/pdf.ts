@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { DEFAULT_QUOTATION_PAYMENT_TERMS, UNIVERSAL_PERGOLA_DOCUMENT } from "../documents/config.ts";
-import { A4_HEIGHT, A4_WIDTH, PDF_COLORS, drawDocumentFooter, drawRightText, embedBrandLogo, pdfDate, pdfMoney, safePdfText, wrapPdfText } from "../documents/pdf-kit.ts";
+import { A4_HEIGHT, A4_WIDTH, CLIENT_TEMPLATE_WIDTH, PDF_COLORS, copyClientTemplatePage, drawDocumentFooter, drawRightText, embedBrandLogo, pdfDate, pdfMoney, safePdfText, wrapPdfText } from "../documents/pdf-kit.ts";
 import type { QuotationDetail, QuotationItem } from "./queries.ts";
 
 // These dimensions deliberately follow the supplied client quotation sheet:
@@ -14,7 +14,7 @@ function drawWrapped(page: PDFPage, lines: string[], x: number, y: number, size:
   return y - lines.length * leading;
 }
 
-export async function generateQuotationPdf(quote: QuotationDetail, items: QuotationItem[]) {
+async function generateLegacyQuotationPdf(quote: QuotationDetail, items: QuotationItem[]) {
   const document = await PDFDocument.create();
   const regular = await document.embedFont(StandardFonts.Helvetica);
   const bold = await document.embedFont(StandardFonts.HelveticaBold);
@@ -214,5 +214,61 @@ export async function generateQuotationPdf(quote: QuotationDetail, items: Quotat
 
   const pages = document.getPages();
   pages.forEach((pdfPage, index) => drawDocumentFooter(pdfPage, regular, bold, index + 1, pages.length, `${quote.quotation_number} R${quote.revision_number}`));
+  return document.save({ useObjectStreams: false });
+}
+
+export async function generateQuotationPdf(quote: QuotationDetail, items: QuotationItem[]) {
+  const document = await PDFDocument.create();
+  const regular = await document.embedFont(StandardFonts.Helvetica);
+  const bold = await document.embedFont(StandardFonts.HelveticaBold);
+  const page = await copyClientTemplatePage(document, "client-quotation-template.png");
+  const right = CLIENT_TEMPLATE_WIDTH - 12;
+  const reference = quote.client_reference || quote.quotation_number;
+
+  document.setTitle(`${quote.quotation_number} - Universal Pergola`);
+  document.setAuthor(UNIVERSAL_PERGOLA_DOCUMENT.tradeName);
+  document.setSubject(`Quotation revision ${quote.revision_number}`);
+  document.setCreator("Universal Pergola Operations Dashboard");
+  document.setProducer("Universal Pergola Operations Dashboard");
+  document.setCreationDate(new Date(quote.created_at));
+  document.setModificationDate(new Date(quote.approved_at || quote.sent_at || quote.created_at));
+
+  // The original places the client details directly under the fixed left labels.
+  page.drawText(safePdfText(quote.customer_name_snapshot), { x: 83, y: 557, size: 7.2, font: bold, color: PDF_COLORS.ink });
+  page.drawText(safePdfText(quote.customer_phone_snapshot || quote.customer_email_snapshot || "-"), { x: 31, y: 542, size: 6.4, font: regular, color: PDF_COLORS.ink });
+  page.drawText(pdfDate(quote.issue_date), { x: 61, y: 527, size: 6.4, font: regular, color: PDF_COLORS.ink });
+
+  // The reference is the only automated addition: centred below the original title.
+  const refSize = 10.5;
+  const refWidth = bold.widthOfTextAtSize(safePdfText(reference), refSize);
+  page.drawText(safePdfText(reference), { x: 418 - refWidth / 2, y: 696, size: refSize, font: bold, color: PDF_COLORS.charcoal });
+
+  let y = 584;
+  for (const item of items.slice(0, 8)) {
+    const detail = [item.item_name, item.description, item.dimensions_details].filter(Boolean).join(" - ");
+    const lines = wrapPdfText(detail, regular, 6.4, 280).slice(0, 2);
+    lines.forEach((line, index) => page.drawText(line, { x: 240, y: y - index * 8, size: 6.4, font: index === 0 ? bold : regular, color: PDF_COLORS.ink }));
+    drawRightText(page, pdfMoney(item.line_total, quote.currency), right, y, 6.8, bold, PDF_COLORS.ink);
+    y -= Math.max(19, lines.length * 8 + 7);
+  }
+  drawRightText(page, pdfMoney(quote.subtotal, quote.currency), right, 315, 7.2, regular, PDF_COLORS.charcoal);
+  drawRightText(page, pdfMoney(quote.vat_amount, quote.currency), right, 290, 7.2, regular, PDF_COLORS.charcoal);
+  drawRightText(page, pdfMoney(quote.total, quote.currency), right, 269, 8.2, bold, PDF_COLORS.charcoal);
+
+  // The approved artwork is a single-page sheet. Continue with the same sheet
+  // when a live quotation has more rows than its supplied table can contain.
+  for (let pageIndex = 1; pageIndex * 8 < items.length; pageIndex += 1) {
+    const continuation = await copyClientTemplatePage(document, "client-quotation-template.png");
+    continuation.drawText(safePdfText(reference), { x: 376, y: 696, size: 8.5, font: bold, color: PDF_COLORS.charcoal });
+    let continuationY = 584;
+    for (const item of items.slice(pageIndex * 8, pageIndex * 8 + 8)) {
+      const detail = [item.item_name, item.description, item.dimensions_details].filter(Boolean).join(" - ");
+      const lines = wrapPdfText(detail, regular, 6.4, 280).slice(0, 2);
+      lines.forEach((line, index) => continuation.drawText(line, { x: 240, y: continuationY - index * 8, size: 6.4, font: index === 0 ? bold : regular, color: PDF_COLORS.ink }));
+      drawRightText(continuation, pdfMoney(item.line_total, quote.currency), right, continuationY, 6.8, bold, PDF_COLORS.ink);
+      continuationY -= Math.max(19, lines.length * 8 + 7);
+    }
+  }
+
   return document.save({ useObjectStreams: false });
 }

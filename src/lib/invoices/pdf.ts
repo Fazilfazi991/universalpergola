@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, type PDFFont, type PDFPage } from "pdf-lib";
 import { UNIVERSAL_PERGOLA_DOCUMENT } from "../documents/config.ts";
-import { A4_HEIGHT, A4_WIDTH, PDF_COLORS, drawDocumentFooter, drawRightText, embedBrandLogo, pdfDate, pdfMoney, safePdfText, wrapPdfText } from "../documents/pdf-kit.ts";
+import { A4_HEIGHT, A4_WIDTH, CLIENT_TEMPLATE_WIDTH, PDF_COLORS, copyClientTemplatePage, drawDocumentFooter, drawRightText, embedBrandLogo, pdfDate, pdfMoney, safePdfText, wrapPdfText } from "../documents/pdf-kit.ts";
 import type { InvoiceDetail, InvoiceItem } from "./queries";
 
 const MARGIN = 36;
@@ -12,7 +12,7 @@ function drawWrapped(page: PDFPage, value: unknown, x: number, y: number, width:
   return y - lines.length * leading;
 }
 
-export async function generateInvoicePdf(invoice: InvoiceDetail, items: InvoiceItem[]) {
+async function generateLegacyInvoicePdf(invoice: InvoiceDetail, items: InvoiceItem[]) {
   const document = await PDFDocument.create();
   const regular = await document.embedFont(StandardFonts.Helvetica);
   const bold = await document.embedFont(StandardFonts.HelveticaBold);
@@ -134,5 +134,46 @@ export async function generateInvoicePdf(invoice: InvoiceDetail, items: InvoiceI
 
   const pages = document.getPages();
   pages.forEach((pdfPage, index) => drawDocumentFooter(pdfPage, regular, bold, index + 1, pages.length, invoice.invoice_number));
+  return document.save({ useObjectStreams: false });
+}
+
+export async function generateInvoicePdf(invoice: InvoiceDetail, items: InvoiceItem[]) {
+  const document = await PDFDocument.create();
+  const regular = await document.embedFont(StandardFonts.Helvetica);
+  const bold = await document.embedFont(StandardFonts.HelveticaBold);
+  const page = await copyClientTemplatePage(document, "client-receipt-template.png");
+  const right = CLIENT_TEMPLATE_WIDTH - 22;
+
+  document.setTitle(`${invoice.invoice_number} - Universal Pergola Invoice`);
+  document.setAuthor(UNIVERSAL_PERGOLA_DOCUMENT.tradeName);
+  document.setSubject(`Commercial invoice for ${invoice.client_reference}`);
+  document.setCreator("Universal Pergola Operations Dashboard");
+  document.setProducer("Universal Pergola Operations Dashboard");
+  document.setCreationDate(new Date(invoice.created_at));
+  document.setModificationDate(new Date(invoice.issued_at || invoice.updated_at));
+
+  // Keep the receipt template's exact family while replacing only its heading.
+  page.drawRectangle({ x: 330, y: 661, width: 265, height: 33, color: PDF_COLORS.white });
+  page.drawText("INVOICE", { x: 385, y: 672, size: 19, font: bold, color: PDF_COLORS.ink });
+  page.drawText(safePdfText(invoice.customer_name_snapshot), { x: 20, y: 728, size: 7.2, font: bold, color: PDF_COLORS.ink });
+  page.drawText(safePdfText(invoice.customer_phone_snapshot || "-"), { x: 20, y: 714, size: 6.2, font: regular, color: PDF_COLORS.ink });
+  drawRightText(page, pdfDate(invoice.issue_date), 590, 715, 7, bold, PDF_COLORS.ink);
+  let y = 530;
+  for (const item of items.slice(0, 4)) {
+    const lines = wrapPdfText([item.item_name, item.description].filter(Boolean).join(" - "), regular, 7.1, 235).slice(0, 2);
+    lines.forEach((line, index) => page.drawText(line, { x: 20, y: y - index * 9, size: 7.1, font: index === 0 ? bold : regular, color: PDF_COLORS.ink }));
+    page.drawText(String(item.quantity), { x: 478, y, size: 7.1, font: regular, color: PDF_COLORS.ink });
+    drawRightText(page, pdfMoney(item.line_total, invoice.currency), 590, y, 7.1, bold, PDF_COLORS.ink);
+    y -= 23;
+  }
+  drawRightText(page, pdfMoney(invoice.total, invoice.currency), 296, 454, 8, bold, PDF_COLORS.ink);
+  page.drawRectangle({ x: 188, y: 420, width: 78, height: 9, color: PDF_COLORS.white });
+  page.drawRectangle({ x: 330, y: 420, width: 100, height: 9, color: PDF_COLORS.white });
+  page.drawRectangle({ x: 98, y: 405, width: 78, height: 9, color: PDF_COLORS.white });
+  page.drawText("INVOICE", { x: 190, y: 424, size: 7.2, font: regular, color: PDF_COLORS.ink });
+  page.drawText(safePdfText(invoice.client_reference || invoice.invoice_number), { x: 332, y: 424, size: 7.2, font: bold, color: PDF_COLORS.ink });
+  page.drawText(invoice.status.replaceAll("_", " ").toUpperCase(), { x: 100, y: 409, size: 7.2, font: bold, color: PDF_COLORS.ink });
+  drawRightText(page, pdfMoney(invoice.total, invoice.currency), right, 347, 8, bold, PDF_COLORS.ink);
+
   return document.save({ useObjectStreams: false });
 }

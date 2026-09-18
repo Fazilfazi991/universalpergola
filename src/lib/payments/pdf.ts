@@ -1,6 +1,6 @@
 import { degrees, PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { UNIVERSAL_PERGOLA_DOCUMENT } from "../documents/config.ts";
-import { A4_HEIGHT, A4_WIDTH, PDF_COLORS, drawDocumentFooter, drawRightText, embedBrandLogo, pdfDate, pdfMoney, safePdfText, wrapPdfText } from "../documents/pdf-kit.ts";
+import { A4_HEIGHT, A4_WIDTH, CLIENT_TEMPLATE_WIDTH, PDF_COLORS, copyClientTemplatePage, drawDocumentFooter, drawRightText, embedBrandLogo, pdfDate, pdfMoney, safePdfText, wrapPdfText } from "../documents/pdf-kit.ts";
 import { paymentMethodLabel } from "./presentation.ts";
 import type { FinanceSummary, ReceiptRow } from "./types.ts";
 
@@ -10,7 +10,7 @@ function drawWrapped(page: PDFPage, value: unknown, x: number, y: number, width:
   return y - lines.length * leading;
 }
 
-export async function generatePaymentReceiptPdf(receipt: ReceiptRow, finance: FinanceSummary) {
+async function generateLegacyPaymentReceiptPdf(receipt: ReceiptRow, finance: FinanceSummary) {
   const document = await PDFDocument.create();
   const regular = await document.embedFont(StandardFonts.Helvetica);
   const bold = await document.embedFont(StandardFonts.HelveticaBold);
@@ -129,5 +129,45 @@ export async function generatePaymentReceiptPdf(receipt: ReceiptRow, finance: Fi
     page.drawText("VOID", { x: 156, y: 388, size: 82, font: bold, color: PDF_COLORS.red, opacity: 0.065, rotate: degrees(25) });
   }
   drawDocumentFooter(page, regular, bold, 1, 1, receipt.receipt_number);
+  return document.save({ useObjectStreams: false });
+}
+
+export async function generatePaymentReceiptPdf(receipt: ReceiptRow, finance: FinanceSummary) {
+  const document = await PDFDocument.create();
+  const regular = await document.embedFont(StandardFonts.Helvetica);
+  const bold = await document.embedFont(StandardFonts.HelveticaBold);
+  const page = await copyClientTemplatePage(document, "client-receipt-template.png");
+  const currency = receipt.project?.currency || finance.currency || "AED";
+  const isVoid = Boolean(receipt.voided_at);
+  const status = isVoid ? "VOID - REVERSED" : "CASH RECEIVED";
+  const reference = receipt.project?.client_reference || receipt.receipt_number;
+
+  document.setTitle(`${receipt.receipt_number} - Universal Pergola Payment Receipt`);
+  document.setAuthor(UNIVERSAL_PERGOLA_DOCUMENT.tradeName);
+  document.setSubject(isVoid ? "Voided payment receipt" : "Payment receipt");
+  document.setCreator("Universal Pergola Operations Dashboard");
+  document.setProducer("Universal Pergola Operations Dashboard");
+  document.setCreationDate(new Date(receipt.created_at));
+  document.setModificationDate(new Date(receipt.voided_at || receipt.created_at));
+
+  page.drawText(safePdfText(receipt.customer?.name || "Customer"), { x: 20, y: 728, size: 7.2, font: bold, color: PDF_COLORS.ink });
+  page.drawText(safePdfText(receipt.customer?.phone || "-"), { x: 20, y: 714, size: 6.2, font: regular, color: PDF_COLORS.ink });
+  drawRightText(page, pdfDate(receipt.received_date), 590, 715, 7, bold, PDF_COLORS.ink);
+  const service = receipt.milestone?.description || receipt.milestone?.name || `Payment for ${receipt.project?.project_number || "project services"}`;
+  const serviceLines = wrapPdfText(service, regular, 7.2, 235).slice(0, 3);
+  serviceLines.forEach((line, index) => page.drawText(line, { x: 20, y: 530 - index * 9, size: 7.2, font: index === 0 ? bold : regular, color: PDF_COLORS.ink }));
+  page.drawText("1", { x: 478, y: 530, size: 7.2, font: regular, color: PDF_COLORS.ink });
+  drawRightText(page, pdfMoney(receipt.amount_received, currency), 590, 530, 7.2, bold, PDF_COLORS.ink);
+
+  drawRightText(page, pdfMoney(receipt.amount_received, currency), 296, 454, 8, bold, PDF_COLORS.ink);
+  page.drawRectangle({ x: 188, y: 420, width: 78, height: 9, color: PDF_COLORS.white });
+  page.drawRectangle({ x: 330, y: 420, width: 64, height: 9, color: PDF_COLORS.white });
+  page.drawRectangle({ x: 98, y: 405, width: 78, height: 9, color: PDF_COLORS.white });
+  page.drawText(paymentMethodLabel(receipt.payment_method).toUpperCase(), { x: 190, y: 424, size: 7.2, font: regular, color: PDF_COLORS.ink });
+  page.drawText(safePdfText(reference), { x: 332, y: 424, size: 7.2, font: bold, color: PDF_COLORS.ink });
+  page.drawText(status, { x: 100, y: 409, size: 7.2, font: bold, color: isVoid ? PDF_COLORS.red : PDF_COLORS.green });
+  drawRightText(page, pdfMoney(finance.outstanding, currency), 590, 347, 8, bold, PDF_COLORS.ink);
+  if (isVoid) page.drawText("VOID", { x: 240, y: 330, size: 60, font: bold, color: PDF_COLORS.red, opacity: 0.12 });
+
   return document.save({ useObjectStreams: false });
 }

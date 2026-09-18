@@ -1,10 +1,12 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { rgb, type PDFDocument, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
+import { PDFDocument, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 import { UNIVERSAL_PERGOLA_DOCUMENT } from "./config.ts";
 
 export const A4_WIDTH = 595.28;
 export const A4_HEIGHT = 841.89;
+export const CLIENT_TEMPLATE_WIDTH = 612;
+export const CLIENT_TEMPLATE_HEIGHT = 792;
 export const PDF_COLORS = {
   ink: rgb(0.075, 0.07, 0.06),
   charcoal: rgb(0.12, 0.115, 0.1),
@@ -71,6 +73,19 @@ export function drawRightText(page: PDFPage, value: unknown, right: number, y: n
 export async function embedBrandLogo(document: PDFDocument): Promise<PDFImage> {
   const bytes = await readFile(join(process.cwd(), "public", "brand", "universal-pergola-logo.png"));
   return document.embedPng(bytes);
+}
+
+/**
+ * The client supplied these Word-exported sheets as the approved artwork.
+ * Copying their page into the output keeps the non-data artwork pixel-identical;
+ * the document generators only paint live operational values on top.
+ */
+export async function copyClientTemplatePage(document: PDFDocument, filename: string) {
+  const bytes = await readFile(join(process.cwd(), "public", "brand", filename));
+  const template = await document.embedPng(bytes);
+  const page = document.addPage([CLIENT_TEMPLATE_WIDTH, CLIENT_TEMPLATE_HEIGHT]);
+  page.drawImage(template, { x: 0, y: 0, width: CLIENT_TEMPLATE_WIDTH, height: CLIENT_TEMPLATE_HEIGHT });
+  return page;
 }
 
 export function drawDocumentFooter(page: PDFPage, regular: PDFFont, bold: PDFFont, pageNumber: number, totalPages: number, identifier: string) {
