@@ -14,7 +14,7 @@ export type CustomerListItem = {
 };
 
 export type EnquiryListItem = {
-  id: string; enquiry_number: number; subject: string | null; source: string | null;
+  id: string; enquiry_number: number; subject: string | null; source: string | null; lead_source: string | null;
   status: EnquiryStatus; priority: LeadPriority; follow_up_at: string | null; next_action: string | null;
   created_at: string; updated_at: string; customer: { id: string; name: string; phone: string | null } | null;
   product: { id: string; name: string } | null; assigned: AssignedRelation; lastActivity: string | null;
@@ -31,6 +31,7 @@ export type CustomerDetail = {
 export type EnquiryDetail = Omit<EnquiryListItem, "lastActivity" | "customer"> & {
   customer_id: string | null; product_id: string | null; enquiry_type: "catalogue" | "general" | "manual";
   message: string | null; assigned_to: string | null; internal_notes: string | null; archived_at: string | null;
+  referred_by: string | null; lead_source_detail: string | null;
   customer: { id: string; name: string; phone: string | null; whatsapp_number: string | null; email: string | null; company_name: string | null } | null;
 };
 
@@ -162,7 +163,7 @@ export async function getEnquiries(filters: Record<string, string>) {
   const supabase = await createClient();
   if (!supabase) return [] as EnquiryListItem[];
   let query = supabase.from("enquiries")
-    .select("id, enquiry_number, subject, source, status, priority, follow_up_at, next_action, created_at, updated_at, customer:customers(id, name, phone), product:products(id, name), assigned:profiles!enquiries_assigned_to_fkey(id, full_name)")
+    .select("id, enquiry_number, subject, source, lead_source, status, priority, follow_up_at, next_action, created_at, updated_at, customer:customers(id, name, phone), product:products(id, name), assigned:profiles!enquiries_assigned_to_fkey(id, full_name)")
     .is("archived_at", null).order("updated_at", { ascending: false }).limit(100);
   const search = cleanSearch(filters.search);
   if (search) {
@@ -201,7 +202,7 @@ export async function getEnquiry(id: string) {
   const supabase = await createClient();
   if (!supabase) return null;
   const { data, error } = await supabase.from("enquiries")
-    .select("id, enquiry_number, customer_id, product_id, enquiry_type, subject, message, source, priority, status, assigned_to, follow_up_at, next_action, internal_notes, created_at, updated_at, archived_at, customer:customers(id, name, phone, whatsapp_number, email, company_name), product:products(id, name), assigned:profiles!enquiries_assigned_to_fkey(id, full_name)")
+    .select("id, enquiry_number, customer_id, product_id, enquiry_type, subject, message, source, lead_source, referred_by, lead_source_detail, priority, status, assigned_to, follow_up_at, next_action, internal_notes, created_at, updated_at, archived_at, customer:customers(id, name, phone, whatsapp_number, email, company_name), product:products(id, name), assigned:profiles!enquiries_assigned_to_fkey(id, full_name)")
     .eq("id", id).maybeSingle();
   if (error) throw new Error(`Unable to load enquiry: ${error.message}`);
   return data as unknown as EnquiryDetail | null;
@@ -231,18 +232,24 @@ function dubaiDayBounds() {
 
 export async function getCrmDashboard() {
   const supabase = await createClient();
-  if (!supabase) return { newEnquiries: 0, dueToday: 0, overdue: 0, unassigned: 0, priorityLeads: 0, needsAttention: [] as EnquiryListItem[] };
+  if (!supabase) return { newEnquiries: 0, dueToday: 0, overdue: 0, unassigned: 0, priorityLeads: 0, needsAttention: [] as EnquiryListItem[], reminderAttention: [] as {id:string; title:string; due_at:string|null; reminder_type:string|null; enquiry_id:string|null; customer_id:string|null; project_id:string|null; bucket:"overdue"|"today"|"upcoming"}[], noFollowUp: [] as EnquiryListItem[] };
   const { end } = dubaiDayBounds();
   const now = new Date().toISOString();
-  const [newResult, dueResult, overdueResult, unassignedResult, priorityResult, attention] = await Promise.all([
+  const [newResult, dueResult, overdueResult, unassignedResult, priorityResult, attention, reminderResult] = await Promise.all([
     supabase.from("enquiries").select("id", { count: "exact", head: true }).eq("status", "new").is("archived_at", null),
     supabase.from("tasks").select("id", { count: "exact", head: true }).eq("kind", "enquiry_follow_up").in("status", ["open", "in_progress"]).gte("due_at", now).lte("due_at", end).is("archived_at", null),
     supabase.from("tasks").select("id", { count: "exact", head: true }).eq("kind", "enquiry_follow_up").in("status", ["open", "in_progress"]).lt("due_at", now).is("archived_at", null),
     supabase.from("enquiries").select("id", { count: "exact", head: true }).is("assigned_to", null).is("archived_at", null).not("status", "in", "(approved,lost)"),
     supabase.from("enquiries").select("id", { count: "exact", head: true }).in("priority", ["high", "urgent"]).is("archived_at", null).not("status", "in", "(approved,lost)"),
     getEnquiries({}),
+    supabase.from("tasks").select("id, title, due_at, reminder_type, enquiry_id, customer_id, project_id").in("status", ["open", "in_progress", "blocked"]).not("due_at", "is", null).is("archived_at", null).order("due_at", {ascending:true}).limit(100),
   ]);
   for (const result of [newResult, dueResult, overdueResult, unassignedResult, priorityResult]) if (result.error) throw new Error(`Unable to load dashboard metrics: ${result.error.message}`);
   const needsAttention = attention.filter((item) => item.status === "new" || !item.assigned || ["high", "urgent"].includes(item.priority) || (item.follow_up_at && item.follow_up_at < new Date().toISOString())).slice(0, 8);
-  return { newEnquiries: newResult.count || 0, dueToday: dueResult.count || 0, overdue: overdueResult.count || 0, unassigned: unassignedResult.count || 0, priorityLeads: priorityResult.count || 0, needsAttention };
+  if (reminderResult.error) throw new Error(`Unable to load reminder attention: ${reminderResult.error.message}`);
+  const activeEnquiries = attention.filter((item) => !["approved", "lost"].includes(item.status));
+  const futureEnquiryIds = new Set((reminderResult.data || []).filter((task) => task.enquiry_id && task.due_at && task.due_at >= now).map((task) => task.enquiry_id));
+  const noFollowUp = activeEnquiries.filter((item) => !futureEnquiryIds.has(item.id)).slice(0, 8);
+  const reminderAttention = (reminderResult.data || []).map((task) => ({ ...task, bucket: task.due_at! < now ? "overdue" as const : task.due_at! <= end ? "today" as const : "upcoming" as const })).slice(0, 12);
+  return { newEnquiries: newResult.count || 0, dueToday: dueResult.count || 0, overdue: overdueResult.count || 0, unassigned: unassignedResult.count || 0, priorityLeads: priorityResult.count || 0, needsAttention, reminderAttention, noFollowUp };
 }

@@ -1,8 +1,9 @@
 import type { AppRole } from "@/lib/auth/permissions";
-import type { ENQUIRY_STATUSES, LEAD_PRIORITIES } from "@/lib/crm/constants";
+import type { ENQUIRY_SOURCES, ENQUIRY_STATUSES, LEAD_PRIORITIES } from "@/lib/crm/constants";
 
 export type EnquiryStatus = (typeof ENQUIRY_STATUSES)[number];
 export type LeadPriority = (typeof LEAD_PRIORITIES)[number];
+export type LeadSource = (typeof ENQUIRY_SOURCES)[number];
 
 export type StaffSummary = { id: string; full_name: string; role: AppRole };
 

@@ -158,6 +158,7 @@ export default async function SiteVisitsPage({
                           )}
                         </p>
                       )}
+                      {visit.photoCount > 0 && <p className="mt-1 text-xs text-stone">📷 {visit.photoCount} {visit.photoCount === 1 ? "photo" : "photos"}</p>}
                     </td>
                     <td className="px-4 py-3">
                       <p className="font-medium">
@@ -230,7 +231,7 @@ export default async function SiteVisitsPage({
                 </p>
                 <div className="mt-3 flex justify-between gap-3 text-xs text-stone">
                   <span>{formatDate(visit.scheduled_at, true)}</span>
-                  <span>{visit.assigned?.full_name || "Unassigned"}</span>
+                  <span>{visit.photoCount > 0 ? `📷 ${visit.photoCount}` : visit.assigned?.full_name || "Unassigned"}</span>
                 </div>
                 <p className="mt-2 text-xs text-stone">
                   Updated {formatDate(visit.updated_at, true)}

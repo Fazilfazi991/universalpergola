@@ -259,11 +259,14 @@ export type Database = {
           follow_up_at: string | null
           id: string
           internal_notes: string | null
+          lead_source: string | null
+          lead_source_detail: string | null
           lost_reason: string | null
           message: string | null
           next_action: string | null
           priority: Database["public"]["Enums"]["lead_priority"]
           product_id: string | null
+          referred_by: string | null
           source: string | null
           status: Database["public"]["Enums"]["enquiry_status"]
           subject: string | null
@@ -280,11 +283,14 @@ export type Database = {
           follow_up_at?: string | null
           id?: string
           internal_notes?: string | null
+          lead_source?: string | null
+          lead_source_detail?: string | null
           lost_reason?: string | null
           message?: string | null
           next_action?: string | null
           priority?: Database["public"]["Enums"]["lead_priority"]
           product_id?: string | null
+          referred_by?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["enquiry_status"]
           subject?: string | null
@@ -301,11 +307,14 @@ export type Database = {
           follow_up_at?: string | null
           id?: string
           internal_notes?: string | null
+          lead_source?: string | null
+          lead_source_detail?: string | null
           lost_reason?: string | null
           message?: string | null
           next_action?: string | null
           priority?: Database["public"]["Enums"]["lead_priority"]
           product_id?: string | null
+          referred_by?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["enquiry_status"]
           subject?: string | null
@@ -2720,6 +2729,7 @@ export type Database = {
           priority: Database["public"]["Enums"]["task_priority"]
           project_id: string | null
           project_stage_id: string | null
+          reminder_type: string | null
           site_visit_id: string | null
           status: Database["public"]["Enums"]["task_status"]
           title: string
@@ -2743,6 +2753,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string | null
           project_stage_id?: string | null
+          reminder_type?: string | null
           site_visit_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title: string
@@ -2766,6 +2777,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string | null
           project_stage_id?: string | null
+          reminder_type?: string | null
           site_visit_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title?: string

@@ -1,13 +1,17 @@
 export const CUSTOMER_TYPES = ["individual", "company"] as const;
 
 export const ENQUIRY_SOURCES = [
-  "Website / Catalogue",
-  "Website",
-  "Phone",
+  "SEO / Google Organic",
+  "Instagram",
+  "Facebook",
+  "Google Ads",
+  "Meta Ads",
   "WhatsApp",
+  "Website",
+  "Phone Call",
   "Walk-in",
-  "Referral",
-  "Social media",
+  "Referral Person",
+  "Existing Customer",
   "Other",
 ] as const;
 

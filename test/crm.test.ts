@@ -21,8 +21,15 @@ test("customer validation requires one practical contact method", () => {
 });
 
 test("manual enquiry accepts an existing customer without duplicate contact fields", () => {
-  const result = staffEnquirySchema.safeParse({ customer_id: "7d48a004-a6a4-4be2-b46a-0d42fd7ac4aa", customer_name: "", phone: "", whatsapp_number: "", email: "", company_name: "", customer_type: "individual", address: "", area: "", emirate: "", source: "Phone", product_id: "", subject: "Phone lead", message: "Customer requested a callback.", priority: "normal", assigned_to: "", follow_up_at: "", next_action: "Call tomorrow", internal_notes: "" });
+  const result = staffEnquirySchema.safeParse({ customer_id: "7d48a004-a6a4-4be2-b46a-0d42fd7ac4aa", customer_name: "", phone: "", whatsapp_number: "", email: "", company_name: "", customer_type: "individual", address: "", area: "", emirate: "", source: "Phone Call", lead_source: "Phone Call", referred_by: "", lead_source_detail: "", product_id: "", subject: "Phone lead", message: "Customer requested a callback.", priority: "normal", assigned_to: "", follow_up_at: "", next_action: "Call tomorrow", internal_notes: "" });
   assert.equal(result.success, true);
+});
+
+test("referral and other lead sources require their supporting details", () => {
+  const base = { customer_id: "7d48a004-a6a4-4be2-b46a-0d42fd7ac4aa", customer_name: "", phone: "", whatsapp_number: "", email: "", company_name: "", customer_type: "individual", address: "", area: "", emirate: "", source: "Referral Person", product_id: "", subject: "Referral", message: "Customer requested a callback.", priority: "normal", assigned_to: "", follow_up_at: "", next_action: "", internal_notes: "" };
+  assert.equal(staffEnquirySchema.safeParse({ ...base, lead_source: "Referral Person", referred_by: "", lead_source_detail: "" }).success, false);
+  assert.equal(staffEnquirySchema.safeParse({ ...base, lead_source: "Referral Person", referred_by: "Sample Referrer", lead_source_detail: "" }).success, true);
+  assert.equal(staffEnquirySchema.safeParse({ ...base, source: "Other", lead_source: "Other", referred_by: "", lead_source_detail: "" }).success, false);
 });
 
 test("enquiry references remain compact and stable", () => {

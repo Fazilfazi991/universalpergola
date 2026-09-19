@@ -41,6 +41,7 @@ export type SiteVisitListItem = {
   follow_up_required: boolean;
   next_action: string | null;
   updated_at: string;
+  photoCount: number;
   customer: CustomerRelation;
   enquiry: EnquiryRelation;
   assigned: Person;
@@ -275,7 +276,12 @@ export async function getSiteVisits(filters: Record<string, string>) {
     query = query.in("status", ["confirmed", "in_progress"]);
   const { data, error } = await query;
   if (error) throw new Error(`Unable to load site visits: ${error.message}`);
-  return (data || []) as unknown as SiteVisitListItem[];
+  const rows = (data || []) as unknown as Omit<SiteVisitListItem, "photoCount">[];
+  if (!rows.length) return [];
+  const { data: photos, error: photoError } = await supabase.from("site_visit_photos").select("site_visit_id").in("site_visit_id", rows.map((row) => row.id));
+  if (photoError) throw new Error(`Unable to load site photo counts: ${photoError.message}`);
+  const counts = new Map<string, number>(); for (const photo of photos || []) counts.set(photo.site_visit_id, (counts.get(photo.site_visit_id) || 0) + 1);
+  return rows.map((row) => ({ ...row, photoCount: counts.get(row.id) || 0 }));
 }
 
 export async function getSiteVisit(id: string) {

@@ -24,7 +24,7 @@ function createValues(formData: FormData) {
     phone: text(formData, "phone"), whatsapp_number: text(formData, "whatsapp_number"), email: text(formData, "email"),
     company_name: text(formData, "company_name"), customer_type: text(formData, "customer_type"),
     address: text(formData, "address"), area: text(formData, "area"), emirate: text(formData, "emirate"),
-    source: text(formData, "source"), product_id: text(formData, "product_id"), subject: text(formData, "subject"),
+    source: text(formData, "source"), lead_source: text(formData, "lead_source"), referred_by: text(formData, "referred_by"), lead_source_detail: text(formData, "lead_source_detail"), product_id: text(formData, "product_id"), subject: text(formData, "subject"),
     message: text(formData, "message"), priority: text(formData, "priority"), assigned_to: text(formData, "assigned_to"),
     follow_up_at: text(formData, "follow_up_at"), next_action: text(formData, "next_action"), internal_notes: text(formData, "internal_notes"),
   };
@@ -67,6 +67,8 @@ export async function createEnquiryAction(_state: CrmActionState, formData: Form
     p_internal_notes: parsed.data.internal_notes,
   });
   if (error || !data?.[0]) return { status: "error", message: "The enquiry could not be created. Check the customer and assignment." };
+  const leadUpdate = await supabase.from("enquiries").update({ lead_source: parsed.data.lead_source, referred_by: optional(parsed.data.referred_by), lead_source_detail: optional(parsed.data.lead_source_detail) }).eq("id", data[0].enquiry_id);
+  if (leadUpdate.error) return { status: "error", message: "The enquiry was created, but its lead source could not be saved." };
   revalidateCrm(data[0].enquiry_id, data[0].customer_id);
   redirect(`/dashboard/enquiries/${data[0].enquiry_id}?created=${enquiryReference(data[0].enquiry_number)}`);
 }
@@ -75,7 +77,7 @@ export async function updateEnquiryAction(id: string, _state: CrmActionState, fo
   await requireRole(["admin", "sales"]);
   if (!isUuid(id)) return { status: "error", message: "Invalid enquiry identifier." };
   const parsed = enquiryUpdateSchema.safeParse({
-    status: text(formData, "status"), priority: text(formData, "priority"), source: text(formData, "source"),
+    status: text(formData, "status"), priority: text(formData, "priority"), source: text(formData, "source"), lead_source: text(formData, "lead_source"), referred_by: text(formData, "referred_by"), lead_source_detail: text(formData, "lead_source_detail"),
     assigned_to: text(formData, "assigned_to"), follow_up_at: text(formData, "follow_up_at"),
     next_action: text(formData, "next_action"), internal_notes: text(formData, "internal_notes"),
   });
@@ -83,7 +85,7 @@ export async function updateEnquiryAction(id: string, _state: CrmActionState, fo
   const supabase = await createClient(); if (!supabase) return { status: "error", message: "Supabase is not configured." };
   const { data: current } = await supabase.from("enquiries").select("customer_id").eq("id", id).maybeSingle();
   const { error } = await supabase.from("enquiries").update({ status: parsed.data.status, priority: parsed.data.priority,
-    source: parsed.data.source, follow_up_at: dubaiIso(parsed.data.follow_up_at), next_action: optional(parsed.data.next_action),
+    source: parsed.data.source, lead_source: parsed.data.lead_source, referred_by: optional(parsed.data.referred_by), lead_source_detail: optional(parsed.data.lead_source_detail), follow_up_at: dubaiIso(parsed.data.follow_up_at), next_action: optional(parsed.data.next_action),
     internal_notes: optional(parsed.data.internal_notes) }).eq("id", id);
   if (error) return { status: "error", message: "The enquiry changes could not be saved." };
   revalidateCrm(id, current?.customer_id || undefined);

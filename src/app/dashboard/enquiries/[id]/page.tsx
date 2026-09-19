@@ -154,9 +154,11 @@ export default async function EnquiryPage({
                 </dd>
               </div>
               <div>
-                <dt className="text-xs text-stone">Source</dt>
-                <dd className="mt-1 text-sm">{enquiry.source || "—"}</dd>
+                <dt className="text-xs text-stone">Lead source</dt>
+                <dd className="mt-1 text-sm">{enquiry.lead_source || "Not specified"}</dd>
               </div>
+              {enquiry.referred_by && <div><dt className="text-xs text-stone">Referred by</dt><dd className="mt-1 text-sm">{enquiry.referred_by}</dd></div>}
+              {enquiry.lead_source_detail && <div><dt className="text-xs text-stone">Source details</dt><dd className="mt-1 text-sm">{enquiry.lead_source_detail}</dd></div>}
               <div>
                 <dt className="text-xs text-stone">Salesperson</dt>
                 <dd className="mt-1 text-sm">

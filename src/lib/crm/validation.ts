@@ -62,6 +62,9 @@ export const staffEnquirySchema = z.object({
   area: optional(120),
   emirate: optional(80),
   source: z.enum(ENQUIRY_SOURCES),
+  lead_source: z.enum(ENQUIRY_SOURCES),
+  referred_by: optional(160),
+  lead_source_detail: optional(300),
   product_id: optionalUuid,
   subject: optional(200),
   message: z.string().trim().min(3, "Describe the enquiry.").max(6000),
@@ -71,6 +74,8 @@ export const staffEnquirySchema = z.object({
   next_action: optional(300),
   internal_notes: optional(6000),
 }).superRefine((value, context) => {
+  if (value.lead_source === "Referral Person" && !value.referred_by) context.addIssue({ code: "custom", path: ["referred_by"], message: "Enter who referred this enquiry." });
+  if (value.lead_source === "Other" && !value.lead_source_detail) context.addIssue({ code: "custom", path: ["lead_source_detail"], message: "Add source details." });
   if (!value.customer_id) {
     if (value.customer_name.length < 2) context.addIssue({ code: "custom", path: ["customer_name"], message: "Enter a customer name or select an existing customer." });
     if (!value.phone && !value.whatsapp_number && !value.email) context.addIssue({ code: "custom", path: ["phone"], message: "Add a contact method for the new customer." });
@@ -81,10 +86,16 @@ export const enquiryUpdateSchema = z.object({
   status: z.enum(ENQUIRY_STATUSES),
   priority: z.enum(LEAD_PRIORITIES),
   source: z.enum(ENQUIRY_SOURCES),
+  lead_source: z.enum(ENQUIRY_SOURCES),
+  referred_by: optional(160),
+  lead_source_detail: optional(300),
   assigned_to: optionalUuid,
   follow_up_at: optionalDateTime,
   next_action: optional(300),
   internal_notes: optional(6000),
+}).superRefine((value, context) => {
+  if (value.lead_source === "Referral Person" && !value.referred_by) context.addIssue({ code: "custom", path: ["referred_by"], message: "Enter who referred this enquiry." });
+  if (value.lead_source === "Other" && !value.lead_source_detail) context.addIssue({ code: "custom", path: ["lead_source_detail"], message: "Add source details." });
 });
 
 export const followUpSchema = z.object({

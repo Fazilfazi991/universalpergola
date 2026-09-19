@@ -18,9 +18,9 @@ export async function getManagementReport(range: Range, role: AppRole) {
   const next7Date = next7.toISOString().slice(0, 10);
 
   const [enquiriesResult, visitsResult, quotesResult, projectsResult, followUpsResult, paymentsResult, financeResult, milestonesResult, feedbackResult, feedbackReviewResult] = await Promise.all([
-    supabase.from("enquiries").select("id, status, source, assigned_to, created_at, assigned:profiles!enquiries_assigned_to_fkey(id, full_name)").gte("created_at", range.fromTimestamp).lte("created_at", range.toTimestamp).is("archived_at", null).limit(2000),
+    supabase.from("enquiries").select("id, status, source, lead_source, assigned_to, created_at, assigned:profiles!enquiries_assigned_to_fkey(id, full_name)").gte("created_at", range.fromTimestamp).lte("created_at", range.toTimestamp).is("archived_at", null).limit(2000),
     supabase.from("site_visits").select("id, enquiry_id, scheduled_at, created_at, status").gte("created_at", range.fromTimestamp).lte("created_at", range.toTimestamp).is("archived_at", null).limit(2000),
-    supabase.from("quotations").select("id, site_visit_id, status, total, currency, created_at, approved_at").gte("created_at", range.fromTimestamp).lte("created_at", range.toTimestamp).is("archived_at", null).limit(2000),
+    supabase.from("quotations").select("id, enquiry_id, site_visit_id, status, total, currency, created_at, approved_at").gte("created_at", range.fromTimestamp).lte("created_at", range.toTimestamp).is("archived_at", null).limit(2000),
     supabase.from("projects").select("id, quotation_id, project_number, status, project_value, currency, created_at, actual_completion_date, expected_completion_date, installation_date, handover_status, customer:customers!projects_customer_id_fkey(id, name), current_stage:project_stages!projects_current_stage_id_fkey(stage_key, name)").is("archived_at", null).limit(1000),
     supabase.from("tasks").select("id, due_at, status, assigned:profiles!tasks_assigned_to_fkey(id, full_name)").eq("kind", "enquiry_follow_up").in("status", ["open", "in_progress", "blocked"]).not("due_at", "is", null).is("archived_at", null).limit(2000),
     supabase.from("payments").select("id, amount_received, received_date, voided_at, archived_at").gte("received_date", range.from).lte("received_date", range.to).is("voided_at", null).is("archived_at", null).limit(3000),
@@ -32,7 +32,7 @@ export async function getManagementReport(range: Range, role: AppRole) {
   const failures = [enquiriesResult, visitsResult, quotesResult, projectsResult, followUpsResult, paymentsResult, financeResult, milestonesResult, feedbackResult, feedbackReviewResult].filter((result) => result.error);
   if (failures.length) throw new Error(`Unable to load management report: ${failures[0].error?.message}`);
 
-  const enquiries = (enquiriesResult.data || []) as { id:string; status:string; source:string|null; assigned_to:string|null; created_at:string; assigned:Person }[];
+  const enquiries = (enquiriesResult.data || []) as { id:string; status:string; source:string|null; lead_source:string|null; assigned_to:string|null; created_at:string; assigned:Person }[];
   const visits = visitsResult.data || [];
   const quotes = quotesResult.data || [];
   const projects = projectsResult.data || [];
@@ -67,9 +67,13 @@ export async function getManagementReport(range: Range, role: AppRole) {
     id:item.id, rating:Number(item.customer_rating||0), submitted_at:item.submitted_at,
     project:item.project as unknown as {id:string;project_number:string;customer:{id:string;name:string}|null}|null,
   }));
+  const quoteEnquiry = new Map((quotes as {id:string;enquiry_id:string|null}[]).filter((item)=>item.enquiry_id).map((item)=>[item.id,item.enquiry_id!]));
+  const projectValueByEnquiry = new Map<string,number>();
+  for (const project of projects as {quotation_id:string|null;project_value:number|null}[]) { const enquiryId=project.quotation_id ? quoteEnquiry.get(project.quotation_id) : null; if(enquiryId) projectValueByEnquiry.set(enquiryId,(projectValueByEnquiry.get(enquiryId)||0)+money(project.project_value)); }
+  const sourcePerformance = [...enquiries.reduce((map, item) => { const source=item.lead_source || "Not specified"; const row=map.get(source)||{source,enquiries:0,qualified:0,converted:0,projectValue:0}; row.enquiries++; if(["contacted","follow_up","site_visit_required","quotation","approved"].includes(item.status)) row.qualified++; if(item.status==="approved" || projectValueByEnquiry.has(item.id)) row.converted++; row.projectValue+=projectValueByEnquiry.get(item.id)||0; map.set(source,row); return map; },new Map<string,{source:string;enquiries:number;qualified:number;converted:number;projectValue:number}>()).values()].map((row)=>({...row,conversion:percent(row.converted,row.enquiries)})).sort((a,b)=>b.enquiries-a.enquiries);
   return {
     range,
-    crm: { total: enquiries.length, newCount: enquiries.filter((item)=>item.status==="new").length, bySource: by(enquiries,(item)=>item.source||"Unspecified"), byStatus: by(enquiries,(item)=>item.status), salesperson, dueFollowUps: followUps.filter((item)=>item.due_at && item.due_at.slice(0,10)===today).length, overdueFollowUps: followUps.filter((item)=>item.due_at && item.due_at.slice(0,10)<today).length, trend: enquiryTrend },
+    crm: { total: enquiries.length, newCount: enquiries.filter((item)=>item.status==="new").length, bySource: by(enquiries,(item)=>item.lead_source||"Not specified"), sourcePerformance, byStatus: by(enquiries,(item)=>item.status), salesperson, dueFollowUps: followUps.filter((item)=>item.due_at && item.due_at.slice(0,10)===today).length, overdueFollowUps: followUps.filter((item)=>item.due_at && item.due_at.slice(0,10)<today).length, trend: enquiryTrend },
     conversion: {
       enquiryToVisit: { numerator: visitsWithEligibleEnquiry.size, denominator: enquiries.length, rate: percent(visitsWithEligibleEnquiry.size,enquiries.length) },
       visitToQuote: { numerator: quotedVisitIds.size, denominator: visits.length, rate: percent(quotedVisitIds.size,visits.length) },
