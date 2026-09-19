@@ -21,13 +21,13 @@ export const requireCurrentProfile = cache(async (): Promise<CurrentProfile> => 
   const supabase = await createClient();
 
   if (!supabase) {
-    redirect("/login?reason=configuration");
+    redirect("/?reason=configuration");
   }
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
 
   if (userError || !userData.user) {
-    redirect("/login");
+    redirect("/");
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -43,7 +43,7 @@ export const requireCurrentProfile = cache(async (): Promise<CurrentProfile> => 
     !APP_ROLES.includes(profile.role as AppRole)
   ) {
     await supabase.auth.signOut();
-    redirect("/login?reason=profile");
+    redirect("/?reason=profile");
   }
 
   return {

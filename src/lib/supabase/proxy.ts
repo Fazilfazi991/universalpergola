@@ -6,12 +6,12 @@ import type { Database } from "@/lib/supabase/database.generated";
 export async function updateSession(request: NextRequest) {
   const config = getSupabasePublicConfig();
   const isDashboard = request.nextUrl.pathname.startsWith("/dashboard");
-  const isLogin = request.nextUrl.pathname === "/login";
+  const isAuthEntry = request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/login";
 
   if (!config) {
     if (isDashboard) {
       const url = request.nextUrl.clone();
-      url.pathname = "/login";
+      url.pathname = "/";
       url.searchParams.set("reason", "configuration");
       return NextResponse.redirect(url);
     }
@@ -37,12 +37,12 @@ export async function updateSession(request: NextRequest) {
 
   if (isDashboard && (error || !data.user)) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/";
     url.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
 
-  if (isLogin && data.user) {
+  if (isAuthEntry && data.user) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";
