@@ -155,29 +155,30 @@ export async function generateInvoicePdf(invoice: InvoiceDetail, items: InvoiceI
   document.setModificationDate(new Date(invoice.issued_at || invoice.updated_at));
 
   drawCenteredFittedText(page, "INVOICE", 465, 673.18, 255, 22, 18, bold, PDF_COLORS.ink);
-  drawFittedText(page, invoice.customer_name_snapshot, 20.76, 720.96, 305, 8.5, 5.5, bold);
-  drawFittedText(page, invoice.customer_phone_snapshot || "-", 33.12, 708.46, 210, 7, 5.5, regular);
-  drawFittedText(page, pdfDate(invoice.issue_date), 490.9, 708.46, 100, 7, 5.5, bold);
+  drawFittedText(page, invoice.customer_name_snapshot, 20.76, 720.96, 305, 9, 5.8, bold);
+  drawFittedText(page, invoice.customer_phone_snapshot || "-", 33.12, 708.46, 210, 7.5, 5.8, regular);
+  drawFittedText(page, pdfDate(invoice.issue_date), 490.9, 708.46, 100, 7.5, 5.8, bold);
   const compactItems = items.length >= 4;
   let y = 530;
   for (const item of items.slice(0, 4)) {
-    drawFittedText(page, item.item_name, 20.76, y, 420, compactItems ? 6.4 : 7.1, compactItems ? 5.4 : 5.8, bold);
+    drawFittedText(page, item.item_name, 20.76, y, 420, compactItems ? 7.4 : 8, compactItems ? 6 : 6.4, bold);
     if (compactItems) {
-      drawFittedText(page, item.description, 20.76, y - 7, 420, 5.2, 4.5, regular);
+      const lines = wrapPdfText(item.description, regular, 6, 420).slice(0, 2);
+      lines.forEach((line, index) => page.drawText(line, { x: 20.76, y: y - 7 - index * 6.2, size: 6, font: regular, color: PDF_COLORS.ink }));
     } else {
-      const lines = wrapPdfText(item.description, regular, 6.5, 420).slice(0, 2);
-      lines.forEach((line, index) => page.drawText(line, { x: 20.76, y: y - 9 - index * 8, size: 6.5, font: regular, color: PDF_COLORS.ink }));
+      const lines = wrapPdfText(item.description, regular, 7.5, 420).slice(0, 2);
+      lines.forEach((line, index) => page.drawText(line, { x: 20.76, y: y - 9 - index * 8, size: 7.5, font: regular, color: PDF_COLORS.ink }));
     }
-    page.drawText(String(item.quantity), { x: 478, y, size: 7.1, font: regular, color: PDF_COLORS.ink });
-    drawRightText(page, pdfMoney(item.line_total, invoice.currency), 590, y, 7.1, bold, PDF_COLORS.ink);
+    page.drawText(String(item.quantity), { x: 478, y, size: 7.8, font: regular, color: PDF_COLORS.ink });
+    drawRightText(page, pdfMoney(item.line_total, invoice.currency), 590, y, 7.8, bold, PDF_COLORS.ink);
     y -= compactItems ? 19 : 27;
   }
-  drawRightText(page, pdfMoney(invoice.total, invoice.currency), 296, 450.43, 8, bold, PDF_COLORS.ink);
-  drawFittedText(page, "INVOICE TOTAL", 20.76, 426.29, 150, 8.5, 5.6, bold);
-  drawFittedText(page, "BANK TRANSFER", 191.3, 426.29, 125, 8.5, 5.6, regular);
+  drawRightText(page, pdfMoney(invoice.total, invoice.currency), 296, 450.43, 9, bold, PDF_COLORS.ink);
+  drawFittedText(page, "INVOICE TOTAL", 20.76, 426.29, 150, 9.5, 6.2, bold);
+  drawFittedText(page, "BANK TRANSFER", 191.3, 426.29, 125, 9.5, 6.2, regular);
   drawFittedText(page, invoice.client_reference || invoice.invoice_number, 333.29, 426.29, 255, 11.5, 7.5, bold);
-  drawFittedText(page, invoice.status.replaceAll("_", " ").toUpperCase(), 95.66, 412.73, 170, 8.5, 5.6, bold);
-  drawRightText(page, pdfMoney(invoice.total, invoice.currency), right, 348.65, 8, bold, PDF_COLORS.ink);
+  drawFittedText(page, invoice.status.replaceAll("_", " ").toUpperCase(), 95.66, 412.73, 170, 9.2, 6.2, bold);
+  drawRightText(page, pdfMoney(invoice.total, invoice.currency), right, 348.65, 9, bold, PDF_COLORS.ink);
 
   return document.save({ useObjectStreams: false });
 }

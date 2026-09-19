@@ -240,25 +240,25 @@ export async function generateQuotationPdf(quote: QuotationDetail, items: Quotat
 
   const drawLiveValues = (target: typeof page, pageIndex: number) => {
     // These baselines follow the fields in the client-supplied Word export.
-    drawFittedText(target, quote.customer_name_snapshot, 83, 550, 128, 7.2, 5.2, bold);
-    drawFittedText(target, quote.customer_phone_snapshot || quote.customer_email_snapshot || "-", 31, 535, 180, 6.4, 5.2, regular);
-    drawFittedText(target, pdfDate(quote.issue_date), 61, 520, 150, 6.4, 5.2, regular);
+    drawFittedText(target, quote.customer_name_snapshot, 83, 550, 128, 7.8, 5.5, bold);
+    drawFittedText(target, quote.customer_phone_snapshot || quote.customer_email_snapshot || "-", 31, 535, 180, 7.2, 5.6, regular);
+    drawFittedText(target, pdfDate(quote.issue_date), 61, 520, 150, 7.2, 5.6, regular);
     drawCenteredFittedText(target, reference, 418, 720, 305, 13, 8, bold, PDF_COLORS.charcoal);
 
     let y = 628;
     for (const item of items.slice(pageIndex * rowsPerPage, pageIndex * rowsPerPage + rowsPerPage)) {
-      drawFittedText(target, item.item_name, 240, y, 282, 7, 5.8, bold);
+      drawFittedText(target, item.item_name, 240, y, 282, 8, 6.4, bold);
       const detail = [item.description, item.dimensions_details].filter(Boolean).join(" - ");
-      const detailLines = wrapPdfText(detail, regular, 6.2, 282).slice(0, 2);
-      detailLines.forEach((line, index) => target.drawText(line, { x: 240, y: y - 9 - index * 8, size: 6.2, font: regular, color: PDF_COLORS.ink }));
-      drawRightText(target, pdfMoney(item.line_total, quote.currency), right, y, 6.8, bold, PDF_COLORS.ink);
+      const detailLines = wrapPdfText(detail, regular, 7.2, 282).slice(0, 2);
+      detailLines.forEach((line, index) => target.drawText(line, { x: 240, y: y - 9 - index * 8, size: 7.2, font: regular, color: PDF_COLORS.ink }));
+      drawRightText(target, pdfMoney(item.line_total, quote.currency), right, y, 7.6, bold, PDF_COLORS.ink);
       y -= 34;
     }
 
     if (pageIndex === pageCount - 1) {
-      drawRightText(target, pdfMoney(quote.subtotal, quote.currency), right, 306.65, 7.2, regular, PDF_COLORS.charcoal);
-      drawRightText(target, pdfMoney(quote.vat_amount, quote.currency), right, 280.22, 7.2, regular, PDF_COLORS.charcoal);
-      drawRightText(target, pdfMoney(quote.total, quote.currency), right, 259.58, 8.2, bold, PDF_COLORS.charcoal);
+      drawRightText(target, pdfMoney(quote.subtotal, quote.currency), right, 306.65, 8, regular, PDF_COLORS.charcoal);
+      drawRightText(target, pdfMoney(quote.vat_amount, quote.currency), right, 280.22, 8, regular, PDF_COLORS.charcoal);
+      drawRightText(target, pdfMoney(quote.total, quote.currency), right, 259.58, 9, bold, PDF_COLORS.charcoal);
     }
   };
 
