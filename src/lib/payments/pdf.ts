@@ -1,6 +1,6 @@
 import { degrees, PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { UNIVERSAL_PERGOLA_DOCUMENT } from "../documents/config.ts";
-import { A4_HEIGHT, A4_WIDTH, CLIENT_TEMPLATE_WIDTH, PDF_COLORS, copyClientTemplatePage, drawDocumentFooter, drawRightText, embedBrandLogo, pdfDate, pdfMoney, safePdfText, wrapPdfText } from "../documents/pdf-kit.ts";
+import { A4_HEIGHT, A4_WIDTH, PDF_COLORS, copyClientTemplatePage, drawDocumentFooter, drawFittedText, drawRightText, embedBrandLogo, pdfDate, pdfMoney, safePdfText, wrapPdfText } from "../documents/pdf-kit.ts";
 import { paymentMethodLabel } from "./presentation.ts";
 import type { FinanceSummary, ReceiptRow } from "./types.ts";
 
@@ -10,6 +10,8 @@ function drawWrapped(page: PDFPage, value: unknown, x: number, y: number, width:
   return y - lines.length * leading;
 }
 
+// Retained as a rollback reference; exported documents use the client-supplied artwork below.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function generateLegacyPaymentReceiptPdf(receipt: ReceiptRow, finance: FinanceSummary) {
   const document = await PDFDocument.create();
   const regular = await document.embedFont(StandardFonts.Helvetica);
@@ -136,7 +138,7 @@ export async function generatePaymentReceiptPdf(receipt: ReceiptRow, finance: Fi
   const document = await PDFDocument.create();
   const regular = await document.embedFont(StandardFonts.Helvetica);
   const bold = await document.embedFont(StandardFonts.HelveticaBold);
-  const page = await copyClientTemplatePage(document, "client-receipt-template.png");
+  const page = await copyClientTemplatePage(document, "client-receipt-background.pdf");
   const currency = receipt.project?.currency || finance.currency || "AED";
   const isVoid = Boolean(receipt.voided_at);
   const status = isVoid ? "VOID - REVERSED" : "CASH RECEIVED";
@@ -150,23 +152,22 @@ export async function generatePaymentReceiptPdf(receipt: ReceiptRow, finance: Fi
   document.setCreationDate(new Date(receipt.created_at));
   document.setModificationDate(new Date(receipt.voided_at || receipt.created_at));
 
-  page.drawText(safePdfText(receipt.customer?.name || "Customer"), { x: 20, y: 728, size: 7.2, font: bold, color: PDF_COLORS.ink });
-  page.drawText(safePdfText(receipt.customer?.phone || "-"), { x: 20, y: 714, size: 6.2, font: regular, color: PDF_COLORS.ink });
-  drawRightText(page, pdfDate(receipt.received_date), 590, 715, 7, bold, PDF_COLORS.ink);
+  drawFittedText(page, receipt.customer?.name || "Customer", 20.76, 720.96, 305, 8.5, 5.5, bold);
+  drawFittedText(page, receipt.customer?.phone || "-", 33.12, 708.46, 210, 7, 5.5, regular);
+  drawFittedText(page, pdfDate(receipt.received_date), 490.9, 708.46, 100, 7, 5.5, bold);
   const service = receipt.milestone?.description || receipt.milestone?.name || `Payment for ${receipt.project?.project_number || "project services"}`;
-  const serviceLines = wrapPdfText(service, regular, 7.2, 235).slice(0, 3);
-  serviceLines.forEach((line, index) => page.drawText(line, { x: 20, y: 530 - index * 9, size: 7.2, font: index === 0 ? bold : regular, color: PDF_COLORS.ink }));
+  drawFittedText(page, receipt.milestone?.name || "Project payment", 20.76, 530, 420, 7.2, 5.8, bold);
+  const serviceLines = wrapPdfText(service, regular, 6.5, 420).slice(0, 3);
+  serviceLines.forEach((line, index) => page.drawText(line, { x: 20.76, y: 521 - index * 8, size: 6.5, font: regular, color: PDF_COLORS.ink }));
   page.drawText("1", { x: 478, y: 530, size: 7.2, font: regular, color: PDF_COLORS.ink });
   drawRightText(page, pdfMoney(receipt.amount_received, currency), 590, 530, 7.2, bold, PDF_COLORS.ink);
 
-  drawRightText(page, pdfMoney(receipt.amount_received, currency), 296, 454, 8, bold, PDF_COLORS.ink);
-  page.drawRectangle({ x: 188, y: 420, width: 78, height: 9, color: PDF_COLORS.white });
-  page.drawRectangle({ x: 330, y: 420, width: 64, height: 9, color: PDF_COLORS.white });
-  page.drawRectangle({ x: 98, y: 405, width: 78, height: 9, color: PDF_COLORS.white });
-  page.drawText(paymentMethodLabel(receipt.payment_method).toUpperCase(), { x: 190, y: 424, size: 7.2, font: regular, color: PDF_COLORS.ink });
-  page.drawText(safePdfText(reference), { x: 332, y: 424, size: 7.2, font: bold, color: PDF_COLORS.ink });
-  page.drawText(status, { x: 100, y: 409, size: 7.2, font: bold, color: isVoid ? PDF_COLORS.red : PDF_COLORS.green });
-  drawRightText(page, pdfMoney(finance.outstanding, currency), 590, 347, 8, bold, PDF_COLORS.ink);
+  drawRightText(page, pdfMoney(receipt.amount_received, currency), 296, 450.43, 8, bold, PDF_COLORS.ink);
+  drawFittedText(page, receipt.milestone?.name || "Project payment", 20.76, 426.29, 150, 8.5, 5.6, bold);
+  drawFittedText(page, paymentMethodLabel(receipt.payment_method).toUpperCase(), 191.3, 426.29, 125, 8.5, 5.6, regular);
+  drawFittedText(page, reference, 333.29, 426.29, 255, 11.5, 7.5, bold);
+  drawFittedText(page, status, 95.66, 412.73, 170, 8.5, 5.6, bold, isVoid ? PDF_COLORS.red : PDF_COLORS.green);
+  drawRightText(page, pdfMoney(finance.outstanding, currency), 590, 348.65, 8, bold, PDF_COLORS.ink);
   if (isVoid) page.drawText("VOID", { x: 240, y: 330, size: 60, font: bold, color: PDF_COLORS.red, opacity: 0.12 });
 
   return document.save({ useObjectStreams: false });

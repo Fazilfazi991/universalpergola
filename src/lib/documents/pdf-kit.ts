@@ -70,6 +70,27 @@ export function drawRightText(page: PDFPage, value: unknown, right: number, y: n
   page.drawText(text, { x: right - font.widthOfTextAtSize(text, size), y, size, font, color });
 }
 
+export function fittedPdfTextSize(value: unknown, font: PDFFont, maximumSize: number, minimumSize: number, width: number) {
+  const text = safePdfText(value);
+  let size = maximumSize;
+  while (size > minimumSize && font.widthOfTextAtSize(text, size) > width) size -= 0.2;
+  return Math.max(size, minimumSize);
+}
+
+export function drawFittedText(page: PDFPage, value: unknown, x: number, y: number, width: number, maximumSize: number, minimumSize: number, font: PDFFont, color = PDF_COLORS.ink) {
+  const text = safePdfText(value);
+  const size = fittedPdfTextSize(text, font, maximumSize, minimumSize, width);
+  page.drawText(text, { x, y, size, font, color });
+  return size;
+}
+
+export function drawCenteredFittedText(page: PDFPage, value: unknown, center: number, y: number, width: number, maximumSize: number, minimumSize: number, font: PDFFont, color = PDF_COLORS.ink) {
+  const text = safePdfText(value);
+  const size = fittedPdfTextSize(text, font, maximumSize, minimumSize, width);
+  page.drawText(text, { x: center - font.widthOfTextAtSize(text, size) / 2, y, size, font, color });
+  return size;
+}
+
 export async function embedBrandLogo(document: PDFDocument): Promise<PDFImage> {
   const bytes = await readFile(join(process.cwd(), "public", "brand", "universal-pergola-logo.png"));
   return document.embedPng(bytes);
@@ -77,14 +98,14 @@ export async function embedBrandLogo(document: PDFDocument): Promise<PDFImage> {
 
 /**
  * The client supplied these Word-exported sheets as the approved artwork.
- * Copying their page into the output keeps the non-data artwork pixel-identical;
- * the document generators only paint live operational values on top.
+ * Copying the original PDF page preserves its vectors, images, geometry, and
+ * typography; document generators paint only live operational values on top.
  */
 export async function copyClientTemplatePage(document: PDFDocument, filename: string) {
   const bytes = await readFile(join(process.cwd(), "public", "brand", filename));
-  const template = await document.embedPng(bytes);
-  const page = document.addPage([CLIENT_TEMPLATE_WIDTH, CLIENT_TEMPLATE_HEIGHT]);
-  page.drawImage(template, { x: 0, y: 0, width: CLIENT_TEMPLATE_WIDTH, height: CLIENT_TEMPLATE_HEIGHT });
+  const template = await PDFDocument.load(bytes);
+  const [page] = await document.copyPages(template, [0]);
+  document.addPage(page);
   return page;
 }
 
