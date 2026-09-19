@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { ArrowRight, Banknote, CalendarClock, CircleDollarSign, Download, ReceiptText, TriangleAlert } from "lucide-react";
 import { PageHeading } from "@/components/ui/page-heading";
+import { DemoDisabledNotice } from "@/components/dashboard/demo-disabled-notice";
 import { requireModuleAccess } from "@/lib/auth/dal";
 import { formatDate } from "@/lib/crm/presentation";
 import { paymentMethodLabel, paymentPlanLabel, paymentStatusClass, paymentStatusLabel } from "@/lib/payments/presentation";
 import { getFinanceDashboardSummary, getFinanceMilestoneQueue, getFinanceProjectSummaries, getRecentReceipts } from "@/lib/payments/queries";
 import { formatMoney } from "@/lib/quotations/money";
+import { isDemoMode } from "@/lib/demo-mode-server";
 
 function text(value: string | string[] | undefined) { return typeof value === "string" ? value : ""; }
 function uniqueOptions<T>(items: T[], key: (item: T) => string, label: (item: T) => string) {
@@ -63,7 +65,8 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/dashboa
   const recorderOptions = uniqueOptions(receipts, (item) => item.creator?.id || "", (item) => item.creator?.full_name || "Team member");
 
   return <div className="space-y-8">
-    <PageHeading title="Payments" description="Authoritative balances, milestone schedules, immutable receipts, and private proof documents." action={<Link href="/dashboard/payments/new" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-graphite px-4 text-sm font-semibold text-white"><ReceiptText size={16} />Record payment</Link>} />
+    <PageHeading title="Payments" description="Authoritative balances, milestone schedules, immutable receipts, and private proof documents." action={!isDemoMode() ? <Link href="/dashboard/payments/new" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-graphite px-4 text-sm font-semibold text-white"><ReceiptText size={16} />Record payment</Link> : undefined} />
+    {isDemoMode() && <DemoDisabledNotice>Recording, voiding, and uploading payment proof are disabled in the public demo.</DemoDisabledNotice>}
 
     <section className="overflow-hidden rounded-lg border border-line bg-paper" aria-label="Accounts reconciliation">
       <dl className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">

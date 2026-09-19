@@ -1,6 +1,8 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { isDemoMode } from "@/lib/demo-mode-server";
+import { DEMO_CUSTOMERS, DEMO_ENQUIRIES, DEMO_STAFF, DEMO_VISITS } from "@/lib/demo/data";
 import { isUuid } from "@/lib/crm/validation";
 import { SITE_PHOTO_BUCKET } from "./media.ts";
 import type {
@@ -136,6 +138,7 @@ export function siteVisitFilters(
 }
 
 export async function getSiteTeamDirectory() {
+  if (isDemoMode()) return DEMO_STAFF.filter((person) => person.role === "admin" || person.role === "site_team") as unknown as VisitStaff[];
   const supabase = await createClient();
   if (!supabase) return [] as VisitStaff[];
   const { data, error } = await supabase
@@ -150,6 +153,7 @@ export async function getSiteTeamDirectory() {
 }
 
 export async function getVisitTaskDirectory() {
+  if (isDemoMode()) return DEMO_STAFF as unknown as VisitStaff[];
   const supabase = await createClient();
   if (!supabase) return [] as VisitStaff[];
   const { data, error } = await supabase
@@ -165,6 +169,7 @@ export async function getVisitTaskDirectory() {
 }
 
 export async function getSiteVisitCreationOptions() {
+  if (isDemoMode()) return { customers: DEMO_CUSTOMERS.map(({ id, name, phone }) => ({ id, name, phone })), enquiries: DEMO_ENQUIRIES, staff: DEMO_STAFF } as never;
   const supabase = await createClient();
   if (!supabase)
     return {
@@ -206,6 +211,7 @@ export async function getSiteVisitCreationOptions() {
 }
 
 export async function getSiteVisits(filters: Record<string, string>) {
+  if (isDemoMode()) return DEMO_VISITS.filter((visit) => !filters.status || visit.status === filters.status) as unknown as SiteVisitListItem[];
   const supabase = await createClient();
   if (!supabase) return [] as SiteVisitListItem[];
   let query = supabase
@@ -279,6 +285,7 @@ export async function getSiteVisits(filters: Record<string, string>) {
 }
 
 export async function getSiteVisit(id: string) {
+  if (isDemoMode()) return (DEMO_VISITS.find((visit) => visit.id === id) || null) as never;
   if (!isUuid(id)) return null;
   const supabase = await createClient();
   if (!supabase) return null;
@@ -294,6 +301,7 @@ export async function getSiteVisit(id: string) {
 }
 
 export async function getSiteVisitWorkspace(id: string) {
+  if (isDemoMode()) return { measurements: [], photos: [], timeline: [], followUps: [] };
   if (!isUuid(id))
     return {
       measurements: [] as SiteMeasurement[],
@@ -393,13 +401,16 @@ async function getLinkedVisits(
   return (data || []) as unknown as SiteVisitListItem[];
 }
 export function getCustomerSiteVisits(id: string) {
+  if (isDemoMode()) return Promise.resolve(DEMO_VISITS.filter((visit) => visit.customer_id === id) as unknown as SiteVisitListItem[]);
   return getLinkedVisits("customer_id", id);
 }
 export function getEnquirySiteVisits(id: string) {
+  if (isDemoMode()) return Promise.resolve(DEMO_VISITS.filter((visit) => visit.enquiry?.id === id) as unknown as SiteVisitListItem[]);
   return getLinkedVisits("enquiry_id", id);
 }
 
 export async function getSiteVisitDashboard() {
+  if (isDemoMode()) return { today: 1, upcoming: 2, awaiting: 1, todayVisits: DEMO_VISITS.slice(0, 1) as unknown as SiteVisitListItem[] };
   const supabase = await createClient();
   if (!supabase)
     return {

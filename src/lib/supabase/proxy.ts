@@ -1,9 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublicConfig } from "@/lib/supabase/env";
+import { isDemoMode } from "@/lib/demo-mode";
 import type { Database } from "@/lib/supabase/database.generated";
 
 export async function updateSession(request: NextRequest) {
+  if (isDemoMode()) return NextResponse.next();
   const config = getSupabasePublicConfig();
   const isDashboard = request.nextUrl.pathname.startsWith("/dashboard");
   const isLogin = request.nextUrl.pathname === "/login";

@@ -14,7 +14,9 @@ import {
   FollowUpForm,
 } from "@/components/dashboard/enquiry-controls";
 import { PageHeading } from "@/components/ui/page-heading";
+import { DemoDisabledNotice } from "@/components/dashboard/demo-disabled-notice";
 import { requireModuleAccess } from "@/lib/auth/dal";
+import { isDemoMode } from "@/lib/demo-mode-server";
 import {
   activityLabel,
   enquiryReference,
@@ -81,22 +83,23 @@ export default async function EnquiryPage({
         }
         action={
           <div className="flex flex-wrap gap-2">
-            <Link
+            {!isDemoMode() && <Link
               href={`/dashboard/site-visits/new?customer=${enquiry.customer_id}&enquiry=${id}`}
               className="inline-flex min-h-11 items-center gap-2 rounded-md bg-graphite px-4 text-sm font-semibold text-white"
             >
               Schedule visit
-            </Link>
-            <form action={markContactedAction}>
+            </Link>}
+            {!isDemoMode() && <form action={markContactedAction}>
               <input type="hidden" name="id" value={id} />
               <button className="inline-flex min-h-11 items-center gap-2 rounded-md border border-line bg-paper px-4 text-sm font-medium">
                 <Check size={16} />
                 Mark contacted
               </button>
-            </form>
+            </form>}
           </div>
         }
       />
+      {isDemoMode() && <DemoDisabledNotice>Enquiry editing, scheduling, follow-ups, assignment, and notes are disabled in the public demo.</DemoDisabledNotice>}
       <div className="flex flex-wrap items-center gap-2">
         <span className="rounded-sm border border-line bg-paper px-3 py-2 text-sm">
           {statusLabel(enquiry.status)}
@@ -188,7 +191,7 @@ export default async function EnquiryPage({
           <section className="border-y border-line bg-paper px-4 py-5 sm:rounded-lg sm:border sm:p-6">
             <h2 className="text-lg font-semibold">Update enquiry</h2>
             <div className="mt-5">
-              <EnquiryEditor enquiry={enquiry} role={profile.role} />
+              {!isDemoMode() ? <EnquiryEditor enquiry={enquiry} role={profile.role} /> : <p className="text-sm text-stone">This enquiry is displayed with synthetic data for portfolio review.</p>}
             </div>
           </section>
           <section>
@@ -339,7 +342,7 @@ export default async function EnquiryPage({
                         {followUpStatusLabel(task.status)}
                       </span>
                     </div>
-                    {task.status !== "completed" &&
+                    {!isDemoMode() && task.status !== "completed" &&
                       task.status !== "cancelled" && (
                         <div className="mt-3 flex flex-wrap items-end gap-3">
                           <form action={completeFollowUpAction}>
@@ -423,7 +426,7 @@ export default async function EnquiryPage({
         <aside className="space-y-5">
           <section className="rounded-lg border border-line bg-paper p-5">
             <h2 className="text-base font-semibold">Assignment</h2>
-            {profile.role === "admin" ? (
+            {profile.role === "admin" && !isDemoMode() ? (
               <form action={assignEnquiryAction} className="mt-4 space-y-3">
                 <input type="hidden" name="id" value={id} />
                 <select
@@ -451,18 +454,18 @@ export default async function EnquiryPage({
           <section className="rounded-lg border border-line bg-paper p-5">
             <h2 className="text-base font-semibold">Add follow-up</h2>
             <div className="mt-4">
-              <FollowUpForm
+              {!isDemoMode() && <FollowUpForm
                 enquiryId={id}
                 customerId={enquiry.customer_id}
                 staff={staff}
                 role={profile.role}
                 defaultAssignee={enquiry.assigned_to}
                 currentUserId={profile.id}
-              />
+              />}
             </div>
           </section>
           <section className="rounded-lg border border-line bg-paper p-5">
-            <EnquiryNoteForm enquiryId={id} />
+            {!isDemoMode() ? <EnquiryNoteForm enquiryId={id} /> : <p className="text-sm text-stone">Notes are disabled in the public demo.</p>}
           </section>
         </aside>
       </div>

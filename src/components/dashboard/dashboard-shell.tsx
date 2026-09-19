@@ -16,6 +16,8 @@ import {
   Menu,
   MessageSquareText,
   ReceiptText,
+  FileStack,
+  Landmark,
   Users,
   X,
   type LucideIcon,
@@ -28,6 +30,7 @@ import {
   type AppRole,
   type DashboardModule,
 } from "@/lib/auth/permissions";
+import { isDemoMode } from "@/lib/demo-mode";
 
 type NavItem = {
   label: string;
@@ -104,6 +107,10 @@ const navItems: NavItem[] = [
     module: "reports",
   },
 ];
+const demoNavItems: NavItem[] = [
+  { label: "Commercial Documents", href: "/dashboard/documents", icon: FileStack },
+  { label: "Accounts", href: "/dashboard/accounts", icon: Landmark },
+];
 
 function NavLinks({
   role,
@@ -115,7 +122,7 @@ function NavLinks({
   const pathname = usePathname();
   return (
     <nav className="space-y-1" aria-label="Dashboard navigation">
-      {navItems
+      {(isDemoMode() ? [...navItems.slice(0, 7), demoNavItems[0], ...navItems.slice(7), demoNavItems[1]] : navItems)
         .filter((item) => !item.module || canAccessModule(role, item.module))
         .map((item) => {
           const active =
@@ -168,7 +175,8 @@ export function DashboardShell({
             "/dashboard/projects",
             "/dashboard/tasks",
           ];
-  const mobileItems = navItems.filter(
+  const availableNavItems = isDemoMode() ? [...navItems, ...demoNavItems] : navItems;
+  const mobileItems = availableNavItems.filter(
     (item) =>
       preferredMobileHrefs.includes(item.href) &&
       (!item.module || canAccessModule(profile.role, item.module)),
@@ -248,6 +256,7 @@ export function DashboardShell({
 
       <main className="min-w-0 pb-24 lg:ml-64 lg:pb-0">
         <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+          {isDemoMode() && <div className="mb-6 rounded-lg border border-brass/30 bg-brass/10 px-4 py-3 text-sm text-graphite"><strong>Fusion Ventures Demo</strong><span className="ml-2 text-stone">Synthetic data · Changes reset when the page reloads</span></div>}
           {children}
         </div>
       </main>

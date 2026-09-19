@@ -21,7 +21,9 @@ import {
 } from "@/components/dashboard/project-controls";
 import { PageHeading } from "@/components/ui/page-heading";
 import { StatusNotice } from "@/components/ui/status-notice";
+import { DemoDisabledNotice } from "@/components/dashboard/demo-disabled-notice";
 import { requireModuleAccess } from "@/lib/auth/dal";
+import { isDemoMode } from "@/lib/demo-mode-server";
 import { formatDate } from "@/lib/crm/presentation";
 import { formatMoney } from "@/lib/quotations/money";
 import {
@@ -59,9 +61,9 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
     profile.role === "site_team" ? Promise.resolve(null) : getProjectFinanceSummary(id),
     getProjectFeedback(id),
   ]);
-  const canManage = profile.role === "admin";
-  const canOperate = profile.role === "admin" || profile.role === "site_team";
-  const canAddUpdate = profile.role === "admin" || profile.role === "sales" || profile.role === "site_team";
+  const canManage = profile.role === "admin" && !isDemoMode();
+  const canOperate = (profile.role === "admin" || profile.role === "site_team") && !isDemoMode();
+  const canAddUpdate = (profile.role === "admin" || profile.role === "sales" || profile.role === "site_team") && !isDemoMode();
   const participantIds = new Set([project.project_owner_id, project.assigned_salesperson, ...workspace.assignments.map((item) => item.user_id)].filter(Boolean));
   const participants = (canManage ? options.staff.filter((person) => participantIds.has(person.id)) : [{ id: profile.id, full_name: profile.fullName, role: profile.role }]);
   const currentStage = workspace.stages.find((stage) => stage.id === project.current_stage?.id) || workspace.stages.find((stage) => !["completed", "skipped"].includes(stage.status));
@@ -77,6 +79,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
         description={`${project.customer?.name || "Customer"} · ${project.site_address || "Project site"}`}
         action={<span className={`inline-flex rounded-sm border px-3 py-2 text-sm ${projectStatusClass(project.status)}`}>{projectStatusLabel(project.status)}</span>}
       />
+      {isDemoMode() && <DemoDisabledNotice>Project planning, task updates, handover, completion, assignments, and file uploads are disabled in the public demo.</DemoDisabledNotice>}
       {typeof query.error === "string" ? <StatusNotice tone="error" title="Action could not be completed"><p>{query.error}</p></StatusNotice> : null}
       <section className="overflow-hidden rounded-lg bg-graphite text-white">
         <div className="grid gap-5 px-5 py-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end lg:px-6">

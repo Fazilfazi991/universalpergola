@@ -2,7 +2,9 @@ import Link from "next/link";
 import { CalendarDays, MapPin, Plus } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
+import { DemoDisabledNotice } from "@/components/dashboard/demo-disabled-notice";
 import { requireModuleAccess } from "@/lib/auth/dal";
+import { isDemoMode } from "@/lib/demo-mode-server";
 import { formatDate } from "@/lib/crm/presentation";
 import {
   SITE_VISIT_STATUSES,
@@ -29,7 +31,7 @@ export default async function SiteVisitsPage({
   ]);
   const filters = siteVisitFilters(params);
   const visits = await getSiteVisits(filters);
-  const canCreate = profile.role === "admin" || profile.role === "sales";
+  const canCreate = (profile.role === "admin" || profile.role === "sales") && !isDemoMode();
   return (
     <div className="space-y-7">
       <PageHeading
@@ -47,6 +49,7 @@ export default async function SiteVisitsPage({
           ) : undefined
         }
       />
+      {isDemoMode() && <DemoDisabledNotice>Scheduling, assigning, and completing site visits are disabled in the public demo.</DemoDisabledNotice>}
       <form className="grid gap-3 border-y border-line bg-paper py-4 sm:rounded-lg sm:border sm:p-4 md:grid-cols-2 xl:grid-cols-4">
         <input
           className="min-h-11 rounded-md border border-line px-3 text-base xl:col-span-2"

@@ -1,6 +1,8 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { isDemoMode } from "@/lib/demo-mode-server";
+import { DEMO_CUSTOMERS, DEMO_ENQUIRIES, DEMO_PRODUCTS, DEMO_STAFF, DEMO_TASKS } from "@/lib/demo/data";
 import type { EnquiryStatus, LeadPriority, StaffSummary } from "@/lib/crm/types";
 import { isUuid } from "@/lib/crm/validation";
 
@@ -59,6 +61,7 @@ export function crmFilters(params: Record<string, string | string[] | undefined>
 }
 
 export async function getStaffDirectory() {
+  if (isDemoMode()) return DEMO_STAFF.filter((person) => person.role === "admin" || person.role === "sales") as StaffSummary[];
   const supabase = await createClient();
   if (!supabase) return [] as StaffSummary[];
   const { data, error } = await supabase.from("profiles").select("id, full_name, role")
@@ -68,6 +71,7 @@ export async function getStaffDirectory() {
 }
 
 export async function getCustomerOptions() {
+  if (isDemoMode()) return DEMO_CUSTOMERS.map(({ id, name, phone, whatsapp_number, email, company_name }) => ({ id, name, phone, whatsapp_number, email, company_name }));
   const supabase = await createClient();
   if (!supabase) return [];
   const { data, error } = await supabase.from("customers")
@@ -78,6 +82,7 @@ export async function getCustomerOptions() {
 }
 
 export async function getCrmProductOptions() {
+  if (isDemoMode()) return DEMO_PRODUCTS.map(({ id, name, product_code }) => ({ id, name, product_code }));
   const supabase = await createClient();
   if (!supabase) return [];
   const { data, error } = await supabase.from("products").select("id, name, product_code")
@@ -87,6 +92,10 @@ export async function getCrmProductOptions() {
 }
 
 export async function getCustomers(filters: Record<string, string>) {
+  if (isDemoMode()) {
+    const search = cleanSearch(filters.search).toLowerCase();
+    return DEMO_CUSTOMERS.filter((customer) => (!search || [customer.name, customer.phone, customer.email, customer.company_name].some((value) => value?.toLowerCase().includes(search))) && (!filters.assigned || (filters.assigned === "unassigned" ? !customer.assigned_to : customer.assigned_to === filters.assigned)) && (!filters.emirate || customer.emirate === filters.emirate) && (!filters.source || customer.source === filters.source)).map((customer) => ({ ...customer, activeEnquiries: DEMO_ENQUIRIES.filter((enquiry) => enquiry.customer_id === customer.id && !["approved", "lost"].includes(enquiry.status)).length, nextFollowUp: DEMO_ENQUIRIES.find((enquiry) => enquiry.customer_id === customer.id)?.follow_up_at || null, lastActivity: customer.updated_at })) as unknown as CustomerListItem[];
+  }
   const supabase = await createClient();
   if (!supabase) return [] as CustomerListItem[];
   let query = supabase.from("customers")
@@ -123,6 +132,7 @@ export async function getCustomers(filters: Record<string, string>) {
 }
 
 export async function getCustomer(id: string) {
+  if (isDemoMode()) return (DEMO_CUSTOMERS.find((customer) => customer.id === id) || null) as unknown as CustomerDetail | null;
   if (!isUuid(id)) return null;
   const supabase = await createClient();
   if (!supabase) return null;
@@ -134,6 +144,7 @@ export async function getCustomer(id: string) {
 }
 
 export async function getCustomerWorkspace(id: string) {
+  if (isDemoMode()) return { enquiries: DEMO_ENQUIRIES.filter((enquiry) => enquiry.customer_id === id) as unknown as EnquiryListItem[], followUps: DEMO_TASKS.filter((task) => task.customer_id === id) as unknown as FollowUpItem[], activity: [] };
   if (!isUuid(id)) return { enquiries: [] as EnquiryListItem[], followUps: [] as FollowUpItem[], activity: [] as { id: string; event_type: string; created_at: string; actor: AssignedRelation }[] };
   const supabase = await createClient();
   if (!supabase) return { enquiries: [] as EnquiryListItem[], followUps: [] as FollowUpItem[], activity: [] as { id: string; event_type: string; created_at: string; actor: AssignedRelation }[] };
@@ -159,6 +170,10 @@ export async function getCustomerWorkspace(id: string) {
 }
 
 export async function getEnquiries(filters: Record<string, string>) {
+  if (isDemoMode()) {
+    const search = cleanSearch(filters.search).toLowerCase();
+    return DEMO_ENQUIRIES.filter((enquiry) => (!search || [enquiry.subject, enquiry.message, enquiry.customer?.name, enquiry.product?.name].some((value) => value?.toLowerCase().includes(search))) && (!filters.status || enquiry.status === filters.status) && (!filters.priority || enquiry.priority === filters.priority) && (!filters.source || enquiry.source === filters.source) && (!filters.assigned || (filters.assigned === "unassigned" ? !enquiry.assigned_to : enquiry.assigned_to === filters.assigned)) && (filters.followUp !== "due" || Boolean(enquiry.follow_up_at))).map((enquiry) => ({ ...enquiry })) as unknown as EnquiryListItem[];
+  }
   const supabase = await createClient();
   if (!supabase) return [] as EnquiryListItem[];
   let query = supabase.from("enquiries")
@@ -197,6 +212,7 @@ export async function getEnquiries(filters: Record<string, string>) {
 }
 
 export async function getEnquiry(id: string) {
+  if (isDemoMode()) return (DEMO_ENQUIRIES.find((enquiry) => enquiry.id === id) || null) as unknown as EnquiryDetail | null;
   if (!isUuid(id)) return null;
   const supabase = await createClient();
   if (!supabase) return null;
@@ -208,6 +224,7 @@ export async function getEnquiry(id: string) {
 }
 
 export async function getEnquiryWorkspace(id: string) {
+  if (isDemoMode()) return { timeline: [{ id: `timeline-${id}`, activity_type: "note_added", note: "Demo activity: discovery call recorded.", occurred_at: "2026-09-16T10:00:00.000Z", next_action_at: null, created_by: DEMO_STAFF[1].id, actor: { id: DEMO_STAFF[1].id, full_name: DEMO_STAFF[1].full_name } }], followUps: DEMO_TASKS.filter((task) => task.enquiry_id === id) as unknown as FollowUpItem[] };
   if (!isUuid(id)) return { timeline: [] as TimelineItem[], followUps: [] as FollowUpItem[] };
   const supabase = await createClient();
   if (!supabase) return { timeline: [] as TimelineItem[], followUps: [] as FollowUpItem[] };
@@ -230,6 +247,10 @@ function dubaiDayBounds() {
 }
 
 export async function getCrmDashboard() {
+  if (isDemoMode()) {
+    const active = DEMO_ENQUIRIES.filter((item) => !["approved", "lost"].includes(item.status));
+    return { newEnquiries: DEMO_ENQUIRIES.filter((item) => item.status === "new").length, dueToday: 2, overdue: 1, unassigned: active.filter((item) => !item.assigned).length, priorityLeads: active.filter((item) => ["high", "urgent"].includes(item.priority)).length, needsAttention: DEMO_ENQUIRIES as unknown as EnquiryListItem[] };
+  }
   const supabase = await createClient();
   if (!supabase) return { newEnquiries: 0, dueToday: 0, overdue: 0, unassigned: 0, priorityLeads: 0, needsAttention: [] as EnquiryListItem[] };
   const { end } = dubaiDayBounds();

@@ -2,6 +2,8 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { isDemoMode } from "@/lib/demo-mode-server";
+import { DEMO_CATEGORIES, DEMO_PRODUCTS } from "@/lib/demo/data";
 import { CATEGORY_MEDIA_BUCKET, PRODUCT_MEDIA_BUCKET } from "@/lib/catalogue/media";
 import type { CategorySummary, PricingMode, ProductImage } from "@/lib/catalogue/types";
 
@@ -31,6 +33,7 @@ async function signedUrl(supabase: SupabaseClient, bucket: string, path: string 
 }
 
 export async function getAdminCategories(filters: { search?: string; state?: string } = {}) {
+  if (isDemoMode()) return DEMO_CATEGORIES.filter((category) => !filters.search || category.name.toLowerCase().includes(filters.search.toLowerCase())) as unknown as AdminCategory[];
   const supabase = await createClient();
   if (!supabase) return [] as AdminCategory[];
   let query = supabase.from("product_categories")
@@ -48,6 +51,7 @@ export async function getAdminCategories(filters: { search?: string; state?: str
 }
 
 export async function getAdminCategory(id: string) {
+  if (isDemoMode()) return (DEMO_CATEGORIES.find((category) => category.id === id) || null) as unknown as AdminCategory | null;
   const supabase = await createClient();
   if (!supabase) return null;
   const { data, error } = await supabase.from("product_categories")
@@ -59,6 +63,7 @@ export async function getAdminCategory(id: string) {
 }
 
 export async function getCategoryOptions() {
+  if (isDemoMode()) return DEMO_CATEGORIES.map(({ id, name, is_active }) => ({ id, name, is_active }));
   const supabase = await createClient();
   if (!supabase) return [];
   const { data, error } = await supabase.from("product_categories").select("id, name, is_active")
@@ -68,6 +73,7 @@ export async function getCategoryOptions() {
 }
 
 export async function getAdminProducts(filters: { search?: string; category?: string; published?: string; featured?: string; state?: string } = {}) {
+  if (isDemoMode()) return DEMO_PRODUCTS.filter((product) => (!filters.search || product.name.toLowerCase().includes(filters.search.toLowerCase())) && (!filters.category || product.category_id === filters.category)) as unknown as AdminProduct[];
   const supabase = await createClient();
   if (!supabase) return [] as AdminProduct[];
   let query = supabase.from("products")
@@ -94,6 +100,7 @@ export async function getAdminProducts(filters: { search?: string; category?: st
 }
 
 export async function getAdminProduct(id: string) {
+  if (isDemoMode()) return (DEMO_PRODUCTS.find((product) => product.id === id) || null) as unknown as AdminProduct | null;
   const supabase = await createClient();
   if (!supabase) return null;
   const { data, error } = await supabase.from("products")

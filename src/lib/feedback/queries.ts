@@ -1,6 +1,8 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { isDemoMode } from "@/lib/demo-mode-server";
+import { DEMO_FEEDBACK, DEMO_PROJECTS } from "@/lib/demo/data";
 import { isUuid } from "@/lib/crm/validation";
 import type { FeedbackStatus } from "./types";
 
@@ -40,6 +42,7 @@ export type FeedbackRecord = {
 const selection = "id, project_id, status, customer_rating, customer_comments, source, permission_to_publish_testimonial, internal_notes, requested_at, requested_by, submitted_at, reviewed_at, archived_at, token_expires_at, token_revoked_at, public_token, created_at, updated_at, project:projects!feedback_project_id_fkey(id, project_number, customer_id, status, customer:customers!projects_customer_id_fkey(id, name)), requester:profiles!feedback_requested_by_fkey(id, full_name), reviewer:profiles!feedback_reviewed_by_fkey(id, full_name)";
 
 export async function getFeedbackQueue(status?: string) {
+  if (isDemoMode()) return DEMO_FEEDBACK.filter((item) => !status || item.status === status) as never;
   const supabase = await createClient();
   if (!supabase) return [] as FeedbackRecord[];
   let query = supabase.from("feedback").select(selection).order("updated_at", { ascending: false }).limit(150);
@@ -54,6 +57,7 @@ export async function getFeedbackQueue(status?: string) {
 }
 
 export async function getProjectFeedback(projectId: string) {
+  if (isDemoMode()) return (DEMO_FEEDBACK.find((item) => item.project_id === projectId) || null) as never;
   if (!isUuid(projectId)) return null;
   const supabase = await createClient();
   if (!supabase) return null;
@@ -63,6 +67,7 @@ export async function getProjectFeedback(projectId: string) {
 }
 
 export async function getCustomerFeedback(customerId: string) {
+  if (isDemoMode()) return DEMO_FEEDBACK.filter((item) => item.project?.customer?.id === customerId) as never;
   if (!isUuid(customerId)) return [] as FeedbackRecord[];
   const supabase = await createClient();
   if (!supabase) return [] as FeedbackRecord[];
@@ -75,6 +80,7 @@ export async function getCustomerFeedback(customerId: string) {
 }
 
 export async function getCompletedProjectsForFeedback() {
+  if (isDemoMode()) return DEMO_PROJECTS.filter((project) => project.status === "completed") as never;
   const supabase = await createClient();
   if (!supabase) return [];
   const { data, error } = await supabase.from("projects")
@@ -85,6 +91,7 @@ export async function getCompletedProjectsForFeedback() {
 }
 
 export async function getFeedbackDashboard() {
+  if (isDemoMode()) return { awaitingReview: DEMO_FEEDBACK.filter((item) => item.status === "received").length };
   const supabase = await createClient();
   if (!supabase) return { awaitingReview: 0 };
   const { count, error } = await supabase.from("feedback").select("id", { count: "exact", head: true }).eq("status", "received");

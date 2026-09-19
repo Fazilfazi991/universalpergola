@@ -1,6 +1,8 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { isDemoMode } from "@/lib/demo-mode-server";
+import { DEMO_PROJECTS, DEMO_STAFF, DEMO_TASKS } from "@/lib/demo/data";
 import { isUuid } from "@/lib/crm/validation";
 import type { AppRole } from "@/lib/auth/permissions";
 import type {
@@ -159,6 +161,10 @@ export function projectFilters(params: Record<string, string | string[] | undefi
 }
 
 export async function getProjects(filters: Record<string, string>) {
+  if (isDemoMode()) {
+    const search = filters.search?.toLowerCase() || "";
+    return DEMO_PROJECTS.filter((project) => (!search || [project.project_number, project.customer?.name].some((value) => value?.toLowerCase().includes(search))) && (!filters.status || project.status === filters.status) && (!filters.stage || project.current_stage?.stage_key === filters.stage)) as unknown as ProjectListItem[];
+  }
   const supabase = await createClient();
   if (!supabase) return [] as ProjectListItem[];
   let query = supabase.from("projects").select(listSelection).is("archived_at", null).order("updated_at", { ascending: false }).limit(150);
@@ -187,6 +193,7 @@ export async function getProjects(filters: Record<string, string>) {
 }
 
 export async function getProject(id: string) {
+  if (isDemoMode()) return (DEMO_PROJECTS.find((project) => project.id === id) || null) as unknown as ProjectDetail | null;
   if (!isUuid(id)) return null;
   const supabase = await createClient();
   if (!supabase) return null;
@@ -196,6 +203,11 @@ export async function getProject(id: string) {
 }
 
 export async function getProjectWorkspace(id: string) {
+  if (isDemoMode()) {
+    const project = DEMO_PROJECTS.find((item) => item.id === id);
+    if (!project) return { stages: [], assignments: [], tasks: [], updates: [], files: [], timeline: [] };
+    return { stages: [project.current_stage].filter(Boolean).map((stage) => ({ id: stage!.id, template_id: null, stage_key: stage!.stage_key, name: stage!.name, description: "Synthetic project stage", sort_order: 1, status: stage!.status, progress: project.progress, weight: 1, is_terminal: stage!.status === "completed", target_date: project.expected_completion_date, started_at: project.created_at, completed_at: stage!.status === "completed" ? project.updated_at : null, notes: null, assigned_to: DEMO_STAFF[2].id, assigned: { id: DEMO_STAFF[2].id, full_name: DEMO_STAFF[2].full_name } })) as never[], assignments: [{ id: `assignment-${id}`, user_id: DEMO_STAFF[2].id, assignment_role: "site_team", created_at: project.created_at, user: { id: DEMO_STAFF[2].id, full_name: DEMO_STAFF[2].full_name, role: DEMO_STAFF[2].role } }] as never[], tasks: DEMO_TASKS.filter((task) => task.project_id === id).map((task) => ({ ...task, project_stage_id: project.current_stage?.id || null, completed_by: null, completion_checklist_key: null, completion_note: null, completer: null, stage: project.current_stage ? { id: project.current_stage.id, name: project.current_stage.name } : null })) as never[], updates: [{ id: `update-${id}`, stage_id: project.current_stage?.id || null, update_type: "progress", progress: project.progress, note: "Demo progress update", created_at: project.updated_at, author: { id: DEMO_STAFF[2].id, full_name: DEMO_STAFF[2].full_name }, stage: project.current_stage ? { id: project.current_stage.id, name: project.current_stage.name } : null }] as never[], files: [], timeline: [] };
+  }
   if (!isUuid(id)) return { stages: [] as ProjectStage[], assignments: [] as ProjectAssignment[], tasks: [] as ProjectTask[], updates: [] as ProjectUpdate[], files: [] as ProjectFile[], timeline: [] as ProjectActivity[] };
   const supabase = await createClient();
   if (!supabase) return { stages: [] as ProjectStage[], assignments: [] as ProjectAssignment[], tasks: [] as ProjectTask[], updates: [] as ProjectUpdate[], files: [] as ProjectFile[], timeline: [] as ProjectActivity[] };
@@ -219,6 +231,7 @@ export async function getProjectWorkspace(id: string) {
 }
 
 export async function getProjectOptions() {
+  if (isDemoMode()) return { customers: DEMO_PROJECTS.map((project) => ({ id: project.customer_id, name: project.customer?.name || "Customer" })), staff: DEMO_STAFF as never[], templates: DEMO_PROJECTS.map((project) => ({ id: `template-${project.id}`, key: project.current_stage?.stage_key || "planning", name: project.current_stage?.name || "Planning", description: "Synthetic workflow stage", sort_order: 1, is_active: true, default_weight: 1, is_terminal: project.status === "completed" })) as never[] };
   const supabase = await createClient();
   if (!supabase) return { customers: [], staff: [] as ProjectStaff[], templates: [] as StageTemplate[] };
   const [customers, staff, templates] = await Promise.all([
@@ -244,6 +257,7 @@ export const getSiteVisitProjects = (id: string) => getLinkedProjects("site_visi
 export const getQuotationProjects = (id: string) => getLinkedProjects("quotation_id", id);
 
 export async function getProjectDashboard() {
+  if (isDemoMode()) return { active: DEMO_PROJECTS.filter((project) => project.status === "active").length, overdue: 0, upcomingInstallations: 2, handoverPending: 1, byStage: DEMO_PROJECTS.filter((project) => project.status === "active").map((project) => ({ key: project.current_stage?.stage_key || "planning", name: project.current_stage?.name || "Planning", count: 1 })), attention: DEMO_PROJECTS.filter((project) => project.status === "active") as unknown as ProjectListItem[] };
   const supabase = await createClient();
   if (!supabase) return { active: 0, overdue: 0, upcomingInstallations: 0, handoverPending: 0, byStage: [] as { key: string; name: string; count: number }[], attention: [] as ProjectListItem[] };
   const today = new Date().toISOString().slice(0, 10);

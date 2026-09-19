@@ -3,18 +3,21 @@ import { Archive, Pencil, Plus } from "lucide-react";
 import { archiveCategoryAction, setCategoryActiveAction, setCategoryOrderAction } from "@/app/dashboard/categories/actions";
 import { PageHeading } from "@/components/ui/page-heading";
 import { EmptyState } from "@/components/ui/empty-state";
+import { DemoDisabledNotice } from "@/components/dashboard/demo-disabled-notice";
 import { requireModuleAccess } from "@/lib/auth/dal";
 import { getAdminCategories } from "@/lib/catalogue/admin-queries";
+import { isDemoMode } from "@/lib/demo-mode-server";
 
 export default async function CategoriesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [profile, params] = await Promise.all([requireModuleAccess("categories"), searchParams]);
   const search = typeof params.search === "string" ? params.search : "";
   const state = typeof params.state === "string" ? params.state : "";
   const categories = await getAdminCategories({ search, state });
-  const canManage = profile.role === "admin";
+  const canManage = profile.role === "admin" && !isDemoMode();
 
   return <div className="space-y-7">
     <PageHeading title="Categories" description="Organise the public catalogue, visibility, search metadata, and display order." action={canManage ? <Link href="/dashboard/categories/new" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-graphite px-4 text-sm font-semibold text-white"><Plus size={17} />New category</Link> : undefined} />
+    {isDemoMode() && <DemoDisabledNotice>Catalogue editing, activation, archiving, and uploads are disabled in the public demo.</DemoDisabledNotice>}
     <form className="grid gap-3 border-y border-line bg-paper py-4 sm:rounded-lg sm:border sm:p-4 md:grid-cols-[minmax(12rem,1fr)_12rem_auto]"><label className="sr-only" htmlFor="category-search">Search categories</label><input id="category-search" name="search" defaultValue={search} placeholder="Search name or slug" className="min-h-11 rounded-md border border-line px-3 text-base" /><label className="sr-only" htmlFor="category-state">Category state</label><select id="category-state" name="state" defaultValue={state} className="min-h-11 rounded-md border border-line bg-paper px-3 text-base"><option value="">Current categories</option><option value="active">Active</option><option value="inactive">Inactive</option><option value="archived">Archived</option></select><button className="min-h-11 rounded-md border border-line bg-limestone px-5 text-sm font-medium">Apply filters</button></form>
     {categories.length === 0 ? <EmptyState icon={Archive} title="No categories found" description={search || state ? "Adjust the filters or create a category." : "Create the first category when the real catalogue structure is ready."} /> : <>
       <div className="hidden overflow-hidden rounded-lg border border-line bg-paper md:block"><table className="w-full table-fixed text-left text-sm"><thead className="border-b border-line bg-limestone text-xs text-stone"><tr><th className="w-[31%] px-4 py-3 font-medium">Category</th><th className="w-[13%] px-4 py-3 font-medium">Status</th><th className="w-[17%] px-4 py-3 font-medium">Order</th><th className="w-[16%] px-4 py-3 font-medium">Updated</th><th className="px-4 py-3 font-medium">Actions</th></tr></thead><tbody className="divide-y divide-line">{categories.map((category) => <tr key={category.id}>

@@ -1,9 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getSupabasePublicConfig } from "@/lib/supabase/env";
+import { isDemoMode } from "@/lib/demo-mode";
 import type { Database } from "@/lib/supabase/database.generated";
 
 export async function createClient() {
+  if (isDemoMode()) return null;
   const config = getSupabasePublicConfig();
 
   if (!config) {

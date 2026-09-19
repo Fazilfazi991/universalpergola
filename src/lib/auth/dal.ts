@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { demoProfile, isDemoMode } from "@/lib/demo-mode-server";
 import {
   APP_ROLES,
   canAccessModule,
@@ -18,6 +19,7 @@ export type CurrentProfile = {
 };
 
 export const requireCurrentProfile = cache(async (): Promise<CurrentProfile> => {
+  if (isDemoMode()) return demoProfile;
   const supabase = await createClient();
 
   if (!supabase) {

@@ -1,6 +1,8 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { isDemoMode } from "@/lib/demo-mode-server";
+import { DEMO_CUSTOMERS, DEMO_ENQUIRIES, DEMO_QUOTATIONS, DEMO_STAFF, DEMO_VISITS } from "@/lib/demo/data";
 import { isUuid } from "@/lib/crm/validation";
 import type { AppRole } from "@/lib/auth/permissions";
 import type {
@@ -143,6 +145,7 @@ const listSelection =
   "id, quotation_number, customer_id, enquiry_id, site_visit_id, owner_id, issue_date, validity_date, currency, status, revision_number, is_current, total, updated_at, customer:customers!quotations_customer_id_fkey(id, name, phone), enquiry:enquiries!quotations_enquiry_id_fkey(id, enquiry_number, subject), site_visit:site_visits!quotations_site_visit_id_fkey(id, visit_number, site_address), owner:profiles!quotations_owner_id_fkey(id, full_name)";
 
 export async function getQuotations(filters: Record<string, string>) {
+  if (isDemoMode()) return DEMO_QUOTATIONS.filter((quote) => !filters.status || quote.status === filters.status) as unknown as QuotationListItem[];
   const supabase = await createClient();
   if (!supabase) return [] as QuotationListItem[];
   let query = supabase
@@ -200,6 +203,7 @@ export async function getQuotations(filters: Record<string, string>) {
 }
 
 export async function getQuotation(id: string) {
+  if (isDemoMode()) return (DEMO_QUOTATIONS.find((quote) => quote.id === id) || null) as unknown as QuotationDetail | null;
   if (!isUuid(id)) return null;
   const supabase = await createClient();
   if (!supabase) return null;
@@ -215,6 +219,7 @@ export async function getQuotation(id: string) {
 }
 
 export async function getQuotationWorkspace(quotation: QuotationDetail) {
+  if (isDemoMode()) return { items: [], revisions: [quotation], timeline: [], project: null } as never;
   const supabase = await createClient();
   if (!supabase)
     return {
@@ -264,6 +269,7 @@ export async function getQuotationWorkspace(quotation: QuotationDetail) {
 }
 
 export async function getQuotationCreationOptions() {
+  if (isDemoMode()) return { customers: DEMO_CUSTOMERS.map(({ id, name }) => ({ id, name })), staff: DEMO_STAFF, products: [], enquiries: DEMO_ENQUIRIES, siteVisits: DEMO_VISITS } as never;
   const supabase = await createClient();
   if (!supabase)
     return {
@@ -337,6 +343,7 @@ export async function getQuotationCreationOptions() {
 }
 
 export async function getQuotationFilterOptions() {
+  if (isDemoMode()) return { customers: DEMO_CUSTOMERS.map(({ id, name }) => ({ id, name })), staff: DEMO_STAFF } as never;
   const supabase = await createClient();
   if (!supabase) return { customers: [], staff: [] };
   const [customers, staff] = await Promise.all([
@@ -378,16 +385,20 @@ async function getLinkedQuotations(
   return (data || []) as unknown as QuotationListItem[];
 }
 export function getCustomerQuotations(id: string) {
+  if (isDemoMode()) return Promise.resolve(DEMO_QUOTATIONS.filter((quote) => quote.customer_id === id) as unknown as QuotationListItem[]);
   return getLinkedQuotations("customer_id", id);
 }
 export function getEnquiryQuotations(id: string) {
+  if (isDemoMode()) return Promise.resolve(DEMO_QUOTATIONS.filter((quote) => quote.project_id === id) as unknown as QuotationListItem[]);
   return getLinkedQuotations("enquiry_id", id);
 }
 export function getSiteVisitQuotations(id: string) {
+  if (isDemoMode()) return Promise.resolve(DEMO_QUOTATIONS as unknown as QuotationListItem[]);
   return getLinkedQuotations("site_visit_id", id);
 }
 
 export async function getQuotationDashboard(role: AppRole) {
+  if (isDemoMode()) return { draft: 1, ready: 1, sent: 1, expiring: 1, approvedValue: 48825 };
   if (!(["admin", "sales", "accounts"] as AppRole[]).includes(role))
     return null;
   const supabase = await createClient();

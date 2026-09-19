@@ -16,7 +16,9 @@ import {
 } from "@/app/dashboard/quotations/actions";
 import { PageHeading } from "@/components/ui/page-heading";
 import { StatusNotice } from "@/components/ui/status-notice";
+import { DemoDisabledNotice } from "@/components/dashboard/demo-disabled-notice";
 import { requireModuleAccess } from "@/lib/auth/dal";
+import { isDemoMode } from "@/lib/demo-mode-server";
 import { formatDate } from "@/lib/crm/presentation";
 import { formatMoney } from "@/lib/quotations/money";
 import {
@@ -91,7 +93,7 @@ export default async function QuotationPage({
   ]);
   if (!quote) notFound();
   const workspace = await getQuotationWorkspace(quote);
-  const canCommercial = profile.role === "admin" || profile.role === "sales";
+  const canCommercial = (profile.role === "admin" || profile.role === "sales") && !isDemoMode();
   const canEdit = canCommercial && ["draft", "ready"].includes(quote.status);
   const isExpired =
     quote.status === "sent" &&
@@ -123,6 +125,7 @@ export default async function QuotationPage({
           </a>
         }
       />
+      {isDemoMode() && <DemoDisabledNotice>Editing, revising, approving, rejecting, and converting quotations are disabled in the public demo.</DemoDisabledNotice>}
       {query.saved === "1" && (
         <StatusNotice tone="success" title="Quotation saved">
           <p>Database-authoritative totals and snapshots are up to date.</p>

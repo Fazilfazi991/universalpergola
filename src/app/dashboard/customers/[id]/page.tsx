@@ -6,7 +6,9 @@ import {
   setCustomerArchivedAction,
 } from "@/app/dashboard/customers/actions";
 import { PageHeading } from "@/components/ui/page-heading";
+import { DemoDisabledNotice } from "@/components/dashboard/demo-disabled-notice";
 import { requireModuleAccess } from "@/lib/auth/dal";
+import { isDemoMode } from "@/lib/demo-mode-server";
 import {
   enquiryReference,
   followUpStatusLabel,
@@ -64,7 +66,7 @@ export default async function CustomerPage({
       getCustomerFeedback(id),
     ]);
   if (!customer) notFound();
-  const canEdit = ["admin", "sales"].includes(profile.role);
+  const canEdit = ["admin", "sales"].includes(profile.role) && !isDemoMode();
   const phoneHref = formatPhoneLink(customer.phone);
   const whatsappHref = formatWhatsAppLink(
     customer.whatsapp_number || customer.phone,
@@ -113,6 +115,7 @@ export default async function CustomerPage({
           ) : undefined
         }
       />
+      {isDemoMode() && <DemoDisabledNotice>Customer editing, ownership changes, archiving, enquiry creation, and visit scheduling are disabled in the public demo.</DemoDisabledNotice>}
       <div className="flex flex-wrap gap-2">
         {phoneHref && (
           <a
@@ -369,7 +372,7 @@ export default async function CustomerPage({
           {finance && finance.project_count > 0 ? <section className="rounded-lg border border-line bg-graphite p-5 text-white"><p className="text-[10px] font-medium uppercase tracking-[0.16em] text-white/40">Customer finance summary</p><dl className="mt-4 grid grid-cols-2 gap-4"><div><dt className="text-xs text-white/45">Project value</dt><dd className="mt-1 font-semibold">{formatMoney(finance.project_value)}</dd></div><div><dt className="text-xs text-white/45">Received</dt><dd className="mt-1 font-semibold">{formatMoney(finance.received)}</dd></div><div><dt className="text-xs text-white/45">Outstanding</dt><dd className="mt-1 font-semibold">{formatMoney(finance.outstanding)}</dd></div><div><dt className="text-xs text-white/45">Overdue</dt><dd className={`mt-1 font-semibold ${finance.overdue > 0 ? "text-red-300" : ""}`}>{formatMoney(finance.overdue)}</dd></div></dl><p className="mt-4 border-t border-white/10 pt-3 text-xs text-white/45">{profile.role === "sales" ? "Summary only; receipt details remain with Finance." : `${finance.project_count} linked project${finance.project_count === 1 ? "" : "s"}.`}</p></section> : null}
           <section className="rounded-lg border border-line bg-paper p-5">
             <h2 className="text-base font-semibold">Ownership</h2>
-            {profile.role === "admin" ? (
+            {profile.role === "admin" && !isDemoMode() ? (
               <form action={assignCustomerAction} className="mt-4 space-y-3">
                 <input type="hidden" name="id" value={id} />
                 <select
@@ -393,7 +396,7 @@ export default async function CustomerPage({
                 {customer.assigned?.full_name || "Unassigned"}
               </p>
             )}
-            {profile.role === "admin" && (
+            {profile.role === "admin" && !isDemoMode() && (
               <form
                 action={setCustomerArchivedAction}
                 className="mt-5 border-t border-line pt-4"

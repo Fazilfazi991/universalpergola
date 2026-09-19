@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { isDemoMode } from "@/lib/demo-mode";
 
 const loginSchema = z.object({
   email: z.string().trim().email("Enter a valid email address."),
@@ -31,6 +32,7 @@ export async function loginAction(_: LoginState, formData: FormData): Promise<Lo
 }
 
 export async function signOutAction() {
+  if (isDemoMode()) redirect("/dashboard");
   const supabase = await createClient();
   if (supabase) await supabase.auth.signOut();
   redirect("/");

@@ -500,6 +500,10 @@ export function SitePhotoUploader({
     if (!items.length || busy) return;
     setBusy(true);
     const supabase = createClient();
+    if (!supabase) {
+      setBusy(false);
+      return;
+    }
     for (const item of items) {
       const error = validateSitePhoto(item.file);
       if (error) {

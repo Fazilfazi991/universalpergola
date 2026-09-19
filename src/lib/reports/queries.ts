@@ -1,7 +1,9 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { isDemoMode } from "@/lib/demo-mode-server";
 import type { AppRole } from "@/lib/auth/permissions";
+import { DEMO_FINANCE, DEMO_FEEDBACK, DEMO_PROJECTS } from "@/lib/demo/data";
 
 type Range = { from: string; to: string; fromTimestamp: string; toTimestamp: string };
 type Person = { id: string; full_name: string } | null;
@@ -10,6 +12,7 @@ function money(value: unknown) { return Number(value || 0); }
 function percent(numerator: number, denominator: number) { return denominator ? Math.round((numerator / denominator) * 1000) / 10 : null; }
 
 export async function getManagementReport(range: Range, role: AppRole) {
+  if (isDemoMode()) return { crm: { total: 18, newCount: 4, bySource: [["Website", 7], ["Referral", 5], ["Phone", 3], ["Instagram", 3]], trend: [["2026-09-13", 4], ["2026-09-14", 5], ["2026-09-15", 3], ["2026-09-16", 4], ["2026-09-17", 2]], byStatus: [["new", 4], ["contacted", 5], ["site_visit_required", 5], ["quotation", 3], ["approved", 1]], salesperson: [{ name: "Jordan Lee", total: 12, newCount: 2 }, { name: "Alex Morgan", total: 4, newCount: 1 }, { name: "Unassigned", total: 2, newCount: 1 }], dueFollowUps: 2, overdueFollowUps: 1 }, conversion: { enquiryToVisit: { numerator: 8, denominator: 18, rate: 44.4 }, visitToQuote: { numerator: 6, denominator: 8, rate: 75 }, quoteApproval: { numerator: 4, denominator: 6, rate: 66.7 }, approvedToProject: { numerator: 3, denominator: 4, rate: 75 } }, projects: { active: 2, completed: 1, delayed: 0, upcomingInstallations: 2, pendingHandovers: 1, byStage: [["manufacturing", 1], ["installation", 1]], delayedRows: [] }, finance: { projectValue: DEMO_FINANCE.project_value, approvedValue: 161225, received: DEMO_FINANCE.received, outstanding: DEMO_FINANCE.outstanding, overdue: DEMO_FINANCE.overdue, dueNext7: DEMO_FINANCE.due_soon, collectionTrend: [["2026-09-13", 24500], ["2026-09-14", 38200], ["2026-09-15", 27600], ["2026-09-16", 18600]], outstandingProjects: DEMO_PROJECTS.slice(0, 2).map((project) => ({ project_id: project.id, project_number: project.project_number, customer_name: project.customer?.name || "Customer", outstanding: 20400, currency: project.currency })) }, customer: { completedProjects: 5, feedbackReceived: 9, averageRating: 4.7, awaitingReview: DEMO_FEEDBACK.filter((item) => item.status === "received").length, distribution: [["5", 6], ["4", 2], ["3", 1], ["2", 0], ["1", 0]], reviewRows: DEMO_FEEDBACK.filter((item) => item.status === "received") } } as never;
   if (role !== "admin") throw new Error("Management report access is restricted.");
   const supabase = await createClient();
   if (!supabase) throw new Error("Supabase is not configured.");

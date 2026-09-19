@@ -30,8 +30,10 @@ import {
   VisitScheduleEditor,
 } from "@/components/dashboard/site-visit-controls";
 import { PageHeading } from "@/components/ui/page-heading";
+import { DemoDisabledNotice } from "@/components/dashboard/demo-disabled-notice";
 import { StatusNotice } from "@/components/ui/status-notice";
 import { requireModuleAccess } from "@/lib/auth/dal";
+import { isDemoMode } from "@/lib/demo-mode-server";
 import {
   formatDate,
   formatPhoneLink,
@@ -232,8 +234,8 @@ export default async function SiteVisitPage({
       getSiteVisitProjects(id),
     ]);
   if (!visit) notFound();
-  const canOperate = profile.role === "admin" || profile.role === "site_team";
-  const canManage = profile.role === "admin";
+  const canOperate = (profile.role === "admin" || profile.role === "site_team") && !isDemoMode();
+  const canManage = profile.role === "admin" && !isDemoMode();
   const phoneHref = formatPhoneLink(
     visit.contact_phone || visit.customer?.phone,
   );
@@ -260,6 +262,7 @@ export default async function SiteVisitPage({
         title={siteVisitReference(visit.visit_number)}
         description={`${visit.customer?.name || "Customer"} · ${formatDate(visit.scheduled_at, true)}`}
       />
+      {isDemoMode() && <DemoDisabledNotice>Visit scheduling, status changes, measurements, assignments, notes, and photo uploads are disabled in the public demo.</DemoDisabledNotice>}
       {typeof query.created === "string" && (
         <StatusNotice tone="success" title={`${query.created} scheduled`}>
           <p>The site visit is ready for assignment and field work.</p>

@@ -1,6 +1,8 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { isDemoMode } from "@/lib/demo-mode-server";
+import { DEMO_TASKS } from "@/lib/demo/data";
 
 export type TaskQueueItem = {
   id:string; title:string; description:string|null; kind:string; status:string; priority:string;
@@ -13,6 +15,7 @@ export type TaskQueueItem = {
 };
 
 export async function getTaskQueue(status?: string) {
+  if (isDemoMode()) return DEMO_TASKS.filter((task) => !status || task.status === status) as never;
   const supabase = await createClient();
   if (!supabase) return [] as TaskQueueItem[];
   let query = supabase.from("tasks").select("id, title, description, kind, status, priority, due_at, completed_at, customer_id, enquiry_id, project_id, site_visit_id, assigned:profiles!tasks_assigned_to_fkey(id, full_name), project:projects!tasks_project_id_fkey(id, project_number), enquiry:enquiries!tasks_enquiry_id_fkey(id, enquiry_number), site_visit:site_visits!tasks_site_visit_id_fkey(id, visit_number)")
