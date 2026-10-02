@@ -2,12 +2,12 @@ import { z } from "zod";
 import { QUOTATION_STATUSES } from "./constants.ts";
 
 const optionalUuid = z.preprocess(
-  (value) => (value === "" || value === null ? null : value),
+  (value) => (value === "" || value == null ? null : value),
   z.string().uuid().nullable(),
 );
 const optionalText = (max: number) =>
   z.preprocess(
-    (value) => (value === "" || value === null ? null : value),
+    (value) => (value === "" || value == null ? null : value),
     z.string().trim().max(max).nullable(),
   );
 const decimal = (label: string, max: number, positive = false) =>
@@ -20,7 +20,7 @@ const decimal = (label: string, max: number, positive = false) =>
   );
 const optionalDecimal = (label: string, max: number) =>
   z.preprocess(
-    (value) => (value === "" || value === null ? null : value),
+    (value) => (value === "" || value == null ? null : value),
     z.coerce
       .number()
       .positive(`${label} must be positive.`)
@@ -76,7 +76,7 @@ export const quotationDraftSchema = z
     customer_company_snapshot: optionalText(200),
     customer_phone_snapshot: optionalText(50),
     customer_email_snapshot: z.preprocess(
-      (value) => (value === "" || value === null ? null : value),
+      (value) => (value === "" || value == null ? null : value),
       z.string().email().max(320).nullable(),
     ),
     site_address_snapshot: optionalText(2000),

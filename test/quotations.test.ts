@@ -6,7 +6,10 @@ import { PDFDocument } from "pdf-lib";
 import { quotationPreviewTotals } from "../src/lib/quotations/money.ts";
 import { generateQuotationPdf } from "../src/lib/quotations/pdf.ts";
 import { defaultQuotationInitial } from "../src/lib/quotations/defaults.ts";
-import { quotationDraftSchema } from "../src/lib/quotations/validation.ts";
+import {
+  parseQuotationDraft,
+  quotationDraftSchema,
+} from "../src/lib/quotations/validation.ts";
 import type {
   QuotationDetail,
   QuotationItem,
@@ -109,6 +112,58 @@ test("quotation validation rejects invalid dates, excessive discounts, and empty
   });
   assert.equal(result.success, false);
   if (!result.success) assert.ok(result.error.issues.length >= 3);
+});
+
+test("new quotation form parses without an id field", () => {
+  const initial = defaultQuotationInitial();
+  initial.customer_id = crypto.randomUUID();
+  initial.customer_name_snapshot = "QA Customer";
+  initial.items[0].item_name = "Custom pergola";
+
+  const formData = new FormData();
+  for (const [name, value] of Object.entries(initial)) {
+    if (name !== "items" && name !== "id") formData.set(name, String(value));
+  }
+  formData.set("items", JSON.stringify(initial.items));
+
+  assert.equal(formData.has("id"), false);
+  const result = parseQuotationDraft(formData);
+  assert.equal(result.success, true, result.error?.message);
+  if (result.success) assert.equal(result.data.id, null);
+});
+
+test("omitted optional quotation details normalize to null", () => {
+  const result = quotationDraftSchema.safeParse({
+    customer_id: crypto.randomUUID(),
+    currency: "AED",
+    issue_date: "2026-10-02",
+    validity_date: "2026-10-09",
+    customer_name_snapshot: "QA Customer",
+    discount_type: "fixed",
+    discount_value: "0",
+    vat_rate: "5",
+    items: [
+      {
+        item_name: "Custom pergola",
+        description: "",
+        quantity: "1",
+        unit: "item",
+        unit_price: "100",
+        discount_amount: "0",
+        taxable: true,
+        sort_order: 10,
+      },
+    ],
+  });
+
+  assert.equal(result.success, true, result.error?.message);
+  if (result.success) {
+    assert.equal(result.data.id, null);
+    assert.equal(result.data.customer_email_snapshot, null);
+    assert.equal(result.data.terms, null);
+    assert.equal(result.data.items[0].product_id, null);
+    assert.equal(result.data.items[0].width, null);
+  }
 });
 
 test("new quotations use the client seven-day validity and editable default terms", () => {
