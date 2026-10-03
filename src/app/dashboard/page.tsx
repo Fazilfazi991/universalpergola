@@ -300,8 +300,8 @@ export default async function DashboardPage({
               className="min-w-0 rounded-lg border border-line bg-paper p-4"
             >
               <FileText size={17} className="text-brass-dark" />
-              <strong className="mt-4 block truncate text-xl tracking-[-0.03em]">
-                {item.value}
+              <strong className="mt-4 dashboard-value block text-xl tracking-[-0.03em]">
+                {typeof item.value === "string" ? item.value.replaceAll("\u00a0", " ") : item.value}
               </strong>
               <p className="mt-2 text-xs leading-4 text-stone">{item.label}</p>
             </Link>
@@ -317,7 +317,7 @@ export default async function DashboardPage({
               ["Outstanding", financeMetrics.outstanding, "/dashboard/payments"],
               ["Overdue", financeMetrics.overdue, "/dashboard/payments?due=overdue"],
               ["Due next 7 days", financeMetrics.due_soon, "/dashboard/payments?due=soon"],
-            ].map(([label, value, href]) => <Link key={label} href={String(href)} className="rounded-lg border border-line bg-paper p-4"><strong className={`block truncate text-xl tracking-[-0.03em] ${label === "Overdue" && Number(value) > 0 ? "text-red-700" : ""}`}>{label === "Due next 7 days" ? Number(value) : formatMoney(Number(value))}</strong><p className="mt-3 text-xs text-stone">{label}</p></Link>)}
+            ].map(([label, value, href]) => <Link key={label} href={String(href)} className="rounded-lg border border-line bg-paper p-4"><strong className={`dashboard-value block text-xl tracking-[-0.03em] ${label === "Overdue" && Number(value) > 0 ? "text-red-700" : ""}`}>{label === "Due next 7 days" ? Number(value) : formatMoney(Number(value)).replaceAll("\u00a0", " ")}</strong><p className="mt-3 text-xs text-stone">{label}</p></Link>)}
           </div>
           <p className="text-xs text-stone">Received today: <strong className="text-graphite">{formatMoney(financeMetrics.received_today)}</strong> · Total received: {formatMoney(financeMetrics.received)} · Portfolio value: {formatMoney(financeMetrics.project_value)}</p>
         </section>

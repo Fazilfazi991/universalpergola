@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Banknote,
   BarChart3,
@@ -133,6 +133,7 @@ function NavLinks({
             <Link
               key={item.href}
               href={item.href}
+              aria-current={active ? "page" : undefined}
               onClick={onNavigate}
               className={`flex min-h-11 items-center gap-3 rounded-md px-3 text-sm ${active ? "bg-white/10 font-medium text-white" : "text-white/55 hover:bg-white/6 hover:text-white"}`}
             >
@@ -153,6 +154,19 @@ export function DashboardShell({
   profile: { fullName: string; email: string; role: AppRole };
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = menuRef.current;
+    if (!dialog) return;
+    if (!menuOpen) {
+      dialog.close();
+      return;
+    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialog.showModal();
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [menuOpen]);
   const pathname = usePathname();
   const preferredMobileHrefs =
     profile.role === "admin" || profile.role === "sales"
@@ -183,7 +197,7 @@ export function DashboardShell({
   );
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-limestone">
+    <div className="dashboard-shell min-h-screen overflow-x-clip bg-limestone">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/8 bg-ink p-4 text-white lg:flex">
         <div className="px-1 py-2">
           <BrandMark href="/dashboard" inverse />
@@ -219,17 +233,29 @@ export function DashboardShell({
         </div>
       </header>
 
-      {menuOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-ink/45 lg:hidden"
-          onClick={() => setMenuOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-      <aside
-        className={`fixed inset-y-0 right-0 z-50 flex w-[min(88vw,22rem)] flex-col bg-ink p-4 text-white shadow-2xl transition-transform lg:hidden ${menuOpen ? "translate-x-0" : "translate-x-full"}`}
-        aria-hidden={!menuOpen}
+      <dialog
+        ref={menuRef}
+        id="dashboard-menu"
+        aria-label="Dashboard menu"
+        onCancel={() => setMenuOpen(false)}
+        onClose={() => setMenuOpen(false)}
+        onKeyDown={(event) => {
+          if (event.key !== "Tab") return;
+          const items = Array.from(event.currentTarget.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('a[href], button:not([disabled])'));
+          const first = items[0];
+          const last = items[items.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last?.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first?.focus();
+          }
+        }}
+        onClick={(event) => { if (event.target === event.currentTarget) setMenuOpen(false); }}
+        className="dashboard-menu fixed inset-y-0 left-auto right-0 m-0 h-dvh max-h-none w-[min(88vw,22rem)] max-w-none border-0 bg-ink p-4 text-white shadow-2xl backdrop:bg-ink/45 lg:hidden"
       >
+        <div className="flex h-full min-h-0 flex-col">
         <div className="flex items-center justify-between">
           <BrandMark href="/dashboard" inverse />
           <button
@@ -252,11 +278,12 @@ export function DashboardShell({
             Sign out
           </button>
         </form>
-      </aside>
+        </div>
+      </dialog>
 
-      <main className="min-w-0 pb-24 lg:ml-64 lg:pb-0">
+      <main className="min-w-0 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:ml-64 lg:pb-0">
         <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-          {isDemoMode() && <div className="mb-6 rounded-lg border border-brass/30 bg-brass/10 px-4 py-3 text-sm text-graphite"><strong>Fusion Ventures Demo</strong><span className="ml-2 text-stone">Synthetic data · Changes reset when the page reloads</span></div>}
+          {isDemoMode() && <div className="mb-5 flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg border border-brass/30 bg-brass/10 px-3 py-2 text-xs leading-5 text-graphite"><strong>Fusion Ventures Demo</strong><span className="text-stone">Fictional data · Changes reset on reload</span></div>}
           {children}
         </div>
       </main>
@@ -274,6 +301,7 @@ export function DashboardShell({
             <Link
               key={item.href}
               href={item.href}
+              aria-current={active ? "page" : undefined}
               className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-md text-[10px] ${active ? "text-brass-dark" : "text-stone"}`}
             >
               <item.icon size={19} strokeWidth={active ? 2 : 1.7} />
@@ -285,6 +313,7 @@ export function DashboardShell({
           type="button"
           onClick={() => setMenuOpen(true)}
           aria-expanded={menuOpen}
+          aria-controls="dashboard-menu"
           className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-md text-[10px] text-stone"
         >
           <Menu size={19} strokeWidth={1.7} />
