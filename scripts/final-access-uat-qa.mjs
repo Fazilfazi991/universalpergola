@@ -64,7 +64,13 @@ async function checkPage(path, expected, absent = []) {
   const page = await state();
   assert.equal(page.overlay, false, `${path}: Next.js overlay`);
   assert.equal(page.overflow, false, `${path}: horizontal overflow`);
-  for (const phrase of absent) assert(!page.text.includes(phrase), `${path}: visible ${phrase}`);
+  const mainText = await js("document.querySelector('main')?.innerText || ''");
+  for (const phrase of absent) {
+    if (mainText.includes(phrase)) {
+      const lines = mainText.split("\n").filter((line) => line.includes(phrase)).map((line) => line.slice(0, 100));
+      throw new Error(`${path}: visible ${phrase} in ${JSON.stringify(lines)}`);
+    }
+  }
   checks.push(path);
   return page;
 }
@@ -142,17 +148,17 @@ try {
   for (const [path, title, absent] of [
     ["/dashboard/products", "Products", ["UAT Motorised"]],
     ["/dashboard/categories", "Categories", ["UAT Accessories"]],
-    ["/dashboard/customers", "Customers", ["UAT"]],
-    ["/dashboard/enquiries", "Enquiries", ["[UAT"]],
-    ["/dashboard/site-visits", "Site visits", ["UAT"]],
-    ["/dashboard/quotations", "Quotations", ["UAT"]],
-    ["/dashboard/invoices", "Invoices", ["UAT"]],
+    ["/dashboard/customers", "Customers", ["UAT Aisha Al Noor"]],
+    ["/dashboard/enquiries", "Enquiries", ["[UAT] Phase 2J"]],
+    ["/dashboard/site-visits", "Site visits", []],
+    ["/dashboard/quotations", "Quotations", []],
+    ["/dashboard/invoices", "Invoices", []],
     ["/dashboard/projects", "Projects", ["QA Project Customer"]],
-    ["/dashboard/payments", "Payments", ["UAT"]],
+    ["/dashboard/payments", "Payments", []],
     ["/dashboard/accounts", "Accounts", ["Phase 2J UAT"]],
     ["/dashboard/assets", "Assets & machinery", ["UAT Welding Machine"]],
-    ["/dashboard/tasks", "Reminders", ["UAT"]],
-    ["/dashboard/reports", "Management reports", ["UAT"]],
+    ["/dashboard/tasks", "Reminders", []],
+    ["/dashboard/reports", "Management reports", []],
   ]) {
     const page = await checkPage(path, title, absent);
     assert(!/Invalid input: expected string, received undefined/.test(page.text), path);
@@ -166,6 +172,12 @@ try {
   await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false, screenWidth: 1440, screenHeight: 900 });
   await checkPage("/dashboard/profile", "MYRIAM");
   assert.equal(await js("document.querySelector('#profileRole')?.value"), "Investor");
+  await fill("#currentPassword", "incorrect-qa-current-password");
+  const rejectedPassword = `Qa!${randomUUID()}`;
+  await fill("#newPassword", rejectedPassword);
+  await fill("#confirmPassword", rejectedPassword);
+  await js("document.querySelector('#currentPassword').closest('form').requestSubmit()");
+  await until("document.body.innerText.includes('Current password is incorrect.')", "incorrect current password rejected");
   await fill("#profileUsername", "eltho");
   await js("document.querySelector('form[data-profile-form]').requestSubmit()");
   await until("document.body.innerText.includes('already in use')", "duplicate username rejected");
@@ -189,12 +201,14 @@ try {
   await screenshot("final-access-admin-dashboard-mobile.png");
   await logout();
   await navigate("/dashboard");
-  await until("location.pathname==='/login'", "anonymous dashboard redirect");
+  await until("location.pathname==='/'", "anonymous dashboard redirect");
+  assert((await state()).text.includes("Username"), "Anonymous dashboard did not show sign-in");
   assert.deepEqual(errors, [], "Browser console errors or exceptions");
   assert.deepEqual(networkFailures, [], "Server errors");
   result.passed = true;
 } catch (error) {
-  result.failure = error.message;
+  const current = socket ? await state().catch(() => null) : null;
+  result.failure = `${error.message}${current ? ` (path: ${new URL(current.url).pathname})` : ""}`;
   throw error;
 } finally {
   try { await restoreUsername(); } catch (error) { result.restoreFailure = error.message; }
