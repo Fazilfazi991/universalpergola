@@ -18,7 +18,7 @@ Vercel project: `universalpergola` (`prj_4uZueMJS6BhyAZEXmS4kwcHBqarF`), team `f
 | `NEXT_PUBLIC_SUPABASE_URL` | One variable shared by Production and all Preview | Incorrect for isolation; both resolve to `jwyjuhtektmtqffnillj` |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | One variable shared by Production and all Preview | Incorrect for isolation; replace with target-specific keys at cutover |
 | `NEXT_PUBLIC_APP_URL` | One shared Production/Preview variable, plus `uat/phase-2j` Preview override | Branch override exists; verify exact origins for each target |
-| `SUPABASE_USERNAME_LOOKUP_SECRET` | Preview, restricted to `uat/phase-2j` | Production lacks this variable; username login requires it and will report sign-in unavailable until independently provisioned with a matching database secret hash |
+| `SUPABASE_USERNAME_LOOKUP_SECRET` | Preview, restricted to `uat/phase-2j` | Deployed `main` still uses email/password login. A future Production release of UAT username login requires a separate secret and matching private database hash. |
 
 Vercel variable changes apply to **new deployments**. When authorized, set separate Production and Preview values, deploy each target, and confirm the actual mapping before DNS or traffic changes. See [Vercel environment variables](https://vercel.com/docs/environment-variables) and [environment management](https://vercel.com/docs/environment-variables/manage-across-environments).
 
