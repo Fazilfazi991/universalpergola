@@ -12,9 +12,9 @@ export function LoginForm({ disabled = false }: { disabled?: boolean }) {
   return (
     <form action={action} className="mt-8 space-y-5" noValidate>
       <div>
-        <label htmlFor="email" className="mb-2 block text-sm font-medium text-graphite">Work email</label>
-        <input id="email" name="email" type="email" autoComplete="email" inputMode="email" required disabled={disabled || pending} className="min-h-12 w-full rounded-lg border border-line bg-white px-4 text-base text-graphite shadow-[0_1px_0_rgba(0,0,0,0.03)] placeholder:text-stone/60 disabled:cursor-not-allowed disabled:bg-stone/5" placeholder="name@universalpergola.com" aria-describedby={state.fieldErrors?.email ? "email-error" : undefined} />
-        {state.fieldErrors?.email && <p id="email-error" className="mt-1.5 text-sm text-red-700">{state.fieldErrors.email[0]}</p>}
+        <label htmlFor="username" className="mb-2 block text-sm font-medium text-graphite">Username</label>
+        <input id="username" name="username" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false} required disabled={disabled || pending} className="min-h-12 w-full rounded-lg border border-line bg-white px-4 text-base text-graphite shadow-[0_1px_0_rgba(0,0,0,0.03)] placeholder:text-stone/60 disabled:cursor-not-allowed disabled:bg-stone/5" placeholder="Enter your username" aria-describedby={state.fieldErrors?.username ? "username-error" : undefined} />
+        {state.fieldErrors?.username && <p id="username-error" className="mt-1.5 text-sm text-red-700">{state.fieldErrors.username[0]}</p>}
       </div>
       <div>
         <div className="mb-2 flex items-center justify-between"><label htmlFor="password" className="text-sm font-medium text-graphite">Password</label><span className="text-xs text-stone">Staff access</span></div>

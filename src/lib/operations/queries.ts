@@ -8,7 +8,7 @@ export async function getOperationsLedger() {
   const [expenses, wages, bills] = await Promise.all([
     supabase.from("internal_expenses").select("id, scope, project_id, category, description, vendor, expense_date, amount, currency, payment_method, reference, notes, created_at, project:projects!internal_expenses_project_id_fkey(project_number)").is("archived_at", null).order("expense_date", { ascending: false }).limit(200),
     supabase.from("labour_wages").select("id, worker_name, work_date, project_id, work_description, hours, amount, currency, status, notes, project:projects!labour_wages_project_id_fkey(project_number)").is("archived_at", null).order("work_date", { ascending: false }).limit(200),
-    supabase.from("purchase_bills").select("id, expense_id, asset_id, vendor, bill_number, bill_date, file_name, storage_path, mime_type, file_size, created_at").order("created_at", { ascending: false }).limit(200),
+    supabase.from("purchase_bills").select("id, expense_id, asset_id, vendor, bill_number, bill_date, file_name, storage_path, mime_type, file_size, created_at").is("archived_at", null).order("created_at", { ascending: false }).limit(200),
   ]);
   if (expenses.error || wages.error || bills.error) throw new Error("Unable to load Accounts ledgers.");
   return { expenses: (expenses.data || []) as unknown as InternalExpense[], wages: (wages.data || []) as unknown as LabourWage[], bills: (bills.data || []) as Array<Record<string, unknown>> };

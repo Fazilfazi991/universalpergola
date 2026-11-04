@@ -44,9 +44,9 @@ export async function getFeedbackQueue(status?: string) {
   if (!supabase) return [] as FeedbackRecord[];
   let query = supabase.from("feedback").select(selection).order("updated_at", { ascending: false }).limit(150);
   if (["not_requested", "requested", "received", "reviewed", "archived"].includes(status || "")) {
-    query = query.eq("status", status as FeedbackStatus);
+    query = status === "archived" ? query.eq("status", "archived") : query.eq("status", status as FeedbackStatus).is("archived_at", null);
   } else {
-    query = query.neq("status", "archived");
+    query = query.neq("status", "archived").is("archived_at", null);
   }
   const { data, error } = await query;
   if (error) throw new Error(`Unable to load feedback: ${error.message}`);
@@ -68,7 +68,7 @@ export async function getCustomerFeedback(customerId: string) {
   if (!supabase) return [] as FeedbackRecord[];
   const customerSelection = selection.replace("projects!feedback_project_id_fkey(", "projects!feedback_project_id_fkey!inner(");
   const { data, error } = await supabase.from("feedback").select(customerSelection)
-    .eq("project.customer_id", customerId).neq("status", "archived")
+    .eq("project.customer_id", customerId).neq("status", "archived").is("archived_at", null)
     .order("updated_at", { ascending: false }).limit(20);
   if (error) throw new Error(`Unable to load customer feedback: ${error.message}`);
   return (data || []) as unknown as FeedbackRecord[];
@@ -87,7 +87,7 @@ export async function getCompletedProjectsForFeedback() {
 export async function getFeedbackDashboard() {
   const supabase = await createClient();
   if (!supabase) return { awaitingReview: 0 };
-  const { count, error } = await supabase.from("feedback").select("id", { count: "exact", head: true }).eq("status", "received");
+  const { count, error } = await supabase.from("feedback").select("id", { count: "exact", head: true }).eq("status", "received").is("archived_at", null);
   if (error) throw new Error(`Unable to load feedback summary: ${error.message}`);
   return { awaitingReview: count || 0 };
 }

@@ -189,7 +189,7 @@ export function DashboardShell({
   );
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-limestone">
+    <div className="min-h-screen overflow-x-clip bg-limestone" data-role={profile.role}>
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/8 bg-ink p-4 text-white lg:flex">
         <div className="px-1 py-2">
           <BrandMark href="/dashboard" inverse />
@@ -204,6 +204,8 @@ export function DashboardShell({
           <p className="truncate px-3 pt-0.5 text-xs text-white/40">
             {roleLabels[profile.role]}
           </p>
+          <Link href="/dashboard/profile" className="mt-3 flex min-h-10 items-center rounded-md px-3 text-sm text-white/65 hover:bg-white/6 hover:text-white">Profile</Link>
+          <Link href="/dashboard/profile#change-password" className="flex min-h-10 items-center rounded-md px-3 text-sm text-white/65 hover:bg-white/6 hover:text-white">Change password</Link>
           <form action={signOutAction}>
             <button
               type="submit"
@@ -250,6 +252,8 @@ export function DashboardShell({
         <div className="mt-7 min-h-0 flex-1 overflow-y-auto">
           <NavLinks role={profile.role} onNavigate={() => setMenuOpen(false)} />
         </div>
+        <Link href="/dashboard/profile" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center rounded-md px-3 text-sm text-white/65">Profile</Link>
+        <Link href="/dashboard/profile#change-password" onClick={() => setMenuOpen(false)} className="flex min-h-11 items-center rounded-md px-3 text-sm text-white/65">Change password</Link>
         <form action={signOutAction}>
           <button
             type="submit"
@@ -262,6 +266,7 @@ export function DashboardShell({
 
       <main className="min-w-0 pb-24 lg:ml-64 lg:pb-0">
         <div className="w-full min-w-0 px-4 py-6 sm:px-6 sm:py-8 lg:px-6 2xl:px-10">
+          {profile.role === "investor" && <p className="mb-5 rounded-md border border-brass/30 bg-brass/10 px-4 py-2 text-sm text-brass-dark">Investor view · read-only business access</p>}
           {children}
         </div>
       </main>

@@ -1410,6 +1410,7 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
           status: Database["public"]["Enums"]["profile_status"]
           updated_at: string
+          username: string
         }
         Insert: {
           avatar_path?: string | null
@@ -1421,6 +1422,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           status?: Database["public"]["Enums"]["profile_status"]
           updated_at?: string
+          username?: string
         }
         Update: {
           avatar_path?: string | null
@@ -1432,6 +1434,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           status?: Database["public"]["Enums"]["profile_status"]
           updated_at?: string
+          username?: string
         }
         Relationships: []
       }
@@ -2030,6 +2033,7 @@ export type Database = {
       }
       purchase_bills: {
         Row: {
+          archived_at: string | null
           asset_id: string | null
           bill_date: string | null
           bill_number: string | null
@@ -2044,6 +2048,7 @@ export type Database = {
           vendor: string | null
         }
         Insert: {
+          archived_at?: string | null
           asset_id?: string | null
           bill_date?: string | null
           bill_number?: string | null
@@ -2058,6 +2063,7 @@ export type Database = {
           vendor?: string | null
         }
         Update: {
+          archived_at?: string | null
           asset_id?: string | null
           bill_date?: string | null
           bill_number?: string | null
@@ -3065,6 +3071,10 @@ export type Database = {
         Args: { p_note: string; p_project_id: string }
         Returns: undefined
       }
+      resolve_login_username: {
+        Args: { p_username: string; p_ip_hash: string; p_secret: string }
+        Returns: string | null
+      }
       request_project_feedback: {
         Args: { p_expires_at?: string; p_project_id: string }
         Returns: string
@@ -3206,7 +3216,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "sales" | "site_team" | "accounts"
+      app_role: "admin" | "sales" | "site_team" | "accounts" | "investor"
       asset_status:
         | "planned"
         | "active"
@@ -3425,7 +3435,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      app_role: ["admin", "sales", "site_team", "accounts"],
+      app_role: ["admin", "sales", "site_team", "accounts", "investor"],
       asset_status: ["planned", "active", "maintenance", "retired", "archived"],
       customer_type: ["individual", "company"],
       enquiry_status: [

@@ -16,7 +16,7 @@ type Tab = "quotations" | "invoices" | "receipts";
 function value(input: string | string[] | undefined) { return typeof input === "string" ? input : ""; }
 
 export default async function CommercialDocumentsPage({ searchParams }: PageProps<"/dashboard/documents">) {
-  const [, params] = await Promise.all([requireModuleAccess("documents"), searchParams]);
+  const [profile, params] = await Promise.all([requireModuleAccess("documents"), searchParams]);
   const tab = (["quotations", "invoices", "receipts"].includes(value(params.tab)) ? value(params.tab) : "quotations") as Tab;
   const searchTerm = value(params.search).trim();
   const search = normalizeSearchTerm(searchTerm);
@@ -30,7 +30,7 @@ export default async function CommercialDocumentsPage({ searchParams }: PageProp
     { id: "receipts", label: "Receipts", count: filteredReceipts.length },
   ];
   return <div className="space-y-7">
-    <PageHeading title="Commercial Documents" description="One private register for quotations, invoices, and payment receipts—linked by the shared client/job reference." action={<Link href="/dashboard/invoices/new" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-graphite px-4 text-sm font-semibold text-white"><FilePlus2 size={17} />Generate invoice</Link>} />
+    <PageHeading title="Commercial Documents" description="One private register for quotations, invoices, and payment receipts—linked by the shared client/job reference." action={profile.role === "investor" ? undefined : <Link href="/dashboard/invoices/new" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-graphite px-4 text-sm font-semibold text-white"><FilePlus2 size={17} />Generate invoice</Link>} />
     <section className="overflow-hidden rounded-lg border border-line bg-paper">
       <form className="grid gap-3 border-b border-line p-4 sm:grid-cols-[minmax(0,1fr)_auto]"><input type="hidden" name="tab" value={tab} /><label className="sr-only" htmlFor="document-search">Search commercial documents</label><input id="document-search" name="search" defaultValue={value(params.search)} placeholder="Search number, reference, customer, project, or site" className="min-h-11 rounded-md border border-line bg-paper px-3 text-base" /><button className="min-h-11 rounded-md border border-line bg-limestone px-5 text-sm font-semibold">Search</button></form>
       <nav className="grid grid-cols-3" aria-label="Commercial document types">{tabs.map((item) => <Link key={item.id} href={`/dashboard/documents?tab=${item.id}${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`} className={`flex min-h-14 items-center justify-center gap-2 border-r border-line px-3 text-sm font-semibold last:border-r-0 ${tab === item.id ? "bg-graphite text-white" : "text-stone hover:bg-limestone"}`}><span>{item.label}</span><span className={`rounded-sm px-1.5 py-0.5 text-xs ${tab === item.id ? "bg-white/10 text-white/70" : "bg-limestone text-stone"}`}>{item.count}</span></Link>)}</nav>

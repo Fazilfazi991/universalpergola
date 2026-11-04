@@ -14,6 +14,7 @@ export type CurrentProfile = {
   id: string;
   fullName: string;
   email: string;
+  username: string;
   role: AppRole;
 };
 
@@ -32,7 +33,7 @@ export const requireCurrentProfile = cache(async (): Promise<CurrentProfile> => 
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, status")
+    .select("id, full_name, email, username, role, status")
     .eq("id", userData.user.id)
     .single();
 
@@ -50,6 +51,7 @@ export const requireCurrentProfile = cache(async (): Promise<CurrentProfile> => 
     id: profile.id,
     fullName: profile.full_name || "Team member",
     email: profile.email || userData.user.email || "",
+    username: profile.username,
     role: profile.role as AppRole,
   };
 });

@@ -3,12 +3,12 @@ import { ArrowLeft, ArrowRight, FilePlus2 } from "lucide-react";
 import { createInvoiceFromProjectAction } from "@/app/dashboard/invoices/actions";
 import { PageHeading } from "@/components/ui/page-heading";
 import { StatusNotice } from "@/components/ui/status-notice";
-import { requireModuleAccess } from "@/lib/auth/dal";
+import { requireRole } from "@/lib/auth/dal";
 import { getInvoiceSourceProjects } from "@/lib/invoices/queries";
 import { formatMoney } from "@/lib/quotations/money";
 
 export default async function NewInvoicePage({ searchParams }: PageProps<"/dashboard/invoices/new">) {
-  const [, params, projects] = await Promise.all([requireModuleAccess("invoices"), searchParams, getInvoiceSourceProjects()]);
+  const [, params, projects] = await Promise.all([requireRole(["admin", "accounts"]), searchParams, getInvoiceSourceProjects()]);
   const selected = typeof params.project === "string" ? projects.find((project) => project.id === params.project) : undefined;
   const error = typeof params.error === "string" ? params.error : "";
   return <div className="space-y-7">

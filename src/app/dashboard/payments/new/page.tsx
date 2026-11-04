@@ -2,12 +2,12 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { RecordPaymentForm } from "@/components/dashboard/payment-controls";
 import { PageHeading } from "@/components/ui/page-heading";
-import { requireModuleAccess } from "@/lib/auth/dal";
+import { requireRole } from "@/lib/auth/dal";
 import { formatMoney } from "@/lib/quotations/money";
 import { getFinanceProjectSummaries, getMilestoneSummaries } from "@/lib/payments/queries";
 
 export default async function NewPaymentPage({ searchParams }: PageProps<"/dashboard/payments/new">) {
-  await requireModuleAccess("payments");
+  await requireRole(["admin", "accounts"]);
   const [params, projects] = await Promise.all([searchParams, getFinanceProjectSummaries()]);
   const projectId = typeof params.project === "string" ? params.project : "";
   const milestones = projectId ? await getMilestoneSummaries(projectId) : [];

@@ -10,7 +10,7 @@ function money(value: unknown) { return Number(value || 0); }
 function percent(numerator: number, denominator: number) { return denominator ? Math.round((numerator / denominator) * 1000) / 10 : null; }
 
 export async function getManagementReport(range: Range, role: AppRole) {
-  if (role !== "admin") throw new Error("Management report access is restricted.");
+  if (role !== "admin" && role !== "investor") throw new Error("Management report access is restricted.");
   const supabase = await createClient();
   if (!supabase) throw new Error("Supabase is not configured.");
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dubai" }).format(new Date());
@@ -26,8 +26,8 @@ export async function getManagementReport(range: Range, role: AppRole) {
     supabase.from("payments").select("id, amount_received, received_date, voided_at, archived_at").gte("received_date", range.from).lte("received_date", range.to).is("voided_at", null).is("archived_at", null).limit(3000),
     supabase.rpc("get_finance_project_summaries"),
     supabase.rpc("get_finance_milestone_queue"),
-    supabase.from("feedback").select("id, status, customer_rating, submitted_at, updated_at, project:projects!feedback_project_id_fkey(id, project_number, customer:customers!projects_customer_id_fkey(id, name))").gte("submitted_at", range.fromTimestamp).lte("submitted_at", range.toTimestamp).limit(1000),
-    supabase.from("feedback").select("id, status, customer_rating, submitted_at, updated_at, project:projects!feedback_project_id_fkey(id, project_number, customer:customers!projects_customer_id_fkey(id, name))").eq("status", "received").order("submitted_at", { ascending:false }).limit(50),
+    supabase.from("feedback").select("id, status, customer_rating, submitted_at, updated_at, project:projects!feedback_project_id_fkey(id, project_number, customer:customers!projects_customer_id_fkey(id, name))").gte("submitted_at", range.fromTimestamp).lte("submitted_at", range.toTimestamp).is("archived_at", null).limit(1000),
+    supabase.from("feedback").select("id, status, customer_rating, submitted_at, updated_at, project:projects!feedback_project_id_fkey(id, project_number, customer:customers!projects_customer_id_fkey(id, name))").eq("status", "received").is("archived_at", null).order("submitted_at", { ascending:false }).limit(50),
   ]);
   const failures = [enquiriesResult, visitsResult, quotesResult, projectsResult, followUpsResult, paymentsResult, financeResult, milestonesResult, feedbackResult, feedbackReviewResult].filter((result) => result.error);
   if (failures.length) throw new Error(`Unable to load management report: ${failures[0].error?.message}`);

@@ -390,7 +390,7 @@ export function getSiteVisitQuotations(id: string) {
 }
 
 export async function getQuotationDashboard(role: AppRole) {
-  if (!(["admin", "sales", "accounts"] as AppRole[]).includes(role))
+  if (!(["admin", "sales", "accounts", "investor"] as AppRole[]).includes(role))
     return null;
   const supabase = await createClient();
   if (!supabase) return null;

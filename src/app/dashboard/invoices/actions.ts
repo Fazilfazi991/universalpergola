@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireModuleAccess } from "@/lib/auth/dal";
+import { requireRole } from "@/lib/auth/dal";
 import { isUuid } from "@/lib/crm/validation";
 import { createClient } from "@/lib/supabase/server";
 import { parseInvoiceDraft, invoiceTransitionSchema } from "@/lib/invoices/validation";
@@ -17,7 +17,7 @@ function refreshInvoicePaths(id?: string) {
 }
 
 export async function createInvoiceFromProjectAction(formData: FormData) {
-  await requireModuleAccess("invoices");
+  await requireRole(["admin", "accounts"]);
   const projectId = String(formData.get("project_id") || "");
   if (!isUuid(projectId)) redirect("/dashboard/invoices/new?error=invalid-project");
   const supabase = await createClient();
@@ -34,7 +34,7 @@ export async function saveInvoiceDraftAction(
   _state: InvoiceActionState,
   formData: FormData,
 ): Promise<InvoiceActionState> {
-  await requireModuleAccess("invoices");
+  await requireRole(["admin", "accounts"]);
   if (!isUuid(invoiceId)) return { status: "error", message: "Invalid invoice identifier." };
   const parsed = parseInvoiceDraft(formData);
   if (!parsed.success) return { status: "error", message: parsed.error.issues[0]?.message || "Check the invoice details." };
@@ -50,7 +50,7 @@ export async function saveInvoiceDraftAction(
 }
 
 export async function transitionInvoiceAction(formData: FormData) {
-  await requireModuleAccess("invoices");
+  await requireRole(["admin", "accounts"]);
   const parsed = invoiceTransitionSchema.safeParse({
     id: String(formData.get("id") || ""),
     action: String(formData.get("action") || ""),
@@ -70,7 +70,7 @@ export async function transitionInvoiceAction(formData: FormData) {
 }
 
 export async function recordInvoicePdfGeneration(id: string) {
-  await requireModuleAccess("invoices");
+  await requireRole(["admin", "accounts"]);
   if (!isUuid(id)) return;
   const supabase = await createClient();
   if (!supabase) return;

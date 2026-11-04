@@ -38,6 +38,17 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 
 button:not(:disabled), a[href], summary { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
+
+/* The database enforces Investor read access; these rules also remove stale
+   create/edit affordances from existing operational detail components. */
+[data-role="investor"] main a[href$="/new"],
+[data-role="investor"] main a[href*="/new?"],
+[data-role="investor"] main a[href$="/edit"],
+[data-role="investor"] main a[href*="/edit?"],
+[data-role="investor"] main a[href="#new-reminder"],
+[data-role="investor"] main #new-reminder,
+[data-role="investor"] main form[method="post"]:not([data-profile-form]):not([data-readonly-form]),
+[data-role="investor"] main input[type="file"] { display: none; }
 button:not(:disabled):hover { filter: brightness(0.97); }
 button:not(:disabled):active { transform: translateY(1px); }
 

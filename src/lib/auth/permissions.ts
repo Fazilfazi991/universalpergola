@@ -1,4 +1,4 @@
-export const APP_ROLES = ["admin", "sales", "site_team", "accounts"] as const;
+export const APP_ROLES = ["admin", "sales", "site_team", "accounts", "investor"] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 export type DashboardModule =
@@ -32,6 +32,10 @@ const permissions: Record<AppRole, readonly DashboardModule[]> = {
   ],
   site_team: ["site-visits", "projects", "tasks"],
   accounts: ["customers", "quotations", "documents", "invoices", "projects", "payments", "tasks", "accounts"],
+  investor: [
+    "products", "categories", "enquiries", "customers", "site-visits", "quotations",
+    "documents", "invoices", "projects", "payments", "tasks", "feedback", "reports", "accounts",
+  ],
 };
 
 export function canAccessModule(role: AppRole, module: DashboardModule) {
@@ -43,4 +47,5 @@ export const roleLabels: Record<AppRole, string> = {
   sales: "Sales",
   site_team: "Site Team",
   accounts: "Accounts",
+  investor: "Investor",
 };

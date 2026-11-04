@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireModuleAccess, requireManagement } from "@/lib/auth/dal";
+import { requireRole, requireManagement } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 import { requestFeedbackSchema, reviewFeedbackSchema, staffFeedbackSchema } from "@/lib/feedback/validation";
 import { isUuid } from "@/lib/crm/validation";
@@ -17,7 +17,7 @@ function feedbackRedirect(message: string, tone: "notice" | "error" = "notice"):
 }
 
 export async function requestFeedbackAction(formData: FormData) {
-  await requireModuleAccess("feedback");
+  await requireRole(["admin", "sales"]);
   const expiry = value(formData, "expires_at");
   const expiryIso = /^\d{4}-\d{2}-\d{2}$/.test(expiry) ? new Date(`${expiry}T23:59:59+04:00`).toISOString() : "";
   const parsed = requestFeedbackSchema.safeParse({
@@ -39,7 +39,7 @@ export async function requestFeedbackAction(formData: FormData) {
 }
 
 export async function revokeFeedbackLinkAction(formData: FormData) {
-  await requireModuleAccess("feedback");
+  await requireRole(["admin", "sales"]);
   const projectId = value(formData, "project_id");
   if (!isUuid(projectId)) feedbackRedirect("Invalid project reference.", "error");
   const supabase = await createClient();
@@ -52,7 +52,7 @@ export async function revokeFeedbackLinkAction(formData: FormData) {
 }
 
 export async function saveStaffFeedbackAction(formData: FormData) {
-  await requireModuleAccess("feedback");
+  await requireRole(["admin", "sales"]);
   const parsed = staffFeedbackSchema.safeParse({
     project_id: value(formData, "project_id"),
     rating: value(formData, "rating"),

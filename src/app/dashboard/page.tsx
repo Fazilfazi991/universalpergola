@@ -39,20 +39,20 @@ export default async function DashboardPage({
     requireCurrentProfile(),
     searchParams,
   ]);
-  const canUseCrm = profile.role === "admin" || profile.role === "sales";
+  const canUseCrm = profile.role === "admin" || profile.role === "sales" || profile.role === "investor";
   const canUseVisits = canUseCrm || profile.role === "site_team";
   const canUseQuotations =
     profile.role === "admin" ||
     profile.role === "sales" ||
-    profile.role === "accounts";
-  const canUseFinance = profile.role === "admin" || profile.role === "accounts";
+    profile.role === "accounts" || profile.role === "investor";
+  const canUseFinance = profile.role === "admin" || profile.role === "accounts" || profile.role === "investor";
   const [crm, visits, quotationMetrics, projectMetrics, financeMetrics, feedbackMetrics] = await Promise.all([
     canUseCrm ? getCrmDashboard() : null,
     canUseVisits ? getSiteVisitDashboard() : null,
     canUseQuotations ? getQuotationDashboard(profile.role) : null,
     getProjectDashboard(),
     canUseFinance ? getFinanceDashboardSummary() : null,
-    profile.role === "admin" ? getFeedbackDashboard() : null,
+    profile.role === "admin" || profile.role === "investor" ? getFeedbackDashboard() : null,
   ]);
   const summaries = crm
     ? [

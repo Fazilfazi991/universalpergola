@@ -63,7 +63,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/dashboa
   const recorderOptions = uniqueOptions(receipts, (item) => item.creator?.id || "", (item) => item.creator?.full_name || "Team member");
 
   return <div className="space-y-8">
-    <PageHeading title="Payments" description="Authoritative balances, milestone schedules, immutable receipts, and private proof documents." action={<Link href="/dashboard/payments/new" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-graphite px-4 text-sm font-semibold text-white"><ReceiptText size={16} />Record payment</Link>} />
+    <PageHeading title="Payments" description="Authoritative balances, milestone schedules, immutable receipts, and private proof documents." action={profile.role === "investor" ? undefined : <Link href="/dashboard/payments/new" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-graphite px-4 text-sm font-semibold text-white"><ReceiptText size={16} />Record payment</Link>} />
 
     <section className="overflow-hidden rounded-lg border border-line bg-paper" aria-label="Accounts reconciliation">
       <dl className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -114,7 +114,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/dashboa
       {!filteredReceipts.length ? <p className="mt-4 rounded-lg border border-line bg-paper px-5 py-10 text-center text-sm text-stone">No receipts match these filters.</p> : null}
     </section>
 
-    <p className="flex items-center gap-2 text-xs text-stone"><Banknote size={14} />Signed-in role: {profile.role === "admin" ? "Management" : "Accounts"} · all displayed balances are calculated by Postgres.</p>
+    <p className="flex items-center gap-2 text-xs text-stone"><Banknote size={14} />Signed-in role: {profile.role === "admin" ? "Management" : profile.role === "investor" ? "Investor" : "Accounts"} · all displayed balances are calculated by Postgres.</p>
     <p className="sr-only"><TriangleAlert />Overdue risk <CalendarClock />Upcoming dates</p>
   </div>;
 }

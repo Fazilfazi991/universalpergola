@@ -9,11 +9,11 @@ import { getInvoices, invoiceFilters } from "@/lib/invoices/queries";
 import { formatMoney } from "@/lib/quotations/money";
 
 export default async function InvoicesPage({ searchParams }: PageProps<"/dashboard/invoices">) {
-  const [, params] = await Promise.all([requireModuleAccess("invoices"), searchParams]);
+  const [profile, params] = await Promise.all([requireModuleAccess("invoices"), searchParams]);
   const filters = invoiceFilters(params);
   const invoices = await getInvoices(filters);
   return <div className="space-y-7">
-    <PageHeading title="Invoices" description="Commercial invoice snapshots generated from approved project quotations." action={<Link href="/dashboard/invoices/new" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-graphite px-4 text-sm font-semibold text-white"><FilePlus2 size={17} />Generate invoice</Link>} />
+    <PageHeading title="Invoices" description="Commercial invoice snapshots generated from approved project quotations." action={profile.role === "investor" ? undefined : <Link href="/dashboard/invoices/new" className="inline-flex min-h-11 items-center gap-2 rounded-md bg-graphite px-4 text-sm font-semibold text-white"><FilePlus2 size={17} />Generate invoice</Link>} />
     <form className="grid gap-3 border-y border-line bg-paper py-4 sm:rounded-lg sm:border sm:p-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
       <input name="search" defaultValue={filters.search} placeholder="Invoice, reference, customer, project, or site" className="min-h-11 w-full min-w-0 rounded-md border border-line bg-paper px-3 text-base" />
       <select name="status" defaultValue={filters.status} className="min-h-11 w-full min-w-0 rounded-md border border-line bg-paper px-3 text-base"><option value="">Any status</option><option value="draft">Draft</option><option value="issued">Issued</option><option value="partially_paid">Partially paid</option><option value="paid">Paid</option><option value="cancelled">Cancelled</option></select>

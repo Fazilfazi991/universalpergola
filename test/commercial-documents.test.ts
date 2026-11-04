@@ -37,10 +37,11 @@ test("invoice actions and PDF route re-authorize every entry point", () => {
   for (const name of ["createInvoiceFromProjectAction", "saveInvoiceDraftAction", "transitionInvoiceAction", "recordInvoicePdfGeneration"]) {
     const start = actions.indexOf(`function ${name}`);
     assert.notEqual(start, -1, `${name} is missing`);
-    assert.match(actions.slice(start, start + 700), /requireModuleAccess\("invoices"\)/, `${name} must re-authorize`);
+    assert.match(actions.slice(start, start + 700), /requireRole\(\["admin", "accounts"\]\)/, `${name} must require a finance writer`);
   }
   const route = readFileSync(join(process.cwd(), "src/app/dashboard/invoices/[id]/pdf/route.ts"), "utf8");
   assert.ok(route.indexOf('await requireModuleAccess("invoices")') < route.indexOf("await getInvoice(id)"));
+  assert.match(route, /profile\.role === "admin" \|\| profile\.role === "accounts"/);
   assert.match(route, /Cache-Control.*private, no-store/);
   assert.match(route, /X-Content-Type-Options.*nosniff/);
 });

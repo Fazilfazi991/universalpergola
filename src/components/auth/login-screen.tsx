@@ -55,6 +55,11 @@ export function LoginScreen({ reason }: LoginScreenProps) {
                 <p>Your staff profile is missing or inactive. Ask an administrator to review the account.</p>
               </StatusNotice>
             )}
+            {reason === "password-changed" && (
+              <StatusNotice title="Password changed">
+                <p>Sign in with your new password.</p>
+              </StatusNotice>
+            )}
           </div>
           <LoginForm disabled={!configured} />
         </div>

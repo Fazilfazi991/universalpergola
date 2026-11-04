@@ -14,7 +14,7 @@ function localDateTime(value?: string | null) { return value ? new Date(new Date
 function bucket(item: {status:string; due_at:string|null}) { if(item.status === "completed") return "completed"; if(!item.due_at) return "upcoming"; const today = new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Dubai"}).format(new Date()); const day=item.due_at.slice(0,10); return day < today ? "overdue" : day === today ? "today" : "upcoming"; }
 
 export default async function TasksPage({searchParams}:PageProps<"/dashboard/tasks">){
-  const [profile, params, tasks, staff, customers, enquiries, projects] = await Promise.all([requireRole(["admin","sales"]), searchParams, getTaskQueue(), getStaffDirectory(), getCustomerOptions(), getEnquiries({}), getProjects({})]);
+  const [profile, params, tasks, staff, customers, enquiries, projects] = await Promise.all([requireRole(["admin","sales","investor"]), searchParams, getTaskQueue(), getStaffDirectory(), getCustomerOptions(), getEnquiries({}), getProjects({})]);
   const view = typeof params.view === "string" ? params.view : "all";
   const reminders = tasks.filter((task) => task.reminder_type);
   const visible = reminders.filter((item) => view === "all" || bucket(item) === view || (view === "mine" && item.assigned?.id === profile.id));
